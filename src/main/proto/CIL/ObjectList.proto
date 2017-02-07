@@ -1,0 +1,82 @@
+//******************************************************************************
+//
+//  MODULE NAME: $Id$
+//
+//  DESCRIPTION: generic structures
+//               naming convention
+//                 UpperUppercaseGrpof purpose.
+//                 max 20 chars -> 3-5 abbreviation if exceeded
+//
+//  MODIFICATION HISTORY:
+//
+//    DATE      PROG.
+//  DD-MMM-YYYY INIT.   SIR    MODIFICATION DESCRIPTION
+//  ----------- ------- ------ -------------------------------------------------
+//  11-MAY-2012 KANKSEB        Creation
+//  26-FEB-2014 SHARSOM 262902 Introduce C7
+//  20-NOV-2014 BARTRAL 289730 Correct wrong resevation description for 50xxx
+//  13-AUG-2015 BARTRAL 314250 Define range for entitlement system
+//  18-AUG-2015 BARTRAL 314725 Define range for custom properties
+//  25-NOV-2015 BARTRAL 324911 Introduce T7
+//******************************************************************************
+
+// release id
+package CIL;
+
+message GPBHeader
+{
+    extensions 100 to max;
+    // reserved ID ranges:
+    // 00001 - 00099: base attributes
+    //
+    // 00100 - 00199: eurex
+    // 00200 - 00299: prisma2edre
+    // 00300 - 00399: prisma
+    // 00400 - 00499: edre
+    // 00600 - 00699: C7
+    // 00700 - 00799: calypso
+    // 00800 - 00899: carmen
+    // 00900 - 00999: entitlement
+    // 01000 - 01099: T7
+    //
+    // 18000 - 18999: reserved for CIL custom options
+    // 19000 - 19999: reserved by GPB
+    //
+    // max extension id is 2^29 - 1 = 536.870.911
+}
+
+message GPBObject
+{
+    extensions 100 to max;
+    // reserved ID ranges:
+    // 00001 - 00099: base attributes
+    //
+    //  18000 -  18999: reserved for CIL custom options
+    //  19000 -  19999: reserved by GPB
+    //  20000 -  29999: eurex
+    //  30000 -  39999: prisma2edre
+    //  40000 -  49999: prisma
+    //  50000 -  59999: edre
+    //  60000 -  69999: C7
+    //  70000 -  79999: calypso
+    //  80000 -  89999: carmen
+    //  90000 -  99999: entitlement
+    // 100000 - 109999: T7
+    //
+    // max extension id is 2^29 - 1 = 536.870.911
+}
+
+message GPBObjectList
+{
+    optional  GPBHeader             Header                =  1;
+    repeated  GPBObject             Item                  =  2;
+}
+
+
+// use a dummy message to provide a config id which is required in the generated code
+message ObjectList_proto
+{
+    optional  string                CONFIG_ID             =  1 [default = "Static_v001_001_009"];
+    optional  string                SIR_NUMBER            =  2 [default = "324911"];
+    optional  string                GPB_VERSION           =  3 [default = "2.4.1"];
+}
