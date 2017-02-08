@@ -134,7 +134,7 @@
                     <images>
                         <image>
                             <alias>cil</alias>
-                            <name>ecmi/cil:sim</name>
+                            <name>zeromic/cil:prod</name>
                             <run>
                                 <wait>
                                     <log>Broker \(pid=1\) running</log>

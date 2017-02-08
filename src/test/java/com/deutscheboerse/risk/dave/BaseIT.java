@@ -44,8 +44,4 @@ public class BaseIT {
         asyncStart.awaitSuccess();
     }
 
-    protected void testVerticle(Class<?> clazz, JsonObject config, TestContext context) throws InterruptedException {
-        this.deployVerticle(BaseIT.vertx, context, clazz, config);
-    }
-
 }

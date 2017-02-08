@@ -19,6 +19,10 @@ import org.apache.qpid.proton.amqp.messaging.Data;
 import org.apache.qpid.proton.amqp.messaging.Released;
 import org.apache.qpid.proton.amqp.messaging.Section;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 public abstract class AMQPVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(AMQPVerticle.class);
     private static final String DEFAULT_BROKER_HOST = "localhost";
@@ -29,6 +33,8 @@ public abstract class AMQPVerticle extends AbstractVerticle {
     protected ExtensionRegistry registry = ExtensionRegistry.newInstance();
     protected ProtonConnection protonBrokerConnection;
     protected ProtonReceiver protonBrokerReceiver;
+
+    private int counter = 1;
 
     @Override
     public void start(Future<Void> fut) throws Exception {
@@ -108,7 +114,6 @@ public abstract class AMQPVerticle extends AbstractVerticle {
             asyncResult.handle(Future.failedFuture("Message's body is not a 'data' type"));
         } else {
             Binary bin = ((Data) body).getValue();
-            //this.saveMessage(bin);
             try {
                 ObjectList.GPBObjectList gpbObjectList = ObjectList.GPBObjectList.parseFrom(bin.getArray(), this.registry);
                 LOG.debug(String.format("Parsed %d item(s)", gpbObjectList.getItemCount()));
@@ -122,6 +127,19 @@ public abstract class AMQPVerticle extends AbstractVerticle {
             } catch (InvalidProtocolBufferException e) {
                 asyncResult.handle(Future.failedFuture(e));
             }
+        }
+    }
+
+    private void saveMessage(Binary bin) {
+        try {
+            FileOutputStream fos = new FileOutputStream(String.format("/tmp/accountMargin/%03d.bin", this.counter));
+            this.counter++;
+            fos.write(bin.getArray());
+            fos.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

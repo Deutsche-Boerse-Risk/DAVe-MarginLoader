@@ -2,6 +2,7 @@ package com.deutscheboerse.risk.dave;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
+import com.deutscheboerse.risk.dave.model.AccountMarginModel;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -11,19 +12,19 @@ import io.vertx.core.logging.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class AccountMargin extends AMQPVerticle {
-    private static final Logger LOG = LoggerFactory.getLogger(AccountMargin.class);
+public class AccountMarginVerticle extends AMQPVerticle {
+    private static final Logger LOG = LoggerFactory.getLogger(AccountMarginVerticle.class);
 
     @Override
     public void start(Future<Void> fut) throws Exception {
-        LOG.info("Starting {} with configuration: {}", AccountMargin.class.getSimpleName(), config().encodePrettily());
+        LOG.info("Starting {} with configuration: {}", AccountMarginVerticle.class.getSimpleName(), config().encodePrettily());
         super.start(fut);
         fut.setHandler(ar -> {
             if (ar.succeeded()) {
-                LOG.info("{} started", AccountMargin.class.getSimpleName());
+                LOG.info("{} started", AccountMarginVerticle.class.getSimpleName());
                 fut.complete();
             } else {
-                LOG.error("{} verticle failed to deploy", AccountMargin.class.getSimpleName(), fut.cause());
+                LOG.error("{} verticle failed to deploy", AccountMarginVerticle.class.getSimpleName(), fut.cause());
                 fut.fail(fut.cause());
             }
         });
@@ -36,7 +37,7 @@ public class AccountMargin extends AMQPVerticle {
 
     @Override
     protected String getAmqpContainerName() {
-        return "dave/marginloader-AccountMargin";
+        return "dave/marginloader-AccountMarginVerticle";
     }
 
     @Override
@@ -52,7 +53,9 @@ public class AccountMargin extends AMQPVerticle {
         gpbObjectList.getItemList().forEach(gpbObject -> {
             if (gpbObject.hasExtension(PrismaReports.accountMargin)) {
                 PrismaReports.AccountMargin accountMarginData = gpbObject.getExtension(PrismaReports.accountMargin);
-                LOG.debug("Calendar message processed");
+                AccountMarginModel accountMarginModel = new AccountMarginModel(accountMarginData);
+                vertx.eventBus().send(AccountMarginModel.EB_STORE_ADDRESS, accountMarginModel);
+                LOG.debug("Account Margin message processed");
             } else {
                 allExtensionsProcessed.set(false);
             }

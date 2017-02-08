@@ -33,9 +33,9 @@ public class BrokerFiller {
         Future<ProtonConnection> chainFuture = Future.future();
         this.createAmqpConnection()
                 .compose(this::populateAccountMarginQueue)
-                .compose(this::populateLiquiGroupMarginQueue)
-                .compose(this::populateLiquiGroupSplitMarginQueue)
-                .compose(this::populatePositionReportQueue)
+//                .compose(this::populateLiquiGroupMarginQueue)
+//                .compose(this::populateLiquiGroupSplitMarginQueue)
+//                .compose(this::populatePositionReportQueue)
                 .compose(chainFuture::complete, chainFuture);
         return chainFuture;
     }

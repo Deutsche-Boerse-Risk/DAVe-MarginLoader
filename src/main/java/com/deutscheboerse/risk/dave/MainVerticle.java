@@ -33,7 +33,7 @@ public class MainVerticle extends AbstractVerticle {
         });
     }
 
-    private Future<Void> deployAccountMarginVerticle() { return this.deployVerticle(AccountMargin.class); };
+    private Future<Void> deployAccountMarginVerticle() { return this.deployVerticle(AccountMarginVerticle.class); };
 
     private Future<Void> deployVerticle(Class clazz) {
         Future<Void> verticleFuture = Future.future();
