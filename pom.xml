@@ -164,7 +164,7 @@
                             <run>
                                 <wait>
                                     <log>Broker \(pid=1\) running</log>
-                                    <time>10000</time>
+                                    <time>60000</time>
                                 </wait>
                                 <log>
                                     <prefix>CIL</prefix>
