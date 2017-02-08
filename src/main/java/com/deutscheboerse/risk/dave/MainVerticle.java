@@ -19,7 +19,9 @@ public class MainVerticle extends AbstractVerticle {
     @Override
     public void start(Future<Void> startFuture) {
         Future<Void> chainFuture = Future.future();
-        this.deployAccountMarginVerticle();
+        this.deployMongoVerticle()
+                .compose(this::deployAccountMarginVerticle)
+                .compose(chainFuture::complete, chainFuture);
 
         chainFuture.setHandler(ar -> {
             if (ar.succeeded()) {
@@ -33,7 +35,8 @@ public class MainVerticle extends AbstractVerticle {
         });
     }
 
-    private Future<Void> deployAccountMarginVerticle() { return this.deployVerticle(AccountMarginVerticle.class); };
+    private Future<Void> deployMongoVerticle() { return this.deployVerticle(MongoVerticle.class); };
+    private Future<Void> deployAccountMarginVerticle(Void unused) { return this.deployVerticle(AccountMarginVerticle.class); };
 
     private Future<Void> deployVerticle(Class clazz) {
         Future<Void> verticleFuture = Future.future();

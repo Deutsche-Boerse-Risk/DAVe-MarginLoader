@@ -1,23 +1,19 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
-import io.vertx.core.json.JsonObject;
 
-public class AccountMarginModel extends JsonObject {
+public class AccountMarginModel extends AbstractModel {
 
     public static final String EB_STORE_ADDRESS = "AccountMarginStore";
+    public static final String MONGO_HISTORY_COLLECTION = "AccountMargin";
+    public static final String MONGO_LATEST_COLLECTION = "AccountMargin.latest";
 
     public AccountMarginModel() {
         super();
     }
 
-    public AccountMarginModel(JsonObject other) {
-        this();
-        mergeIn(other);
-    }
-
-    public AccountMarginModel(PrismaReports.AccountMargin accountMarginData) {
-        this();
+    public AccountMarginModel(PrismaReports.PrismaHeader header, PrismaReports.AccountMargin accountMarginData) {
+        super(header);
 
         if (!accountMarginData.hasKey()) throw new IllegalArgumentException("Missing account margin key in AMQP data");
         if (!accountMarginData.getKey().hasClearer()) throw new IllegalArgumentException("Missing account margin clearer in AMQP data");
@@ -50,6 +46,7 @@ public class AccountMarginModel extends JsonObject {
     public void setClearer(String clearer) {
         put("clearer", clearer);
     }
+
     public String getMember() {
         return getString("member");
     }
@@ -57,6 +54,7 @@ public class AccountMarginModel extends JsonObject {
     public void setMember(String member) {
         put("member", member);
     }
+
     public String getAccount() {
         return getString("account");
     }
@@ -64,6 +62,7 @@ public class AccountMarginModel extends JsonObject {
     public void setAccount(String account) {
         put("account", account);
     }
+
     public String getMarginCurrency() {
         return getString("marginCurrency");
     }
@@ -71,6 +70,7 @@ public class AccountMarginModel extends JsonObject {
     public void setMarginCurrency(String currency) {
         put("marginCurrency", currency);
     }
+
     public String getClearingCurrency() {
         return getString("clearingCurrency");
     }

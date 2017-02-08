@@ -53,7 +53,7 @@ public class AccountMarginVerticle extends AMQPVerticle {
         gpbObjectList.getItemList().forEach(gpbObject -> {
             if (gpbObject.hasExtension(PrismaReports.accountMargin)) {
                 PrismaReports.AccountMargin accountMarginData = gpbObject.getExtension(PrismaReports.accountMargin);
-                AccountMarginModel accountMarginModel = new AccountMarginModel(accountMarginData);
+                AccountMarginModel accountMarginModel = new AccountMarginModel(header, accountMarginData);
                 vertx.eventBus().send(AccountMarginModel.EB_STORE_ADDRESS, accountMarginModel);
                 LOG.debug("Account Margin message processed");
             } else {

@@ -35,6 +35,8 @@ public class AccountMarginVerticleIT extends BaseIT {
         async.awaitSuccess(5000);
 
         // verify the content of the last message
+        context.assertEquals(20091215, accountMargin.getBusinessDate());
+        context.assertEquals(new JsonObject().put("$date", "2017-02-07T11:08:41.933Z"), accountMargin.getTimestamp());
         context.assertEquals("SFUCC", accountMargin.getClearer());
         context.assertEquals("SFUFR", accountMargin.getMember());
         context.assertEquals("A5", accountMargin.getAccount());
