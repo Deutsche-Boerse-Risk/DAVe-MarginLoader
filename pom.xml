@@ -21,6 +21,8 @@
         <assembly.maven.plugin.version>2.6</assembly.maven.plugin.version>
         <shade.maven.plugin.version>2.4.3</shade.maven.plugin.version>
         <docker.maven.plugin.fabric8.version>0.18.1</docker.maven.plugin.fabric8.version>
+        <coveralls.maven.plugin.version>4.3.0</coveralls.maven.plugin.version>
+        <jacoco.maven.plugin.version>0.7.7.201606060606</jacoco.maven.plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
@@ -217,6 +219,31 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>pre-unit-test</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>post-unit-test</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <version>${jacoco.maven.plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.eluder.coveralls</groupId>
+                <artifactId>coveralls-maven-plugin</artifactId>
+                <version>${coveralls.maven.plugin.version}</version>
             </plugin>
         </plugins>
     </build>
