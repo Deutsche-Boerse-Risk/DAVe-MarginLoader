@@ -16,6 +16,9 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 @RunWith(VertxUnitRunner.class)
 public class MainVerticleIT {
@@ -63,18 +66,32 @@ public class MainVerticleIT {
             }
         });
         asyncSend.awaitSuccess(5000);
-        Thread.sleep(5000);
-        Async asyncHistoryCount = context.async();
-        MainVerticleIT.mongoClient.count(AccountMarginModel.MONGO_HISTORY_COLLECTION, new JsonObject(), ar -> {
-            if (ar.succeeded()) {
-                context.assertEquals(1704L, ar.result());
-                asyncHistoryCount.complete();
-            } else {
-                context.fail(ar.cause());
-            }
-        });
-        asyncHistoryCount.awaitSuccess(5000);
+        this.testCountInCollection(context, AccountMarginModel.MONGO_HISTORY_COLLECTION, 1704);
+    }
 
+    private void testCountInCollection(TestContext  context, String collection, long count) {
+        AtomicLong currentCount = new AtomicLong();
+        int tries = 0;
+        while (currentCount.get() != count && tries < 10) {
+            Async asyncHistoryCount = context.async();
+            MainVerticleIT.mongoClient.count(collection, new JsonObject(), ar -> {
+                if (ar.succeeded()) {
+                    currentCount.set(ar.result());
+                    if (currentCount.get() == count) {
+                        asyncHistoryCount.complete();
+                    }
+                } else {
+                    context.fail(ar.cause());
+                }
+            });
+            try {
+                asyncHistoryCount.await(1000);
+            } catch (Exception ignored) {
+                asyncHistoryCount.complete();
+            }
+            tries++;
+        }
+        context.assertEquals(count, currentCount.get());
     }
 
     @AfterClass
