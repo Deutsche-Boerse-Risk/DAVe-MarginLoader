@@ -3,14 +3,10 @@ package com.deutscheboerse.risk.dave;
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
 import com.deutscheboerse.risk.dave.model.AccountMarginModel;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AccountMarginVerticle extends AMQPVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(AccountMarginVerticle.class);
@@ -18,8 +14,8 @@ public class AccountMarginVerticle extends AMQPVerticle {
     @Override
     public void start(Future<Void> fut) throws Exception {
         LOG.info("Starting {} with configuration: {}", AccountMarginVerticle.class.getSimpleName(), config().encodePrettily());
-        super.start(fut);
-        fut.setHandler(ar -> {
+        Future<Void> startFuture = Future.future();
+        startFuture.setHandler(ar -> {
             if (ar.succeeded()) {
                 LOG.info("{} started", AccountMarginVerticle.class.getSimpleName());
                 fut.complete();
@@ -28,6 +24,7 @@ public class AccountMarginVerticle extends AMQPVerticle {
                 fut.fail(fut.cause());
             }
         });
+        super.start(startFuture);
     }
 
     @Override
@@ -46,26 +43,22 @@ public class AccountMarginVerticle extends AMQPVerticle {
     }
 
     @Override
-    protected void processObjectList(ObjectList.GPBObjectList gpbObjectList, Handler<AsyncResult<Void>> asyncResult) {
+    protected void processObjectList(ObjectList.GPBObjectList gpbObjectList) {
         PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
-        int businessDate = header.getBusinessDate();
-        AtomicBoolean allExtensionsProcessed = new AtomicBoolean(true);
         gpbObjectList.getItemList().forEach(gpbObject -> {
             if (gpbObject.hasExtension(PrismaReports.accountMargin)) {
                 PrismaReports.AccountMargin accountMarginData = gpbObject.getExtension(PrismaReports.accountMargin);
-                AccountMarginModel accountMarginModel = new AccountMarginModel(header, accountMarginData);
-                vertx.eventBus().send(AccountMarginModel.EB_STORE_ADDRESS, accountMarginModel);
-                LOG.debug("Account Margin message processed");
+                try {
+                    AccountMarginModel accountMarginModel = new AccountMarginModel(header, accountMarginData);
+                    vertx.eventBus().send(AccountMarginModel.EB_STORE_ADDRESS, accountMarginModel);
+                    LOG.debug("Account Margin message processed");
+                } catch (IllegalArgumentException ex) {
+                    LOG.error("Unable to create Account Margin Model from GPB data", ex);
+                }
             } else {
-                allExtensionsProcessed.set(false);
+                LOG.error("Unknown extension (should be {})", PrismaReports.accountMargin);
             }
         });
-        if (allExtensionsProcessed.get() == true) {
-            LOG.info("All GPB extensions from AMQP message processed");
-            asyncResult.handle(Future.succeededFuture());
-        } else {
-            asyncResult.handle(Future.failedFuture("Unknown data extension"));
-        }
     }
 
 }

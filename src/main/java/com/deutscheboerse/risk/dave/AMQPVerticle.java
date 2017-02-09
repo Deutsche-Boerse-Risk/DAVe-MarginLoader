@@ -34,8 +34,6 @@ public abstract class AMQPVerticle extends AbstractVerticle {
     protected ProtonConnection protonBrokerConnection;
     protected ProtonReceiver protonBrokerReceiver;
 
-    private int counter = 1;
-
     @Override
     public void start(Future<Void> fut) throws Exception {
         this.registerExtensions();
@@ -50,7 +48,7 @@ public abstract class AMQPVerticle extends AbstractVerticle {
     protected abstract void registerExtensions();
     protected abstract String getAmqpContainerName();
     protected abstract String getAmqpQueueName();
-    protected abstract void processObjectList(ObjectList.GPBObjectList objectList, Handler<AsyncResult<Void>> asyncResult);
+    protected abstract void processObjectList(ObjectList.GPBObjectList objectList);
 
     private Future<Void> createBrokerConnection() {
         Future<Void> createBrokerConnectionFuture = Future.future();
@@ -95,51 +93,28 @@ public abstract class AMQPVerticle extends AbstractVerticle {
         });
         this.protonBrokerReceiver.handler((delivery, msg) -> {
             Section body = msg.getBody();
-            this.processMessage(body, ar -> {
-                if (ar.succeeded()) {
-                    LOG.debug("Message has been processed - will be settled");
-                    delivery.settle();
-                } else {
-                    LOG.warn("Failed to store the message - will be released", ar.cause());
-                    delivery.disposition(new Released(), true);
-                }
-            });
+            this.processMessage(body);
+            delivery.settle();
         }).open();
         return receiverOpenFuture;
     }
 
-    private void processMessage(Section body, Handler<AsyncResult<Void>> asyncResult) {
+    private void processMessage(Section body) {
         if (!(body instanceof Data)) {
-            LOG.warn("Incoming message's body is not a 'data' type, skipping ... ");
-            asyncResult.handle(Future.failedFuture("Message's body is not a 'data' type"));
+            LOG.error("Incoming message's body is not a 'data' type, skipping ... ");
         } else {
             Binary bin = ((Data) body).getValue();
             try {
                 ObjectList.GPBObjectList gpbObjectList = ObjectList.GPBObjectList.parseFrom(bin.getArray(), this.registry);
                 LOG.debug(String.format("Parsed %d item(s)", gpbObjectList.getItemCount()));
-                if (!gpbObjectList.hasHeader() || !gpbObjectList.getHeader().hasExtension(PrismaReports.prismaHeader)) {
-                    // Message header is missing - acknowledge only
-                    LOG.warn("Message header is missing for message - ignoring it " + gpbObjectList.toString());
-                    asyncResult.handle(Future.failedFuture("Message header is missing for message"));
-                    return;
+                if (gpbObjectList.hasHeader() && gpbObjectList.getHeader().hasExtension(PrismaReports.prismaHeader)) {
+                    this.processObjectList(gpbObjectList);
+                } else {
+                    LOG.warn("Message header is missing for message - ignoring it {}" + gpbObjectList.toString());
                 }
-                this.processObjectList(gpbObjectList, asyncResult);
             } catch (InvalidProtocolBufferException e) {
-                asyncResult.handle(Future.failedFuture(e));
+                LOG.error("Unable to decode GPB message", e);
             }
-        }
-    }
-
-    private void saveMessage(Binary bin) {
-        try {
-            FileOutputStream fos = new FileOutputStream(String.format("/tmp/accountMargin/%03d.bin", this.counter));
-            this.counter++;
-            fos.write(bin.getArray());
-            fos.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
