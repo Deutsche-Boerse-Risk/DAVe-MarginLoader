@@ -29,6 +29,17 @@ public class MainVerticleIT {
     @BeforeClass
     public static void setUp(TestContext context) {
         MainVerticleIT.vertx = Vertx.vertx();
+        MainVerticleIT.createMongoClient();
+    }
+
+    private static void createMongoClient() {
+        JsonObject mongoConfig = new JsonObject()
+                .put("db_name", MainVerticleIT.DB_NAME)
+                .put("connection_string", "mongodb://localhost:" + MainVerticleIT.DB_PORT);
+        MainVerticleIT.mongoClient = MongoClient.createShared(MainVerticleIT.vertx, mongoConfig);
+    }
+
+    private DeploymentOptions createDeploymentOptions() {
         JsonObject brokerConfig = new JsonObject()
                 .put("port", BROKER_PORT)
                 .put("listeners", new JsonObject()
@@ -40,19 +51,13 @@ public class MainVerticleIT {
                 .put("broker", brokerConfig)
                 .put("mongo", mongoConfig);
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
-        MainVerticleIT.vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertSuccess());
-        MainVerticleIT.createMongoClient();
-    }
-
-    private static void createMongoClient() {
-        JsonObject mongoConfig = new JsonObject()
-                .put("db_name", MainVerticleIT.DB_NAME)
-                .put("connection_string", "mongodb://localhost:" + MainVerticleIT.DB_PORT);
-        MainVerticleIT.mongoClient = MongoClient.createShared(MainVerticleIT.vertx, mongoConfig);
+        return options;
     }
 
     @Test
     public void testFullChain(TestContext context) throws IOException, InterruptedException {
+        DeploymentOptions options = createDeploymentOptions();
+        MainVerticleIT.vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertSuccess());
         final BrokerFiller brokerFiller = new BrokerFiller(MainVerticleIT.vertx);
         final Async asyncSend = context.async();
         Future<?> brokerFillerFuture = brokerFiller.setUp();
@@ -65,6 +70,13 @@ public class MainVerticleIT {
         });
         asyncSend.awaitSuccess(5000);
         this.testCountInCollection(context, AccountMarginModel.MONGO_HISTORY_COLLECTION, 1704);
+    }
+
+    @Test
+    public void testFailedDeployment(TestContext context) {
+        DeploymentOptions options = createDeploymentOptions();
+        options.getConfig().getJsonObject("broker").put("hostname", "nonexisting");
+        MainVerticleIT.vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertFailure());
     }
 
     private void testCountInCollection(TestContext  context, String collection, long count) {
