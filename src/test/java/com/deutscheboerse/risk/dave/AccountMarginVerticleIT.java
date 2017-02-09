@@ -34,18 +34,20 @@ public class AccountMarginVerticleIT extends BaseIT {
         async.awaitSuccess(5000);
 
         // verify the content of the last message
-        context.assertEquals(5, accountMargin.getSnapshotID());
-        context.assertEquals(20091215, accountMargin.getBusinessDate());
-        context.assertEquals(new JsonObject().put("$date", "2017-02-07T11:08:41.933Z"), accountMargin.getTimestamp());
-        context.assertEquals("SFUCC", accountMargin.getClearer());
-        context.assertEquals("SFUFR", accountMargin.getMember());
-        context.assertEquals("A5", accountMargin.getAccount());
-        context.assertEquals("EUR", accountMargin.getMarginCurrency());
-        context.assertEquals("EUR", accountMargin.getClearingCurrency());
-        context.assertEquals("default", accountMargin.getPool());
-        context.assertEquals(5.035485884371926E7, accountMargin.getMarginReqInMarginCurr());
-        context.assertEquals(5.035485884371926E7, accountMargin.getMarginReqInCrlCurr());
-        context.assertEquals(5.035485884371926E7, accountMargin.getUnadjustedMarginRequirement());
-        context.assertEquals(0.0, accountMargin.getVariationPremiumPayment());
+        AccountMarginModel expectedAccoungMargin = new AccountMarginModel();
+        expectedAccoungMargin.setSnapshotID(5);
+        expectedAccoungMargin.setBusinessDate(20091215);
+        expectedAccoungMargin.setTimestamp(1486465721933L);
+        expectedAccoungMargin.setClearer("SFUCC");
+        expectedAccoungMargin.setMember("SFUFR");
+        expectedAccoungMargin.setAccount("A5");
+        expectedAccoungMargin.setMarginCurrency("EUR");
+        expectedAccoungMargin.setClearingCurrency("EUR");
+        expectedAccoungMargin.setPool("default");
+        expectedAccoungMargin.setMarginReqInMarginCurr(5.035485884371926E7);
+        expectedAccoungMargin.setMarginReqInCrlCurr(5.035485884371926E7);
+        expectedAccoungMargin.setUnadjustedMarginRequirement(5.035485884371926E7);
+        expectedAccoungMargin.setVariationPremiumPayment(0.0);
+        context.assertEquals(expectedAccoungMargin, accountMargin);
     }
 }
