@@ -16,10 +16,9 @@ public class AccountMarginVerticleIT extends BaseIT {
     public void testAccountMarginVerticle(TestContext context) throws InterruptedException {
         int tcpPort = Integer.getInteger("cil.tcpport", 5672);
         JsonObject config = new JsonObject()
-                .put("broker", new JsonObject()
-                        .put("port", tcpPort)
-                        .put("listeners", new JsonObject()
-                                .put("accountMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEAccountMargin")));
+                .put("port", tcpPort)
+                .put("listeners", new JsonObject()
+                        .put("accountMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEAccountMargin"));
         this.deployVerticle(vertx, context, AccountMarginVerticle.class, config);
 
         // we expect 1704 messages to be received
@@ -35,6 +34,7 @@ public class AccountMarginVerticleIT extends BaseIT {
         async.awaitSuccess(5000);
 
         // verify the content of the last message
+        context.assertEquals(5, accountMargin.getSnapshotID());
         context.assertEquals(20091215, accountMargin.getBusinessDate());
         context.assertEquals(new JsonObject().put("$date", "2017-02-07T11:08:41.933Z"), accountMargin.getTimestamp());
         context.assertEquals("SFUCC", accountMargin.getClearer());

@@ -12,5 +12,9 @@
       "poolMargin": "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPoolMargin",
       "riskLimitUtilization": ""
     }
+  },
+  "mongo": {
+    "dbName": "DAVe",
+    "connectionUrl": "mongodb://localhost:27017"
   }
 }

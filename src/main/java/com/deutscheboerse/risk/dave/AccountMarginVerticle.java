@@ -39,7 +39,7 @@ public class AccountMarginVerticle extends AMQPVerticle {
 
     @Override
     protected String getAmqpQueueName() {
-        return config().getJsonObject("broker", new JsonObject()).getJsonObject("listeners", new JsonObject()).getString("accountMargin");
+        return config().getJsonObject("listeners", new JsonObject()).getString("accountMargin");
     }
 
     @Override

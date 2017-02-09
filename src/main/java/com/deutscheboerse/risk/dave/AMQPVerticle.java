@@ -68,10 +68,10 @@ public abstract class AMQPVerticle extends AbstractVerticle {
             }
         });
         ProtonClient protonClient = ProtonClient.create(vertx);
-        protonClient.connect(config().getJsonObject("broker", new JsonObject()).getString("hostname", AMQPVerticle.DEFAULT_BROKER_HOST),
-                config().getJsonObject("broker", new JsonObject()).getInteger("port", AMQPVerticle.DEFAULT_BROKER_PORT),
-                config().getJsonObject("broker", new JsonObject()).getString("username", AMQPVerticle.DEFAULT_BROKER_USER),
-                config().getJsonObject("broker", new JsonObject()).getString("password", AMQPVerticle.DEFAULT_BROKER_PASSWORD),
+        protonClient.connect(config().getString("hostname", AMQPVerticle.DEFAULT_BROKER_HOST),
+                config().getInteger("port", AMQPVerticle.DEFAULT_BROKER_PORT),
+                config().getString("username", AMQPVerticle.DEFAULT_BROKER_USER),
+                config().getString("password", AMQPVerticle.DEFAULT_BROKER_PASSWORD),
                 protonConnectionFuture.completer());
         return createBrokerConnectionFuture;
     }

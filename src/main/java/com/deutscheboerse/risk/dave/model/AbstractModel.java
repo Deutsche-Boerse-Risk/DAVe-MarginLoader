@@ -14,10 +14,20 @@ public class AbstractModel extends JsonObject {
     }
 
     public AbstractModel(PrismaReports.PrismaHeader header) {
+        if (!header.hasId()) throw new IllegalArgumentException("Missing snapshot ID in header in AMQP data");
         if (!header.hasBusinessDate()) throw new IllegalArgumentException("Missing business date in header in AMQP data");
         if (!header.hasTimestamp()) throw new IllegalArgumentException("Missing timestamp in header in AMQP data");
+        this.setSnapshotID(header.getId());
         this.setBusinessDate(header.getBusinessDate());
         this.setTimestamp(header.getTimestamp());
+    }
+
+    public int getSnapshotID() {
+        return getInteger("snapshotID");
+    }
+
+    public void setSnapshotID(int snapshotID) {
+        put("snapshotID", snapshotID);
     }
 
     public int getBusinessDate() {

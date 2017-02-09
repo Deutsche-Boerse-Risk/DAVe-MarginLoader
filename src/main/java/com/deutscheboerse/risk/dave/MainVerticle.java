@@ -4,6 +4,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
@@ -35,12 +36,16 @@ public class MainVerticle extends AbstractVerticle {
         });
     }
 
-    private Future<Void> deployMongoVerticle() { return this.deployVerticle(MongoVerticle.class); };
-    private Future<Void> deployAccountMarginVerticle(Void unused) { return this.deployVerticle(AccountMarginVerticle.class); };
+    private Future<Void> deployMongoVerticle() {
+        return this.deployVerticle(MongoVerticle.class, config().getJsonObject("mongo", new JsonObject()));
+    };
+    private Future<Void> deployAccountMarginVerticle(Void unused) {
+        return this.deployVerticle(AccountMarginVerticle.class, config().getJsonObject("broker", new JsonObject()));
+    };
 
-    private Future<Void> deployVerticle(Class clazz) {
+    private Future<Void> deployVerticle(Class clazz, JsonObject config) {
         Future<Void> verticleFuture = Future.future();
-        DeploymentOptions AMQPOptions = new DeploymentOptions().setConfig(config());
+        DeploymentOptions AMQPOptions = new DeploymentOptions().setConfig(config);
         vertx.deployVerticle(clazz.getName(), AMQPOptions, ar -> {
             if (ar.succeeded()) {
                 LOG.info("Deployed {} with ID {}", clazz.getName(), ar.result());

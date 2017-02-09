@@ -25,15 +25,16 @@ import java.util.UUID;
 
 @RunWith(VertxUnitRunner.class)
 public class MongoVerticleIT {
+    private static final String DB_PORT =  System.getProperty("mongodb.port", "27017");
     private static Vertx vertx;
     private static MongoClient mongoClient;
 
     @BeforeClass
     public static void setUp(TestContext context) {
         MongoVerticleIT.vertx = Vertx.vertx();
-        JsonObject config = new JsonObject();
-        config.put("db_name", "DAVe-Test" + UUID.randomUUID().getLeastSignificantBits());
-        config.put("connection_string", "mongodb://localhost:" + System.getProperty("mongodb.port", "27017"));
+        JsonObject config = new JsonObject()
+                .put("db_name", "DAVe-Test" + UUID.randomUUID().getLeastSignificantBits())
+                .put("connection_string", "mongodb://localhost:" + MongoVerticleIT.DB_PORT);
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
         MongoVerticleIT.vertx.deployVerticle(MongoVerticle.class.getName(), options, context.asyncAssertSuccess());
         MongoVerticleIT.mongoClient = MongoClient.createShared(MongoVerticleIT.vertx, config);
