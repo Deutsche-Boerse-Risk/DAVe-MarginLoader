@@ -33,11 +33,16 @@ public class MongoVerticleIT {
     public static void setUp(TestContext context) {
         MongoVerticleIT.vertx = Vertx.vertx();
         JsonObject config = new JsonObject()
-                .put("db_name", "DAVe-Test" + UUID.randomUUID().getLeastSignificantBits())
-                .put("connection_string", "mongodb://localhost:" + MongoVerticleIT.DB_PORT);
+                .put("dbName", "DAVe-Test" + UUID.randomUUID().getLeastSignificantBits())
+                .put("connectionUrl", "mongodb://localhost:" + MongoVerticleIT.DB_PORT);
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
         MongoVerticleIT.vertx.deployVerticle(MongoVerticle.class.getName(), options, context.asyncAssertSuccess());
-        MongoVerticleIT.mongoClient = MongoClient.createShared(MongoVerticleIT.vertx, config);
+
+        JsonObject mongoConfig = new JsonObject();
+        mongoConfig.put("db_name", config.getString("dbName"));
+        mongoConfig.put("useObjectId", true);
+        mongoConfig.put("connection_string", config.getString("connectionUrl"));
+        MongoVerticleIT.mongoClient = MongoClient.createShared(MongoVerticleIT.vertx, mongoConfig);
     }
 
     @Test

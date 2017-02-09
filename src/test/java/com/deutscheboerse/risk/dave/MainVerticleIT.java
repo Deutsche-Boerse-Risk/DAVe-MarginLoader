@@ -16,8 +16,6 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.UUID;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 @RunWith(VertxUnitRunner.class)
