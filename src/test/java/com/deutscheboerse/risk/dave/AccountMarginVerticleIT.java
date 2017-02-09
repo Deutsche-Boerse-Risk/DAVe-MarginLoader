@@ -34,20 +34,20 @@ public class AccountMarginVerticleIT extends BaseIT {
         async.awaitSuccess(5000);
 
         // verify the content of the last message
-        AccountMarginModel expectedAccoungMargin = new AccountMarginModel();
-        expectedAccoungMargin.setSnapshotID(5);
-        expectedAccoungMargin.setBusinessDate(20091215);
-        expectedAccoungMargin.setTimestamp(1486465721933L);
-        expectedAccoungMargin.setClearer("SFUCC");
-        expectedAccoungMargin.setMember("SFUFR");
-        expectedAccoungMargin.setAccount("A5");
-        expectedAccoungMargin.setMarginCurrency("EUR");
-        expectedAccoungMargin.setClearingCurrency("EUR");
-        expectedAccoungMargin.setPool("default");
-        expectedAccoungMargin.setMarginReqInMarginCurr(5.035485884371926E7);
-        expectedAccoungMargin.setMarginReqInCrlCurr(5.035485884371926E7);
-        expectedAccoungMargin.setUnadjustedMarginRequirement(5.035485884371926E7);
-        expectedAccoungMargin.setVariationPremiumPayment(0.0);
-        context.assertEquals(expectedAccoungMargin, accountMargin);
+        AccountMarginModel expectedAccountMargin = new AccountMarginModel();
+        expectedAccountMargin.setSnapshotID(5);
+        expectedAccountMargin.setBusinessDate(20091215);
+        expectedAccountMargin.setTimestamp(1486465721933L);
+        expectedAccountMargin.setClearer("SFUCC");
+        expectedAccountMargin.setMember("SFUFR");
+        expectedAccountMargin.setAccount("A5");
+        expectedAccountMargin.setMarginCurrency("EUR");
+        expectedAccountMargin.setClearingCurrency("EUR");
+        expectedAccountMargin.setPool("default");
+        expectedAccountMargin.setMarginReqInMarginCurr(5.035485884371926E7);
+        expectedAccountMargin.setMarginReqInCrlCurr(5.035485884371926E7);
+        expectedAccountMargin.setUnadjustedMarginRequirement(5.035485884371926E7);
+        expectedAccountMargin.setVariationPremiumPayment(0.0);
+        context.assertEquals(expectedAccountMargin, accountMargin);
     }
 }
