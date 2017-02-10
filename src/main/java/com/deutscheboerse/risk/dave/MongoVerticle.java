@@ -2,6 +2,7 @@ package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.model.AbstractModel;
 import com.deutscheboerse.risk.dave.model.AccountMarginModel;
+import com.deutscheboerse.risk.dave.model.LiquiGroupMarginModel;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -67,7 +68,9 @@ public class MongoVerticle extends AbstractVerticle {
                     List<String> mongoCollections = res.result();
                     List<String> neededCollections = new ArrayList<>(Arrays.asList(
                             AccountMarginModel.MONGO_HISTORY_COLLECTION,
-                            AccountMarginModel.MONGO_LATEST_COLLECTION
+                            AccountMarginModel.MONGO_LATEST_COLLECTION,
+                            LiquiGroupMarginModel.MONGO_HISTORY_COLLECTION,
+                            LiquiGroupMarginModel.MONGO_LATEST_COLLECTION
                     ));
 
                     List<Future> futs = new ArrayList<>();
@@ -101,6 +104,7 @@ public class MongoVerticle extends AbstractVerticle {
 
     private Future<Void> startStoreHandlers(Void unused) {
         this.registerConsumer(AccountMarginModel.EB_STORE_ADDRESS, message -> store(message, new AccountMarginModel()));
+        this.registerConsumer(LiquiGroupMarginModel.EB_STORE_ADDRESS, message -> store(message, new LiquiGroupMarginModel()));
 
         LOG.info("Event bus store handlers subscribed");
         return Future.succeededFuture();

@@ -22,6 +22,7 @@ public class MainVerticle extends AbstractVerticle {
         Future<Void> chainFuture = Future.future();
         this.deployMongoVerticle()
                 .compose(this::deployAccountMarginVerticle)
+                .compose(this::deployLiquiGroupMarginVerticle)
                 .compose(chainFuture::complete, chainFuture);
 
         chainFuture.setHandler(ar -> {
@@ -39,8 +40,13 @@ public class MainVerticle extends AbstractVerticle {
     private Future<Void> deployMongoVerticle() {
         return this.deployVerticle(MongoVerticle.class, config().getJsonObject("mongo", new JsonObject()));
     };
+
     private Future<Void> deployAccountMarginVerticle(Void unused) {
         return this.deployVerticle(AccountMarginVerticle.class, config().getJsonObject("broker", new JsonObject()));
+    };
+
+    private Future<Void> deployLiquiGroupMarginVerticle(Void unused) {
+        return this.deployVerticle(LiquiGroupMarginVerticle.class, config().getJsonObject("broker", new JsonObject()));
     };
 
     private Future<Void> deployVerticle(Class clazz, JsonObject config) {

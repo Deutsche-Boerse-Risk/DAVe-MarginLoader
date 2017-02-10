@@ -60,7 +60,7 @@ public class AccountMarginModel extends AbstractModel {
         queryParams.put("clearer", this.getClearer());
         queryParams.put("member", this.getMember());
         queryParams.put("account", this.getAccount());
-        queryParams.put("margin_currency", this.getMarginCurrency());
+        queryParams.put("marginCurrency", this.getMarginCurrency());
         return queryParams;
     }
 

@@ -36,6 +36,5 @@ public class AccountMarginModelTest {
         Assert.assertEquals(5.035485884371926E7, accountMargin.getMarginReqInCrlCurr(), 0);
         Assert.assertEquals(5.035485884371926E7, accountMargin.getUnadjustedMarginRequirement(), 0);
         Assert.assertEquals(0.0, accountMargin.getVariationPremiumPayment(), 0);
-
     }
 }

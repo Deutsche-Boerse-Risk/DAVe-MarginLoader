@@ -33,7 +33,7 @@ public class BrokerFiller {
         Future<ProtonConnection> chainFuture = Future.future();
         this.createAmqpConnection()
                 .compose(this::populateAccountMarginQueue)
-//                .compose(this::populateLiquiGroupMarginQueue)
+                .compose(this::populateLiquiGroupMarginQueue)
 //                .compose(this::populateLiquiGroupSplitMarginQueue)
 //                .compose(this::populatePositionReportQueue)
                 .compose(chainFuture::complete, chainFuture);
@@ -70,7 +70,7 @@ public class BrokerFiller {
 
     private Future<ProtonConnection> populateLiquiGroupMarginQueue(ProtonConnection protonConnection) {
         final String queueName = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupMargin";
-        final Collection<String> messagePaths = IntStream.rangeClosed(1, 4)
+        final Collection<String> messagePaths = IntStream.rangeClosed(1, 1)
                 .mapToObj(i -> String.format("%s/%03d.bin", BrokerFiller.class.getResource("liquiGroupMargin").getPath(), i))
                 .collect(Collectors.toList());
         return this.populateQueue(protonConnection, queueName, messagePaths);

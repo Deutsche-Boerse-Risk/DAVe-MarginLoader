@@ -45,10 +45,13 @@ public abstract class AMQPVerticle extends AbstractVerticle {
         chainFuture.setHandler(fut.completer());
     }
 
-    protected abstract void registerExtensions();
     protected abstract String getAmqpContainerName();
     protected abstract String getAmqpQueueName();
     protected abstract void processObjectList(ObjectList.GPBObjectList objectList);
+
+    protected void registerExtensions() {
+        PrismaReports.registerAllExtensions(this.registry);
+    };
 
     private Future<Void> createBrokerConnection() {
         Future<Void> createBrokerConnectionFuture = Future.future();
@@ -110,7 +113,7 @@ public abstract class AMQPVerticle extends AbstractVerticle {
                 if (gpbObjectList.hasHeader() && gpbObjectList.getHeader().hasExtension(PrismaReports.prismaHeader)) {
                     this.processObjectList(gpbObjectList);
                 } else {
-                    LOG.warn("Message header is missing for message - ignoring it {}" + gpbObjectList.toString());
+                    LOG.warn("Message header is missing for message - ignoring it {}", gpbObjectList.toString());
                 }
             } catch (InvalidProtocolBufferException e) {
                 LOG.error("Unable to decode GPB message", e);

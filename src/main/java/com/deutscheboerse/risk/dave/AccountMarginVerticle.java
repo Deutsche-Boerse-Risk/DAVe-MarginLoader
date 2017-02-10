@@ -28,11 +28,6 @@ public class AccountMarginVerticle extends AMQPVerticle {
     }
 
     @Override
-    protected void registerExtensions() {
-        PrismaReports.registerAllExtensions(this.registry);
-    }
-
-    @Override
     protected String getAmqpContainerName() {
         return "dave/marginloader-AccountMarginVerticle";
     }
