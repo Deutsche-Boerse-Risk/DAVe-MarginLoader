@@ -31,7 +31,7 @@ public class AccountMarginVerticleIT extends BaseIT {
             accountMargin.mergeIn(body);
             async.countDown();
         });
-        async.awaitSuccess(5000);
+        async.awaitSuccess(30000);
 
         // verify the content of the last message
         AccountMarginModel expectedAccountMargin = new AccountMarginModel();

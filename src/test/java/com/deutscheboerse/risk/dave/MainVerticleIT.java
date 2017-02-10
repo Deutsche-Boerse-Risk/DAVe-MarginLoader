@@ -68,7 +68,7 @@ public class MainVerticleIT {
                 context.fail(brokerFillerFuture.cause());
             }
         });
-        asyncSend.awaitSuccess(5000);
+        asyncSend.awaitSuccess(30000);
         this.testCountInCollection(context, AccountMarginModel.MONGO_HISTORY_COLLECTION, 1704);
     }
 

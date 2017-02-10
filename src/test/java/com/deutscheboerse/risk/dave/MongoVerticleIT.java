@@ -85,7 +85,7 @@ public class MongoVerticleIT {
                 }
             });
         });
-        asyncStore.awaitSuccess(5000);
+        asyncStore.awaitSuccess(30000);
         Async asyncHistoryCount = context.async();
         MongoVerticleIT.mongoClient.count(AccountMarginModel.MONGO_HISTORY_COLLECTION, new JsonObject(), ar -> {
             if (ar.succeeded()) {
