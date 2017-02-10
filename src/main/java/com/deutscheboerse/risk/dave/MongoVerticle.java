@@ -26,7 +26,8 @@ public class MongoVerticle extends AbstractVerticle {
         final static private Logger LOG = LoggerFactory.getLogger(MongoVerticle.class);
 
         private static final String DEFAULT_DB_NAME = "DAVe";
-        private static final String DEFAULT_CONNECTION_URL = "mongodb://localhost:27017";
+        private static final String DEFAULT_HOST = "localhost";
+        private static final Integer DEFAULT_PORT = 27017;
 
         private MongoClient mongo;
         private final List<MessageConsumer<?>> eventBusConsumers = new ArrayList<>();
@@ -55,7 +56,8 @@ public class MongoVerticle extends AbstractVerticle {
             JsonObject config = new JsonObject();
             config.put("db_name", config().getString("dbName", MongoVerticle.DEFAULT_DB_NAME));
             config.put("useObjectId", true);
-            config.put("connection_string", config().getString("connectionUrl", MongoVerticle.DEFAULT_CONNECTION_URL));
+            config.put("host", config().getString("host", MongoVerticle.DEFAULT_HOST));
+            config.put("port", config().getInteger("port", MongoVerticle.DEFAULT_PORT));
             config.put("waitQueueMultiple", 20000);
             mongo = MongoClient.createShared(vertx, config);
             LOG.info("Connected to MongoDB");

@@ -36,7 +36,7 @@ public class MainVerticleIT {
     private static void createMongoClient() {
         JsonObject mongoConfig = new JsonObject()
                 .put("db_name", MainVerticleIT.DB_NAME)
-                .put("connection_string", "mongodb://localhost:" + MainVerticleIT.DB_PORT)
+                .put("port", MainVerticleIT.DB_PORT)
                 .put("waitQueueMultiple", 20000);
         MainVerticleIT.mongoClient = MongoClient.createShared(MainVerticleIT.vertx, mongoConfig);
     }
@@ -49,7 +49,7 @@ public class MainVerticleIT {
                         .put("liquiGroupMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupMargin"));
         JsonObject mongoConfig = new JsonObject()
                 .put("dbName", MainVerticleIT.DB_NAME)
-                .put("connectionUrl", "mongodb://localhost:" + MainVerticleIT.DB_PORT);
+                .put("port", MainVerticleIT.DB_PORT);
         JsonObject config = new JsonObject()
                 .put("broker", brokerConfig)
                 .put("mongo", mongoConfig);

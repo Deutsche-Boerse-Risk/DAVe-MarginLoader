@@ -35,14 +35,14 @@ public class MongoVerticleIT {
         MongoVerticleIT.vertx = Vertx.vertx();
         JsonObject config = new JsonObject()
                 .put("dbName", "DAVe-Test" + UUID.randomUUID().getLeastSignificantBits())
-                .put("connectionUrl", "mongodb://localhost:" + MongoVerticleIT.DB_PORT);
+                .put("port", MongoVerticleIT.DB_PORT);
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
         MongoVerticleIT.vertx.deployVerticle(MongoVerticle.class.getName(), options, context.asyncAssertSuccess());
 
         JsonObject mongoConfig = new JsonObject();
         mongoConfig.put("db_name", config.getString("dbName"));
         mongoConfig.put("useObjectId", true);
-        mongoConfig.put("connection_string", config.getString("connectionUrl"));
+        mongoConfig.put("port", config.getInteger("port"));
         mongoConfig.put("waitQueueMultiple", 20000);
         MongoVerticleIT.mongoClient = MongoClient.createShared(MongoVerticleIT.vertx, mongoConfig);
     }
