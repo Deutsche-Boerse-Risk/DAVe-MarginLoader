@@ -25,7 +25,7 @@ import java.util.UUID;
 
 @RunWith(VertxUnitRunner.class)
 public class MongoVerticleIT {
-    private static final String DB_PORT =  System.getProperty("mongodb.port", "27017");
+    private static final int DB_PORT =  Integer.getInteger("mongodb.port", 27017);
     private static Vertx vertx;
     private static MongoClient mongoClient;
 
@@ -86,26 +86,91 @@ public class MongoVerticleIT {
             });
         });
         asyncStore.awaitSuccess(30000);
+        this.checkCountInCollection(context, AccountMarginModel.MONGO_HISTORY_COLLECTION, 1704);
+        this.checkCountInCollection(context, AccountMarginModel.MONGO_LATEST_COLLECTION, 1704);
+        this.checkAccountMarginHistoryCollectionQuery(context);
+        this.checkAccountMarginLatestCollectionQuery(context);
+    }
+
+    private void checkCountInCollection(TestContext context, String collection, long count) {
         Async asyncHistoryCount = context.async();
-        MongoVerticleIT.mongoClient.count(AccountMarginModel.MONGO_HISTORY_COLLECTION, new JsonObject(), ar -> {
+        MongoVerticleIT.mongoClient.count(collection, new JsonObject(), ar -> {
             if (ar.succeeded()) {
-                context.assertEquals(1704L, ar.result());
+                context.assertEquals(count, ar.result());
                 asyncHistoryCount.complete();
             } else {
                 context.fail(ar.cause());
             }
         });
         asyncHistoryCount.awaitSuccess(5000);
-        Async asyncLatestCount = context.async();
-        MongoVerticleIT.mongoClient.count(AccountMarginModel.MONGO_LATEST_COLLECTION, new JsonObject(), ar -> {
+    }
+
+    private void checkAccountMarginHistoryCollectionQuery(TestContext context) {
+        JsonObject param = new JsonObject();
+        param.put("clearer", "BERFR");
+        param.put("member", "BERFR");
+        param.put("account", "A5");
+        param.put("marginCurrency", "EUR");
+
+        Async asyncQuery = context.async();
+        MongoVerticleIT.mongoClient.find(AccountMarginModel.MONGO_HISTORY_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
-                context.assertEquals(1704L, ar.result());
-                asyncLatestCount.complete();
+                context.assertEquals(1, ar.result().size());
+                JsonObject result = ar.result().get(0);
+
+                context.assertEquals(5, result.getInteger("snapshotID"));
+                context.assertEquals(20091215, result.getInteger("businessDate"));
+                context.assertEquals(new JsonObject().put("$date", "2017-02-07T11:08:41.933Z"), result.getJsonObject("timestamp"));
+                context.assertEquals("BERFR", result.getString("clearer"));
+                context.assertEquals("BERFR", result.getString("member"));
+                context.assertEquals("A5", result.getString("account"));
+                context.assertEquals("EUR", result.getString("marginCurrency"));
+                context.assertEquals("EUR", result.getString("clearingCurrency"));
+                context.assertEquals("default", result.getString("pool"));
+                context.assertEquals(6.378857805534203E8, result.getDouble("marginReqInMarginCurr"));
+                context.assertEquals(6.378857805534203E8, result.getDouble("marginReqInCrlCurr"));
+                context.assertEquals(6.378857805534203E8, result.getDouble("unadjustedMarginRequirement"));
+                context.assertEquals(0.0, result.getDouble("variationPremiumPayment"));
+                asyncQuery.complete();
             } else {
                 context.fail(ar.cause());
             }
         });
-        asyncLatestCount.awaitSuccess(5000);
+        asyncQuery.awaitSuccess(5000);
+    }
+
+    private void checkAccountMarginLatestCollectionQuery(TestContext context) {
+        JsonObject param = new JsonObject();
+        param.put("clearer", "BERFR");
+        param.put("member", "BERFR");
+        param.put("account", "A5");
+        param.put("marginCurrency", "EUR");
+
+        Async asyncQuery = context.async();
+        MongoVerticleIT.mongoClient.find(AccountMarginModel.MONGO_LATEST_COLLECTION, param, ar -> {
+            if (ar.succeeded()) {
+                context.assertEquals(1, ar.result().size());
+                JsonObject result = ar.result().get(0);
+
+                context.assertEquals(5, result.getInteger("snapshotID"));
+                context.assertEquals(20091215, result.getInteger("businessDate"));
+                context.assertEquals(new JsonObject().put("$date", "2017-02-07T11:08:41.933Z"), result.getJsonObject("timestamp"));
+                context.assertEquals("BERFR", result.getString("clearer"));
+                context.assertEquals("BERFR", result.getString("member"));
+                context.assertEquals("A5", result.getString("account"));
+                context.assertEquals("EUR", result.getString("marginCurrency"));
+                context.assertEquals("EUR", result.getString("clearingCurrency"));
+                context.assertEquals("default", result.getString("pool"));
+                context.assertEquals(6.378857805534203E8, result.getDouble("marginReqInMarginCurr"));
+                context.assertEquals(6.378857805534203E8, result.getDouble("marginReqInCrlCurr"));
+                context.assertEquals(6.378857805534203E8, result.getDouble("unadjustedMarginRequirement"));
+                context.assertEquals(0.0, result.getDouble("variationPremiumPayment"));
+                asyncQuery.complete();
+            } else {
+                context.fail(ar.cause());
+            }
+        });
+        asyncQuery.awaitSuccess(5000);
     }
 
     @AfterClass

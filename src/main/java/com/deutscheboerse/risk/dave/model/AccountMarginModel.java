@@ -1,6 +1,7 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
+import io.vertx.core.json.JsonObject;
 
 public class AccountMarginModel extends AbstractModel {
 
@@ -15,17 +16,7 @@ public class AccountMarginModel extends AbstractModel {
     public AccountMarginModel(PrismaReports.PrismaHeader header, PrismaReports.AccountMargin accountMarginData) {
         super(header);
 
-        if (!accountMarginData.hasKey()) throw new IllegalArgumentException("Missing account margin key in AMQP data");
-        if (!accountMarginData.getKey().hasClearer()) throw new IllegalArgumentException("Missing account margin clearer in AMQP data");
-        if (!accountMarginData.getKey().hasMember()) throw new IllegalArgumentException("Missing account margin member in AMQP data");
-        if (!accountMarginData.getKey().hasAccount()) throw new IllegalArgumentException("Missing account margin account in AMQP data");
-        if (!accountMarginData.getKey().hasMarginCurrency()) throw new IllegalArgumentException("Missing account margin margin currency in AMQP data");
-        if (!accountMarginData.hasClearingCurrency()) throw new IllegalArgumentException("Missing account margin clearing currency in AMQP data");
-        if (!accountMarginData.hasPool()) throw new IllegalArgumentException("Missing account margin pool in AMQP data");
-        if (!accountMarginData.hasMarginReqInMarginCurr()) throw new IllegalArgumentException("Missing account margin margin requirement in margin currency in AMQP data");
-        if (!accountMarginData.hasMarginReqInClrCurr()) throw new IllegalArgumentException("Missing account margin margin requirement in clearing currency in AMQP data");
-        if (!accountMarginData.hasUnadjustedMarginRequirement()) throw new IllegalArgumentException("Missing account margin unadjusted margin requirement in clearing currency in AMQP data");
-        if (!accountMarginData.hasVariationPremiumPayment()) throw new IllegalArgumentException("Missing account margin variation premium payment in AMQP data");
+        verify(accountMarginData);
 
         this.setClearer(accountMarginData.getKey().getClearer());
         this.setMember(accountMarginData.getKey().getMember());
@@ -37,6 +28,40 @@ public class AccountMarginModel extends AbstractModel {
         this.setMarginReqInCrlCurr(accountMarginData.getMarginReqInClrCurr());
         this.setUnadjustedMarginRequirement(accountMarginData.getUnadjustedMarginRequirement());
         this.setVariationPremiumPayment(accountMarginData.getVariationPremiumPayment());
+    }
+
+    private void verify(PrismaReports.AccountMargin accountMarginData) {
+        if (!accountMarginData.hasKey()) throw new IllegalArgumentException("Missing account margin key in AMQP data");
+        if (!accountMarginData.getKey().hasClearer()) throw new IllegalArgumentException("Missing account margin clearer in AMQP data");
+        if (!accountMarginData.getKey().hasMember()) throw new IllegalArgumentException("Missing account margin member in AMQP data");
+        if (!accountMarginData.getKey().hasAccount()) throw new IllegalArgumentException("Missing account margin account in AMQP data");
+        if (!accountMarginData.getKey().hasMarginCurrency()) throw new IllegalArgumentException("Missing account margin margin currency in AMQP data");
+        if (!accountMarginData.hasClearingCurrency()) throw new IllegalArgumentException("Missing account margin clearing currency in AMQP data");
+        if (!accountMarginData.hasPool()) throw new IllegalArgumentException("Missing account margin pool in AMQP data");
+        if (!accountMarginData.hasMarginReqInMarginCurr()) throw new IllegalArgumentException("Missing account margin margin requirement in margin currency in AMQP data");
+        if (!accountMarginData.hasMarginReqInClrCurr()) throw new IllegalArgumentException("Missing account margin margin requirement in clearing currency in AMQP data");
+        if (!accountMarginData.hasUnadjustedMarginRequirement()) throw new IllegalArgumentException("Missing account margin unadjusted margin requirement in clearing currency in AMQP data");
+        if (!accountMarginData.hasVariationPremiumPayment()) throw new IllegalArgumentException("Missing account margin variation premium payment in AMQP data");
+    }
+
+    @Override
+    public String getHistoryCollection() {
+        return AccountMarginModel.MONGO_HISTORY_COLLECTION;
+    }
+
+    @Override
+    public String getLatestCollection() {
+        return AccountMarginModel.MONGO_LATEST_COLLECTION;
+    }
+
+    @Override
+    public JsonObject getLatestQueryParams() {
+        JsonObject queryParams = new JsonObject();
+        queryParams.put("clearer", this.getClearer());
+        queryParams.put("member", this.getMember());
+        queryParams.put("account", this.getAccount());
+        queryParams.put("margin_currency", this.getMarginCurrency());
+        return queryParams;
     }
 
     public String getClearer() {
@@ -118,5 +143,4 @@ public class AccountMarginModel extends AbstractModel {
     public void setVariationPremiumPayment(double req) {
         put("variationPremiumPayment", req);
     }
-
 }

@@ -8,18 +8,22 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class AbstractModel extends JsonObject {
+public abstract class AbstractModel extends JsonObject implements MongoModel {
 
     public AbstractModel() {
     }
 
     public AbstractModel(PrismaReports.PrismaHeader header) {
-        if (!header.hasId()) throw new IllegalArgumentException("Missing snapshot ID in header in AMQP data");
-        if (!header.hasBusinessDate()) throw new IllegalArgumentException("Missing business date in header in AMQP data");
-        if (!header.hasTimestamp()) throw new IllegalArgumentException("Missing timestamp in header in AMQP data");
+        verify(header);
         this.setSnapshotID(header.getId());
         this.setBusinessDate(header.getBusinessDate());
         this.setTimestamp(header.getTimestamp());
+    }
+
+    private void verify(PrismaReports.PrismaHeader header) {
+        if (!header.hasId()) throw new IllegalArgumentException("Missing snapshot ID in header in AMQP data");
+        if (!header.hasBusinessDate()) throw new IllegalArgumentException("Missing business date in header in AMQP data");
+        if (!header.hasTimestamp()) throw new IllegalArgumentException("Missing timestamp in header in AMQP data");
     }
 
     public int getSnapshotID() {

@@ -1,5 +1,6 @@
 package com.deutscheboerse.risk.dave;
 
+import com.deutscheboerse.risk.dave.model.AbstractModel;
 import com.deutscheboerse.risk.dave.model.AccountMarginModel;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
@@ -12,6 +13,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.mongo.MongoClient;
+import io.vertx.ext.mongo.MongoClientUpdateResult;
+import io.vertx.ext.mongo.UpdateOptions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,7 +100,7 @@ public class MongoVerticle extends AbstractVerticle {
         }
 
     private Future<Void> startStoreHandlers(Void unused) {
-        this.registerConsumer(AccountMarginModel.EB_STORE_ADDRESS, message -> storeAccountMargin(message));
+        this.registerConsumer(AccountMarginModel.EB_STORE_ADDRESS, message -> store(message, new AccountMarginModel()));
 
         LOG.info("Event bus store handlers subscribed");
         return Future.succeededFuture();
@@ -108,14 +111,11 @@ public class MongoVerticle extends AbstractVerticle {
         this.eventBusConsumers.add(eb.consumer(address, handler));
     }
 
-    private void storeAccountMargin(Message<JsonObject> msg) {
-        this.store(msg, AccountMarginModel.MONGO_HISTORY_COLLECTION, AccountMarginModel.MONGO_LATEST_COLLECTION);
-    }
-
-    private void store(Message<JsonObject> msg, String historyCollection, String latestCollection) {
+    private void store(Message<JsonObject> msg, AbstractModel model) {
         List<Future> tasks = new ArrayList<>();
-        tasks.add(this.storeIntoHistoryCollection(msg.body(), historyCollection));
-        tasks.add(this.storeIntoLatestCollection(msg.body(), latestCollection));
+        model.mergeIn(msg.body());
+        tasks.add(this.storeIntoHistoryCollection(model));
+        tasks.add(this.storeIntoLatestCollection(model));
         CompositeFuture.all(tasks).setHandler(ar -> {
             if (ar.succeeded()) {
                 msg.reply(new JsonObject());
@@ -125,18 +125,25 @@ public class MongoVerticle extends AbstractVerticle {
         });
     }
 
-    private Future<String> storeIntoHistoryCollection(JsonObject document, String collection) {
-        LOG.trace("Storing message into {} with body {}", collection, document.encodePrettily());
+    private Future<String> storeIntoHistoryCollection(AbstractModel model) {
+        JsonObject document = new JsonObject(model.getMap());
+        LOG.trace("Storing message into {} with body {}", model.getHistoryCollection(), document.encodePrettily());
         Future<String> result = Future.future();
-        mongo.insert(collection, new JsonObject(document.getMap()), result.completer());
+        mongo.insert(model.getHistoryCollection(), document, result.completer());
         return result;
     }
 
-    private Future<String> storeIntoLatestCollection(JsonObject document, String collection) {
-        LOG.trace("Storing message into {} with body {}", collection, document.encodePrettily());
-        Future<String> result = Future.future();
-        mongo.insert(collection, new JsonObject(document.getMap()), result.completer());
+    private Future<MongoClientUpdateResult> storeIntoLatestCollection(AbstractModel model) {
+        JsonObject document = new JsonObject(model.getMap());
+        LOG.trace("Storing message into {} with body {}", model.getLatestCollection(), document.encodePrettily());
+        Future<MongoClientUpdateResult> result = Future.future();
+        mongo.replaceDocumentsWithOptions(model.getLatestCollection(),
+                model.getLatestQueryParams(),
+                document,
+                new UpdateOptions().setUpsert(true),
+                result.completer());
         return result;
+
     }
 
 }
