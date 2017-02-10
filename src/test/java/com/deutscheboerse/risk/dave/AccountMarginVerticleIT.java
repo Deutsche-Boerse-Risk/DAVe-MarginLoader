@@ -1,16 +1,36 @@
 package com.deutscheboerse.risk.dave;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+
 import com.deutscheboerse.risk.dave.model.AccountMarginModel;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Vertx;
+
 @RunWith(VertxUnitRunner.class)
-public class AccountMarginVerticleIT extends BaseIT {
+public class AccountMarginVerticleIT {
+    private static Vertx vertx;
+    
+    @BeforeClass
+    public static void setUp(TestContext context) {
+        AccountMarginVerticleIT.vertx = Vertx.vertx();
+        final BrokerFiller brokerFiller = new BrokerFiller(AccountMarginVerticleIT.vertx);
+        brokerFiller.setUpAccountMarginQueue(context.asyncAssertSuccess());
+    }
+
+    @AfterClass
+    public static void tearDown(TestContext context) {
+        AccountMarginVerticleIT.vertx.close(context.asyncAssertSuccess());
+    }
 
     @Test
     public void testAccountMarginVerticle(TestContext context) throws InterruptedException {
@@ -19,7 +39,6 @@ public class AccountMarginVerticleIT extends BaseIT {
                 .put("port", tcpPort)
                 .put("listeners", new JsonObject()
                         .put("accountMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEAccountMargin"));
-        this.deployVerticle(vertx, context, AccountMarginVerticle.class, config);
 
         // we expect 1704 messages to be received
         Async async = context.async(1704);
@@ -31,6 +50,7 @@ public class AccountMarginVerticleIT extends BaseIT {
             accountMargin.mergeIn(body);
             async.countDown();
         });
+        vertx.deployVerticle(AccountMarginVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
         async.awaitSuccess(30000);
 
         // verify the content of the last message

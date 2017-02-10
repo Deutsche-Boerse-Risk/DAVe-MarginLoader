@@ -61,16 +61,7 @@ public class MainVerticleIT {
         DeploymentOptions options = createDeploymentOptions();
         MainVerticleIT.vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertSuccess());
         final BrokerFiller brokerFiller = new BrokerFiller(MainVerticleIT.vertx);
-        final Async asyncSend = context.async();
-        Future<?> brokerFillerFuture = brokerFiller.setUp();
-        brokerFillerFuture.setHandler(ar -> {
-            if (ar.succeeded()) {
-                asyncSend.complete();
-            } else {
-                context.fail(brokerFillerFuture.cause());
-            }
-        });
-        asyncSend.awaitSuccess(30000);
+        brokerFiller.setUpAllQueues(context.asyncAssertSuccess());
         this.testCountInCollection(context, AccountMarginModel.MONGO_HISTORY_COLLECTION, 1704);
         this.testCountInCollection(context, AccountMarginModel.MONGO_LATEST_COLLECTION, 1704);
         this.testCountInCollection(context, LiquiGroupMarginModel.MONGO_HISTORY_COLLECTION, 2171);
