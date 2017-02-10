@@ -36,7 +36,8 @@ public class MainVerticleIT {
     private static void createMongoClient() {
         JsonObject mongoConfig = new JsonObject()
                 .put("db_name", MainVerticleIT.DB_NAME)
-                .put("connection_string", "mongodb://localhost:" + MainVerticleIT.DB_PORT);
+                .put("connection_string", "mongodb://localhost:" + MainVerticleIT.DB_PORT)
+                .put("waitQueueMultiple", 20000);
         MainVerticleIT.mongoClient = MongoClient.createShared(MainVerticleIT.vertx, mongoConfig);
     }
 

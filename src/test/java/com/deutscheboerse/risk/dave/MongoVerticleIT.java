@@ -43,6 +43,7 @@ public class MongoVerticleIT {
         mongoConfig.put("db_name", config.getString("dbName"));
         mongoConfig.put("useObjectId", true);
         mongoConfig.put("connection_string", config.getString("connectionUrl"));
+        mongoConfig.put("waitQueueMultiple", 20000);
         MongoVerticleIT.mongoClient = MongoClient.createShared(MongoVerticleIT.vertx, mongoConfig);
     }
 
