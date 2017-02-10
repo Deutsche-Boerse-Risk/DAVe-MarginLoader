@@ -1,9 +1,8 @@
 
 
-
 package CIL.CIL_v001.Prisma_v001;
 
-import "CIL/ObjectList.proto"; 
+import "CIL/ObjectList.proto";
 
 enum Version
 {
@@ -16,7 +15,7 @@ enum Version
 // header for entities sent from Prisma
 message PrismaHeader
 {
-    optional Version                version_id       = 1; //o|Version (SOD, LIVE, EOD, INTR ...)            
+    optional Version                version_id       = 1; //o|Version (SOD, LIVE, EOD, INTR ...)
     optional int32                  business_date    = 2; //o|Current business date [YYYYMMDD]
     optional int64                  timestamp        = 3; //o|Snapshot timestamp (generation/send time) [time in msec in epoch]
     repeated int32                  gpb_extension_id = 4; //o|Entity type contained in this message
@@ -67,18 +66,18 @@ message RiskLimitEvent
 
 }
 
-// margin on liquidation group level 
+// margin on liquidation group level
 
 message LiquiGroupMarginKey {
-    optional                           string clearer                        = 1; 
-    optional                           string member                         = 2; 
-    optional                           string account                        = 3; 
-    optional                           string margin_class                   = 4; 
-    optional                           string margin_currency                = 5; 
+    optional                           string clearer                        = 1;
+    optional                           string member                         = 2;
+    optional                           string account                        = 3;
+    optional                           string margin_class                   = 4;
+    optional                           string margin_currency                = 5;
 }
 
 message LiquiGroupMargin {
-    optional              LiquiGroupMarginKey key                            = 1;        
+    optional              LiquiGroupMarginKey key                            = 1;
     optional                           string margin_group                   = 2;
     optional                           double premium_margin                 = 3;
     optional                           double current_liquidating_margin     = 4;
@@ -88,18 +87,18 @@ message LiquiGroupMargin {
     optional                           double variation_premium_payment      = 8;
 }
 
-// margin on account level 
+// margin on account level
 
 message AccountMarginKey {
-    optional                           string clearer                        = 1; 
-    optional                           string member                         = 2; 
-    optional                           string account                        = 3; 
-    optional                           string margin_currency                = 4; 
+    optional                           string clearer                        = 1;
+    optional                           string member                         = 2;
+    optional                           string account                        = 3;
+    optional                           string margin_currency                = 4;
 }
 
 message AccountMargin {
-    optional                 AccountMarginKey key                            = 1;        
-    optional                           string clearing_currency              = 2; 
+    optional                 AccountMarginKey key                            = 1;
+    optional                           string clearing_currency              = 2;
     optional                           string pool                           = 3;
     optional                           double margin_req_in_margin_curr      = 4;
     optional                           double margin_req_in_clr_curr         = 5;
@@ -108,17 +107,17 @@ message AccountMargin {
 }
 
 
-// margin on pool level in margin currency 
+// margin on pool level in margin currency
 
 message PoolMarginKey {
-    optional                           string clearer                        = 1; 
+    optional                           string clearer                        = 1;
     optional                           string pool                           = 2;
-    optional                           string margin_currency                = 3; 
+    optional                           string margin_currency                = 3;
 }
 
 message PoolMargin {
-    optional                    PoolMarginKey key                            = 1;        
-    optional                           string clr_rpt_currency               = 2; 
+    optional                    PoolMarginKey key                            = 1;
+    optional                           string clr_rpt_currency               = 2;
     optional                           double required_margin                = 3;
     optional                           double cash_collateral_amount         = 4;
     optional                           double adjusted_securities            = 5;
@@ -126,21 +125,21 @@ message PoolMargin {
     optional                           double over_under_in_margin_curr      = 7;
     optional                           double over_under_in_clr_rpt_curr     = 8;
     optional                           double vari_prem_in_margin_curr       = 9;
-    optional                           double adjusted_exchange_rate         = 10; 
+    optional                           double adjusted_exchange_rate         = 10;
     optional                           string pool_owner                     = 11;
 }
 
 
-// margin on pool level in clearing/reporting currency 
+// margin on pool level in clearing/reporting currency
 
 message PoolMarginClearingCurrencyKey {
-    optional                           string clearer                        = 1; 
+    optional                           string clearer                        = 1;
     optional                           string pool                           = 2;
 }
 
 message PoolMarginClearingCurrency {
-    optional    PoolMarginClearingCurrencyKey key                            = 1;        
-    optional                           string clr_rpt_currency               = 2; 
+    optional    PoolMarginClearingCurrencyKey key                            = 1;
+    optional                           string clr_rpt_currency               = 2;
     optional                           string pool_type                      = 3;
     optional                           double surplus_shortfall              = 4;
     optional                           double used_surplus_shortfall         = 5;
@@ -156,17 +155,17 @@ message PoolMarginClearingCurrency {
 // margin on clearer level incl. account details (former FTMRGREQ file)
 
 message ClearerMargin {
-    optional                           string clearer                    =  1; 
+    optional                           string clearer                    =  1;
     optional                           string clearing_currency          =  2;
     optional                           double clearer_margin_requirement =  3;
     optional                           double clearer_shortfall_surplus  =  4;
     optional                           double clearer_variation_premium  =  5;
-    optional                           string member                     =  6; 
+    optional                           string member                     =  6;
     optional                           string eurex_classic_account_type =  7; // equals to account unless account is flex account; if flex account, A8 is filled here
     optional                           string account                    =  8;
     optional                           string account_margin_currency    =  9;
-    optional                           double account_margin_requirement = 10; 
-    optional                           double account_variation_premium  = 11; 
+    optional                           double account_margin_requirement = 10;
+    optional                           double account_variation_premium  = 11;
 }
 
 // Position report
@@ -175,40 +174,38 @@ message PositionReportKey {
     optional                           string clearer                        = 1;
     optional                           string member                         = 2;
     optional                           string account                        = 3;
-    optional                           string product                        = 4;
-    optional                           string call_put                       = 5;
-    optional                           int32  expiry_year                    = 6;
-    optional                           int32  expiry_month                   = 7;
-    optional                           int32  expiry_day                     = 8;
-    optional                           double exercise_price                 = 9;
-    optional                           string version                        = 10;
-    optional                           string flex_contract_symbol           = 11;
-    optional                           int32  otc_trade_id                   = 12;
-    optional                           string liquidation_group              = 13;
-    optional                           string liquidation_group_split        = 14;
+    optional                           string liquidation_group              = 4;
+    optional                           string liquidation_group_split        = 5;
+    optional                           string product                        = 6;
+    optional                           string call_put                       = 7;
+    optional                           int32  contract_year                  = 8;
+    optional                           int32  contract_month                 = 9;
+    optional                           int32  expiry_day                     = 10;
+    optional                           double exercise_price                 = 11;
+    optional                           string version                        = 12;
+    optional                           string flex_contract_symbol           = 13;
 }
 
 message PositionReport {
     optional                PositionReportKey key                         =  1;
-    optional                           double long                        =  2;
-    optional                           double short                       =  3;
-    optional                           double exercised_allocated         =  4;
-    optional                           double assigned_notified           =  5;
-    optional                           string clearing_currency           =  6;
-    optional                           double m_var                       =  7;
-    optional                           double comp_var                    =  8;
-    optional                           double comp_correlation_break      =  9;
-    optional                           double comp_compression_error      = 10;
-    optional                           double comp_liquidity_add_on       = 11;
-    optional                           double comp_long_option_credit     = 12;
-    optional                           string product_currency            = 13;
-    optional                           double variation_premium_payment   = 14;
-    optional                           double premium_margin              = 15;
-    optional                           double normalized_delta            = 16;
-    optional                           double normalized_gamma            = 17;
-    optional                           double normalized_vega             = 18;
-    optional                           double normalized_rho              = 19;
-    optional                           double normalized_theta            = 20;
+    optional                           double net_quantity_ls             =  2;
+    optional                           double net_quantity_ea             =  3;
+    optional                           string clearing_currency           =  4;
+    optional                           double m_var                       =  5;
+    optional                           double comp_var                    =  6;
+    optional                           double comp_correlation_break      =  7;
+    optional                           double comp_compression_error      =  8;
+    optional                           double comp_liquidity_add_on       =  9;
+    optional                           double comp_long_option_credit     = 10;
+    optional                           string product_currency            = 11;
+    optional                           double variation_premium_payment   = 12;
+    optional                           double premium_margin              = 13;
+    optional                           double normalized_delta            = 14;
+    optional                           double normalized_gamma            = 15;
+    optional                           double normalized_vega             = 16;
+    optional                           double normalized_rho              = 17;
+    optional                           double normalized_theta            = 18;
+    optional                           string underlying                  = 19;
 }
 
 // margin on liquidation group split level
@@ -267,5 +264,6 @@ message PrismaReports_proto
     optional  string                SIR_NUMBER            =  2 [default = "361372"];
     optional  string                GPB_VERSION           =  3 [default = "2.4.1"];
 }
+
 
 
