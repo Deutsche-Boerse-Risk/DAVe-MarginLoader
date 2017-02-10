@@ -13,18 +13,7 @@ public class AccountMarginVerticle extends AMQPVerticle {
 
     @Override
     public void start(Future<Void> fut) throws Exception {
-        LOG.info("Starting {} with configuration: {}", AccountMarginVerticle.class.getSimpleName(), config().encodePrettily());
-        Future<Void> startFuture = Future.future();
-        startFuture.setHandler(ar -> {
-            if (ar.succeeded()) {
-                LOG.info("{} started", AccountMarginVerticle.class.getSimpleName());
-                fut.complete();
-            } else {
-                LOG.error("{} verticle failed to deploy", AccountMarginVerticle.class.getSimpleName(), fut.cause());
-                fut.fail(fut.cause());
-            }
-        });
-        super.start(startFuture);
+        super.start(fut, AccountMarginVerticle.class.getSimpleName());
     }
 
     @Override

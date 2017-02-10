@@ -34,15 +34,23 @@ public abstract class AMQPVerticle extends AbstractVerticle {
     protected ProtonConnection protonBrokerConnection;
     protected ProtonReceiver protonBrokerReceiver;
 
-    @Override
-    public void start(Future<Void> fut) throws Exception {
+    public void start(Future<Void> fut, String verticleName) throws Exception {
+        LOG.info("Starting {} with configuration: {}", verticleName, config().encodePrettily());
         this.registerExtensions();
 
         Future<Void> chainFuture = Future.future();
         createBrokerConnection()
                 .compose(this::createAmqpReceiver)
                 .compose(chainFuture::complete, chainFuture);
-        chainFuture.setHandler(fut.completer());
+        chainFuture.setHandler(ar -> {
+            if (ar.succeeded()) {
+                LOG.info("{} started", verticleName);
+                fut.complete();
+            } else {
+                LOG.error("{} verticle failed to deploy", verticleName, fut.cause());
+                fut.fail(ar.cause());
+            }
+        });
     }
 
     protected abstract String getAmqpContainerName();

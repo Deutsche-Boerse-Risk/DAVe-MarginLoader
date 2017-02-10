@@ -56,6 +56,7 @@ public class MongoVerticle extends AbstractVerticle {
             config.put("db_name", config().getString("dbName", MongoVerticle.DEFAULT_DB_NAME));
             config.put("useObjectId", true);
             config.put("connection_string", config().getString("connectionUrl", MongoVerticle.DEFAULT_CONNECTION_URL));
+            config.put("waitQueueMultiple", 20000);
             mongo = MongoClient.createShared(vertx, config);
             LOG.info("Connected to MongoDB");
             return Future.succeededFuture();

@@ -13,18 +13,7 @@ public class LiquiGroupMarginVerticle extends AMQPVerticle {
 
     @Override
     public void start(Future<Void> fut) throws Exception {
-        LOG.info("Starting {} with configuration: {}", LiquiGroupMarginVerticle.class.getSimpleName(), config().encodePrettily());
-        Future<Void> startFuture = Future.future();
-        startFuture.setHandler(ar -> {
-            if (ar.succeeded()) {
-                LOG.info("{} started", LiquiGroupMarginVerticle.class.getSimpleName());
-                fut.complete();
-            } else {
-                LOG.error("{} verticle failed to deploy", LiquiGroupMarginVerticle.class.getSimpleName(), fut.cause());
-                fut.fail(fut.cause());
-            }
-        });
-        super.start(startFuture);
+        super.start(fut, LiquiGroupMarginVerticle.class.getSimpleName());
     }
 
     @Override
