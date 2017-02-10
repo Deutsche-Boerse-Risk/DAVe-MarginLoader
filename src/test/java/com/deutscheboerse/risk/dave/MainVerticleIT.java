@@ -78,7 +78,7 @@ public class MainVerticleIT {
     private void testCountInCollection(TestContext  context, String collection, long count) {
         AtomicLong currentCount = new AtomicLong();
         int tries = 0;
-        while (currentCount.get() != count && tries < 10) {
+        while (currentCount.get() != count && tries < 60) {
             Async asyncHistoryCount = context.async();
             MainVerticleIT.mongoClient.count(collection, new JsonObject(), ar -> {
                 if (ar.succeeded()) {
