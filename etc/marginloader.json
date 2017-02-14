@@ -16,5 +16,8 @@
   "mongo": {
     "dbName": "DAVe",
     "connectionUrl": "mongodb://localhost:27017/?waitqueuemultiple=20000"
+  },
+  "http": {
+    "port": 8080
   }
 }
