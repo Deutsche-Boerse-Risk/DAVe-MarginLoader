@@ -1,5 +1,6 @@
 
 
+
 package CIL.CIL_v001.Prisma_v001;
 
 import "CIL/ObjectList.proto";
@@ -251,7 +252,7 @@ extend CIL.GPBObject {
     optional  PoolMarginClearingCurrency  pool_margin_clearing_currency        = 40012;
     optional  ClearerMargin               clearer_margin                       = 40013;
     optional  PositionReport              position_report                      = 40014;
-    optional  LiquiGroupSplitMargin       liquidation_group_split_margin       = 40015;
+    optional  LiquiGroupSplitMargin       liqui_group_split_margin             = 40015;
     optional  RiskLimitUtilization        risk_limit_utilization               = 40016;
 }
 
@@ -264,6 +265,5 @@ message PrismaReports_proto
     optional  string                SIR_NUMBER            =  2 [default = "361372"];
     optional  string                GPB_VERSION           =  3 [default = "2.4.1"];
 }
-
 
 
