@@ -1,5 +1,6 @@
 package com.deutscheboerse.risk.dave;
 
+import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
@@ -16,21 +17,27 @@ import java.util.Map;
 public class MainVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(MainVerticle.class);
     private Map<String, String> verticleDeployments = new HashMap<>();
+    private HealthCheck healthCheck;
 
     @Override
     public void start(Future<Void> startFuture) {
+        healthCheck = new HealthCheck(this.vertx);
+
         Future<Void> chainFuture = Future.future();
         this.deployMongoVerticle()
                 .compose(this::deployAccountMarginVerticle)
                 .compose(this::deployLiquiGroupMarginVerticle)
+                .compose(this::deployHealthCheckVerticle)
                 .compose(chainFuture::complete, chainFuture);
 
         chainFuture.setHandler(ar -> {
             if (ar.succeeded()) {
                 LOG.info("All verticles deployed");
+                healthCheck.setMainState(true);
                 startFuture.complete();
             } else {
                 LOG.error("Fail to deploy some verticle");
+                healthCheck.setMainState(false);
                 closeAllDeployments();
                 startFuture.fail(chainFuture.cause());
             }
@@ -39,20 +46,24 @@ public class MainVerticle extends AbstractVerticle {
 
     private Future<Void> deployMongoVerticle() {
         return this.deployVerticle(MongoVerticle.class, config().getJsonObject("mongo", new JsonObject()));
-    };
+    }
 
     private Future<Void> deployAccountMarginVerticle(Void unused) {
         return this.deployVerticle(AccountMarginVerticle.class, config().getJsonObject("broker", new JsonObject()));
-    };
+    }
 
     private Future<Void> deployLiquiGroupMarginVerticle(Void unused) {
         return this.deployVerticle(LiquiGroupMarginVerticle.class, config().getJsonObject("broker", new JsonObject()));
-    };
+    }
+
+    private Future<Void> deployHealthCheckVerticle(Void unused) {
+        return this.deployVerticle(HealthCheckVerticle.class, config().getJsonObject("healthCheck", new JsonObject()));
+    }
 
     private Future<Void> deployVerticle(Class clazz, JsonObject config) {
         Future<Void> verticleFuture = Future.future();
-        DeploymentOptions AMQPOptions = new DeploymentOptions().setConfig(config);
-        vertx.deployVerticle(clazz.getName(), AMQPOptions, ar -> {
+        DeploymentOptions options = new DeploymentOptions().setConfig(config);
+        vertx.deployVerticle(clazz.getName(), options, ar -> {
             if (ar.succeeded()) {
                 LOG.info("Deployed {} with ID {}", clazz.getName(), ar.result());
                 verticleDeployments.put(clazz.getSimpleName(), ar.result());
