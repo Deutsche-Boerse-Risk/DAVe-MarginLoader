@@ -21,13 +21,13 @@ public class MainVerticle extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> startFuture) {
-        healthCheck = new HealthCheck(this.vertx).initialize();
+        healthCheck = new HealthCheck(this.vertx);
 
         Future<Void> chainFuture = Future.future();
         this.deployMongoVerticle()
                 .compose(this::deployAccountMarginVerticle)
                 .compose(this::deployLiquiGroupMarginVerticle)
-                .compose(this::deployHttpVerticle)
+                .compose(this::deployHealthCheckVerticle)
                 .compose(chainFuture::complete, chainFuture);
 
         chainFuture.setHandler(ar -> {
@@ -56,8 +56,8 @@ public class MainVerticle extends AbstractVerticle {
         return this.deployVerticle(LiquiGroupMarginVerticle.class, config().getJsonObject("broker", new JsonObject()));
     }
 
-    private Future<Void> deployHttpVerticle(Void unused) {
-        return this.deployVerticle(HttpVerticle.class, config().getJsonObject("http", new JsonObject()));
+    private Future<Void> deployHealthCheckVerticle(Void unused) {
+        return this.deployVerticle(HealthCheckVerticle.class, config().getJsonObject("healthCheck", new JsonObject()));
     }
 
     private Future<Void> deployVerticle(Class clazz, JsonObject config) {

@@ -1,6 +1,7 @@
 package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpServer;
@@ -19,9 +20,12 @@ import io.vertx.ext.web.RoutingContext;
  *                    are up and running
  * </ul>
  */
-public class HttpVerticle extends AbstractVerticle
+public class HealthCheckVerticle extends AbstractVerticle
 {
-    private static final Logger LOG = LoggerFactory.getLogger(HttpVerticle.class);
+    private static final Logger LOG = LoggerFactory.getLogger(HealthCheckVerticle.class);
+
+    public static final String REST_HEALTHZ = "/healthz";
+    public static final String REST_READINESS = "/readiness";
 
     private static final Integer DEFAULT_PORT = 8080;
 
@@ -30,7 +34,7 @@ public class HttpVerticle extends AbstractVerticle
 
     @Override
     public void start(Future<Void> startFuture) throws Exception {
-        LOG.info("Starting {} with configuration: {}", HttpVerticle.class.getSimpleName(), config().encodePrettily());
+        LOG.info("Starting {} with configuration: {}", HealthCheckVerticle.class.getSimpleName(), config().encodePrettily());
 
         healthCheck = new HealthCheck(this.vertx);
 
@@ -48,7 +52,7 @@ public class HttpVerticle extends AbstractVerticle
         Future<HttpServer> webServerFuture = Future.future();
         Router router = configureRouter();
 
-        int port = config().getInteger("port", HttpVerticle.DEFAULT_PORT);
+        int port = config().getInteger("port", HealthCheckVerticle.DEFAULT_PORT);
 
         LOG.info("Starting web server on port {}", port);
         server = vertx.createHttpServer()
@@ -63,21 +67,21 @@ public class HttpVerticle extends AbstractVerticle
         Router router = Router.router(vertx);
 
         LOG.info("Adding route REST API");
-        router.get("/healthz").handler(this::healthz);
-        router.get("/readiness").handler(this::readiness);
+        router.get(REST_HEALTHZ).handler(this::healthz);
+        router.get(REST_READINESS).handler(this::readiness);
 
         return router;
     }
 
     private void healthz(RoutingContext routingContext) {
-        routingContext.response().setStatusCode(200).end("ok");
+        routingContext.response().setStatusCode(HttpResponseStatus.OK.code()).end("ok");
     }
 
     private void readiness(RoutingContext routingContext) {
         if (healthCheck.ready())  {
-            routingContext.response().setStatusCode(200).end("ok");
+            routingContext.response().setStatusCode(HttpResponseStatus.OK.code()).end("ok");
         } else  {
-            routingContext.response().setStatusCode(503).end("nok");
+            routingContext.response().setStatusCode(HttpResponseStatus.SERVICE_UNAVAILABLE.code()).end("nok");
         }
     }
 

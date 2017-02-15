@@ -17,7 +17,7 @@ public class HealthCheckTest {
     public void testInitialization(TestContext context) {
         Vertx vertx = Vertx.vertx();
 
-        HealthCheck healthCheck = new HealthCheck(vertx).initialize();
+        HealthCheck healthCheck = new HealthCheck(vertx);
         LocalMap<String, Boolean> localMap = vertx.sharedData().getLocalMap(MAP_NAME);
 
         context.assertNotNull(localMap.get(MAIN_KEY), "MAIN readiness should not be null");
@@ -32,15 +32,15 @@ public class HealthCheckTest {
         Vertx vertx;
 
         vertx = Vertx.vertx();
-        context.assertFalse(new HealthCheck(vertx).initialize().ready(), "Nothing is ready, should return false");
+        context.assertFalse(new HealthCheck(vertx).ready(), "Nothing is ready, should return false");
         vertx.close();
 
         vertx = Vertx.vertx();
-        context.assertTrue(new HealthCheck(vertx).initialize().setMainState(true).getMainState(), "Main verticle is ready");
+        context.assertTrue(new HealthCheck(vertx).setMainState(true).getMainState(), "Main verticle is ready");
         vertx.close();
 
         vertx = Vertx.vertx();
-        context.assertTrue(new HealthCheck(vertx).initialize().setMainState(true).ready(), "Main verticle is ready, the whole app should be ready");
+        context.assertTrue(new HealthCheck(vertx).setMainState(true).ready(), "Main verticle is ready, the whole app should be ready");
         vertx.close();
     }
 }

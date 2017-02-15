@@ -1,5 +1,6 @@
 package com.deutscheboerse.risk.dave.healthcheck;
 
+import com.deutscheboerse.risk.dave.HealthCheckVerticle;
 import com.deutscheboerse.risk.dave.MainVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Handler;
@@ -66,7 +67,7 @@ public class HealthCheckIT {
 
     @Test
     public void testHealth(TestContext context) throws InterruptedException {
-        vertx.createHttpClient().getNow(HTTP_PORT, "localhost", "/healthz", res -> {
+        vertx.createHttpClient().getNow(HTTP_PORT, "localhost", HealthCheckVerticle.REST_HEALTHZ, res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(assertEqualsBodyHandler("ok", context));
         });
@@ -74,7 +75,7 @@ public class HealthCheckIT {
 
     @Test
     public void testReadinessOk(TestContext context) throws InterruptedException {
-        vertx.createHttpClient().getNow(HTTP_PORT, "localhost", "/readiness", res -> {
+        vertx.createHttpClient().getNow(HTTP_PORT, "localhost", HealthCheckVerticle.REST_READINESS, res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(assertEqualsBodyHandler("ok", context));
         });
@@ -85,7 +86,7 @@ public class HealthCheckIT {
         HealthCheck healthCheck = new HealthCheck(vertx);
         healthCheck.setMainState(false);
 
-        vertx.createHttpClient().getNow(HTTP_PORT, "localhost", "/readiness", res -> {
+        vertx.createHttpClient().getNow(HTTP_PORT, "localhost", HealthCheckVerticle.REST_READINESS, res -> {
             context.assertEquals(503, res.statusCode());
             res.bodyHandler(assertEqualsBodyHandler("nok", context));
         });

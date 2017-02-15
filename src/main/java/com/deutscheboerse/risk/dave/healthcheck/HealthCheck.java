@@ -1,7 +1,6 @@
 package com.deutscheboerse.risk.dave.healthcheck;
 
 import com.deutscheboerse.risk.dave.MainVerticle;
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -30,29 +29,8 @@ public class HealthCheck {
      */
     public HealthCheck(Vertx vertx) {
         LOG.trace("Constructing {} object", HealthCheck.class.getCanonicalName());
-
         healthCheck = vertx.sharedData().getLocalMap(MAP_NAME);
-    }
-
-    /**
-     * Set the internal shared map to initial state.
-     * <p>
-     * This method should be called just once per each {@code Vertx} instance.
-     * Convenient place for this function is in the
-     * {@link MainVerticle#start(Future) MainVerticle.start()}
-     * method.
-     *
-     * @return a reference to this, so the API can be used fluently.
-     */
-    public HealthCheck initialize() {
-        LOG.info("Initializing {}", HealthCheck.class.getCanonicalName());
-
-        if (healthCheck.get(MAIN_KEY) == null) {
-            LOG.trace("Initializing {} to false", MAIN_KEY);
-            healthCheck.put(MAIN_KEY, false);
-        }
-
-        return this;
+        healthCheck.putIfAbsent(MAIN_KEY, false);
     }
 
     /**
@@ -60,9 +38,8 @@ public class HealthCheck {
      *
      * @return {@code true} if all verticles are up and running.
      */
-    public Boolean ready() {
+    public boolean ready() {
         LOG.trace("Received readiness query");
-
         return this.getMainState();
     }
 
@@ -72,9 +49,8 @@ public class HealthCheck {
      * @param state indicating health of {@link MainVerticle}.
      * @return a reference to this, so the API can be used fluently.
      */
-    public HealthCheck setMainState(Boolean state) {
+    public HealthCheck setMainState(boolean state) {
         LOG.info("Setting {} readiness to {}", MAIN_KEY, state);
-
         healthCheck.put(MAIN_KEY, state);
         return this;
     }
@@ -84,9 +60,8 @@ public class HealthCheck {
      *
      * @return {@code true} if {@link MainVerticle} is ready.
      */
-    Boolean getMainState() {
+    boolean getMainState() {
         LOG.trace("Received readiness query for {}", MAIN_KEY);
-
         return healthCheck.get(MAIN_KEY);
     }
 }

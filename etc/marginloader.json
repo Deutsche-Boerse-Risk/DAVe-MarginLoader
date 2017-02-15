@@ -17,7 +17,7 @@
     "dbName": "DAVe",
     "connectionUrl": "mongodb://localhost:27017/?waitqueuemultiple=20000"
   },
-  "http": {
+  "healthCheck": {
     "port": 8080
   }
 }

@@ -3,16 +3,13 @@ package com.deutscheboerse.risk.dave;
 import com.deutscheboerse.risk.dave.model.AccountMarginModel;
 import com.deutscheboerse.risk.dave.model.LiquiGroupMarginModel;
 import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -24,20 +21,20 @@ public class MainVerticleIT {
     private static final int BROKER_PORT = Integer.getInteger("cil.tcpport", 5672);
     private static final String DB_NAME = "DAVe-Test" + UUID.randomUUID().getLeastSignificantBits();
     private static final int DB_PORT =  Integer.getInteger("mongodb.port", 27017);
-    private static Vertx vertx;
-    private static MongoClient mongoClient;
+    private Vertx vertx;
+    private MongoClient mongoClient;
 
-    @BeforeClass
-    public static void setUp(TestContext context) {
-        MainVerticleIT.vertx = Vertx.vertx();
-        MainVerticleIT.createMongoClient();
+    @Before
+    public void setUp() {
+        this.vertx = Vertx.vertx();
+        this.createMongoClient();
     }
 
-    private static void createMongoClient() {
+    private void createMongoClient() {
         JsonObject mongoConfig = new JsonObject()
                 .put("db_name", MainVerticleIT.DB_NAME)
                 .put("connection_string", String.format("mongodb://localhost:%s/?waitqueuemultiple=%d", MainVerticleIT.DB_PORT, 20000));
-        MainVerticleIT.mongoClient = MongoClient.createShared(MainVerticleIT.vertx, mongoConfig);
+        this.mongoClient = MongoClient.createShared(this.vertx, mongoConfig);
     }
 
     private DeploymentOptions createDeploymentOptions() {
@@ -52,15 +49,14 @@ public class MainVerticleIT {
         JsonObject config = new JsonObject()
                 .put("broker", brokerConfig)
                 .put("mongo", mongoConfig);
-        DeploymentOptions options = new DeploymentOptions().setConfig(config);
-        return options;
+        return new DeploymentOptions().setConfig(config);
     }
 
     @Test
     public void testFullChain(TestContext context) throws IOException, InterruptedException {
         DeploymentOptions options = createDeploymentOptions();
-        MainVerticleIT.vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertSuccess());
-        final BrokerFiller brokerFiller = new BrokerFiller(MainVerticleIT.vertx);
+        this.vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertSuccess());
+        final BrokerFiller brokerFiller = new BrokerFiller(this.vertx);
         brokerFiller.setUpAllQueues(context.asyncAssertSuccess());
         this.testCountInCollection(context, AccountMarginModel.MONGO_HISTORY_COLLECTION, 1704);
         this.testCountInCollection(context, AccountMarginModel.MONGO_LATEST_COLLECTION, 1704);
@@ -72,7 +68,7 @@ public class MainVerticleIT {
     public void testFailedDeployment(TestContext context) {
         DeploymentOptions options = createDeploymentOptions();
         options.getConfig().getJsonObject("broker").put("hostname", "nonexisting");
-        MainVerticleIT.vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertFailure());
+        this.vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertFailure());
     }
 
     private void testCountInCollection(TestContext  context, String collection, long count) {
@@ -80,7 +76,7 @@ public class MainVerticleIT {
         int tries = 0;
         while (currentCount.get() != count && tries < 60) {
             Async asyncHistoryCount = context.async();
-            MainVerticleIT.mongoClient.count(collection, new JsonObject(), ar -> {
+            this.mongoClient.count(collection, new JsonObject(), ar -> {
                 if (ar.succeeded()) {
                     currentCount.set(ar.result());
                     if (currentCount.get() == count) {
@@ -100,8 +96,8 @@ public class MainVerticleIT {
         context.assertEquals(count, currentCount.get());
     }
 
-    @AfterClass
-    public static void tearDown(TestContext context) {
-        MainVerticleIT.vertx.close(context.asyncAssertSuccess());
+    @After
+    public void cleanup(TestContext context) {
+        vertx.close(context.asyncAssertSuccess());
     }
 }
