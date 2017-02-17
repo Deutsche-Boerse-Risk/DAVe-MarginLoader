@@ -134,7 +134,7 @@ public class MongoVerticle extends AbstractVerticle {
     }
 
     private Future<String> storeIntoHistoryCollection(AbstractModel model) {
-        JsonObject document = new JsonObject().mergeIn(model);
+        JsonObject document = model.copy();
         LOG.trace("Storing message into {} with body {}", model.getHistoryCollection(), document.encodePrettily());
         Future<String> result = Future.future();
         mongo.insert(model.getHistoryCollection(), document, result.completer());
@@ -142,7 +142,7 @@ public class MongoVerticle extends AbstractVerticle {
     }
 
     private Future<MongoClientUpdateResult> storeIntoLatestCollection(AbstractModel model) {
-        JsonObject document = new JsonObject().mergeIn(model);
+        JsonObject document = model.copy();
         LOG.trace("Storing message into {} with body {}", model.getLatestCollection(), document.encodePrettily());
         Future<MongoClientUpdateResult> result = Future.future();
         mongo.replaceDocumentsWithOptions(model.getLatestCollection(),
