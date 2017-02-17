@@ -16,18 +16,19 @@ import java.util.Map;
 
 public class MainVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(MainVerticle.class);
+    private static final String BROKER_CONF = "broker";
     private Map<String, String> verticleDeployments = new HashMap<>();
-    private HealthCheck healthCheck;
 
     @Override
     public void start(Future<Void> startFuture) {
-        healthCheck = new HealthCheck(this.vertx);
+        HealthCheck healthCheck = new HealthCheck(this.vertx);
 
         Future<Void> chainFuture = Future.future();
         this.deployMongoVerticle()
-                .compose(this::deployAccountMarginVerticle)
-                .compose(this::deployLiquiGroupMarginVerticle)
-                .compose(this::deployHealthCheckVerticle)
+                .compose(i -> deployAccountMarginVerticle())
+                .compose(i -> deployLiquiGroupMarginVerticle())
+                .compose(i -> deployPoolMarginVerticle())
+                .compose(i -> deployHealthCheckVerticle())
                 .compose(chainFuture::complete, chainFuture);
 
         chainFuture.setHandler(ar -> {
@@ -48,15 +49,19 @@ public class MainVerticle extends AbstractVerticle {
         return this.deployVerticle(MongoVerticle.class, config().getJsonObject("mongo", new JsonObject()));
     }
 
-    private Future<Void> deployAccountMarginVerticle(Void unused) {
-        return this.deployVerticle(AccountMarginVerticle.class, config().getJsonObject("broker", new JsonObject()));
+    private Future<Void> deployAccountMarginVerticle() {
+        return this.deployVerticle(AccountMarginVerticle.class, config().getJsonObject(BROKER_CONF, new JsonObject()));
     }
 
-    private Future<Void> deployLiquiGroupMarginVerticle(Void unused) {
-        return this.deployVerticle(LiquiGroupMarginVerticle.class, config().getJsonObject("broker", new JsonObject()));
+    private Future<Void> deployLiquiGroupMarginVerticle() {
+        return this.deployVerticle(LiquiGroupMarginVerticle.class, config().getJsonObject(BROKER_CONF, new JsonObject()));
     }
 
-    private Future<Void> deployHealthCheckVerticle(Void unused) {
+    private Future<Void> deployPoolMarginVerticle() {
+        return this.deployVerticle(PoolMarginVerticle.class, config().getJsonObject(BROKER_CONF, new JsonObject()));
+    }
+
+    private Future<Void> deployHealthCheckVerticle() {
         return this.deployVerticle(HealthCheckVerticle.class, config().getJsonObject("healthCheck", new JsonObject()));
     }
 

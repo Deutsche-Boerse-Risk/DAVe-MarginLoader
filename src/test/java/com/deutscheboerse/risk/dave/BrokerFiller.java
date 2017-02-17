@@ -38,6 +38,7 @@ public class BrokerFiller {
         this.createAmqpConnection()
                 .compose(this::populateAccountMarginQueue)
                 .compose(this::populateLiquiGroupMarginQueue)
+                .compose(this::populatePoolMarginQueue)
 //                .compose(this::populateLiquiGroupSplitMarginQueue)
 //                .compose(this::populatePositionReportQueue)
                 .compose(chainFuture::complete, chainFuture);
@@ -75,6 +76,20 @@ public class BrokerFiller {
            } else {
                handler.handle(Future.failedFuture(ar.cause()));
            }
+        });
+    }
+
+    public void setUpPoolMarginQueue(Handler<AsyncResult<String>> handler) {
+        Future<ProtonConnection> chainFuture = Future.future();
+        this.createAmqpConnection()
+                .compose(this::populatePoolMarginQueue)
+                .compose(chainFuture::complete, chainFuture);
+        chainFuture.setHandler(ar -> {
+            if (ar.succeeded()) {
+                handler.handle(Future.succeededFuture());
+            } else {
+                handler.handle(Future.failedFuture(ar.cause()));
+            }
         });
     }
 
@@ -131,7 +146,7 @@ public class BrokerFiller {
     }
     private Future<ProtonConnection> populatePoolMarginQueue(ProtonConnection protonConnection) {
         final String queueName = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPoolMargin";
-        final Collection<String> messagePaths = IntStream.rangeClosed(1, 1)
+        final Collection<String> messagePaths = IntStream.rangeClosed(1, 2)
                 .mapToObj(i -> String.format("%s/%03d.bin", BrokerFiller.class.getResource("poolMargin").getPath(), i))
                 .collect(Collectors.toList());
         return this.populateQueue(protonConnection, queueName, messagePaths);

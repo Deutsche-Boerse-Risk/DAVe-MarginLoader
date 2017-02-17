@@ -16,10 +16,10 @@ import io.vertx.core.shareddata.LocalMap;
 public class HealthCheck {
     private static final Logger LOG = LoggerFactory.getLogger(HealthCheck.class);
 
-    private final static String MAP_NAME = "healthCheck";
-    private final static String MAIN_KEY = "mainReady";
+    private static final String MAP_NAME = "healthCheck";
+    private static final String MAIN_KEY = "mainReady";
 
-    private LocalMap<String, Boolean> healthCheck;
+    private LocalMap<String, Boolean> localMap;
 
     /**
      * Create a new instance.
@@ -29,8 +29,8 @@ public class HealthCheck {
      */
     public HealthCheck(Vertx vertx) {
         LOG.trace("Constructing {} object", HealthCheck.class.getCanonicalName());
-        healthCheck = vertx.sharedData().getLocalMap(MAP_NAME);
-        healthCheck.putIfAbsent(MAIN_KEY, false);
+        localMap = vertx.sharedData().getLocalMap(MAP_NAME);
+        localMap.putIfAbsent(MAIN_KEY, false);
     }
 
     /**
@@ -51,7 +51,7 @@ public class HealthCheck {
      */
     public HealthCheck setMainState(boolean state) {
         LOG.info("Setting {} readiness to {}", MAIN_KEY, state);
-        healthCheck.put(MAIN_KEY, state);
+        localMap.put(MAIN_KEY, state);
         return this;
     }
 
@@ -62,6 +62,6 @@ public class HealthCheck {
      */
     boolean getMainState() {
         LOG.trace("Received readiness query for {}", MAIN_KEY);
-        return healthCheck.get(MAIN_KEY);
+        return localMap.get(MAIN_KEY);
     }
 }

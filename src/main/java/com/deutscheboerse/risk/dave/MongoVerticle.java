@@ -3,6 +3,7 @@ package com.deutscheboerse.risk.dave;
 import com.deutscheboerse.risk.dave.model.AbstractModel;
 import com.deutscheboerse.risk.dave.model.AccountMarginModel;
 import com.deutscheboerse.risk.dave.model.LiquiGroupMarginModel;
+import com.deutscheboerse.risk.dave.model.PoolMarginModel;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -23,7 +24,7 @@ import java.util.List;
 
 
 public class MongoVerticle extends AbstractVerticle {
-        final static private Logger LOG = LoggerFactory.getLogger(MongoVerticle.class);
+        private static final Logger LOG = LoggerFactory.getLogger(MongoVerticle.class);
 
         private static final String DEFAULT_DB_NAME = "DAVe";
         private static final String DEFAULT_CONNECTION_URL = "mongodb://localhost:27017/?waitqueuemultiple=20000";
@@ -37,8 +38,8 @@ public class MongoVerticle extends AbstractVerticle {
 
             Future<Void> chainFuture = Future.future();
             connectDb()
-                    .compose(this::initDb)
-                    .compose(this::startStoreHandlers)
+                    .compose(i -> initDb())
+                    .compose(i -> startStoreHandlers())
                     .compose(chainFuture::complete, chainFuture);
             chainFuture.setHandler(ar -> {
                 if (ar.succeeded()) {
@@ -61,7 +62,7 @@ public class MongoVerticle extends AbstractVerticle {
             return Future.succeededFuture();
         }
 
-        private Future<Void> initDb(Void unused) {
+        private Future<Void> initDb() {
             Future<Void> initDbFuture = Future.future();
             mongo.getCollections(res -> {
                 if (res.succeeded()) {
@@ -70,7 +71,9 @@ public class MongoVerticle extends AbstractVerticle {
                             AccountMarginModel.MONGO_HISTORY_COLLECTION,
                             AccountMarginModel.MONGO_LATEST_COLLECTION,
                             LiquiGroupMarginModel.MONGO_HISTORY_COLLECTION,
-                            LiquiGroupMarginModel.MONGO_LATEST_COLLECTION
+                            LiquiGroupMarginModel.MONGO_LATEST_COLLECTION,
+                            PoolMarginModel.MONGO_HISTORY_COLLECTION,
+                            PoolMarginModel.MONGO_LATEST_COLLECTION
                     ));
 
                     List<Future> futs = new ArrayList<>();
@@ -102,9 +105,10 @@ public class MongoVerticle extends AbstractVerticle {
             return initDbFuture;
         }
 
-    private Future<Void> startStoreHandlers(Void unused) {
+    private Future<Void> startStoreHandlers() {
         this.registerConsumer(AccountMarginModel.EB_STORE_ADDRESS, message -> store(message, new AccountMarginModel()));
         this.registerConsumer(LiquiGroupMarginModel.EB_STORE_ADDRESS, message -> store(message, new LiquiGroupMarginModel()));
+        this.registerConsumer(PoolMarginModel.EB_STORE_ADDRESS, message -> store(message, new PoolMarginModel()));
 
         LOG.info("Event bus store handlers subscribed");
         return Future.succeededFuture();
@@ -130,7 +134,7 @@ public class MongoVerticle extends AbstractVerticle {
     }
 
     private Future<String> storeIntoHistoryCollection(AbstractModel model) {
-        JsonObject document = new JsonObject(model.getMap());
+        JsonObject document = new JsonObject().mergeIn(model);
         LOG.trace("Storing message into {} with body {}", model.getHistoryCollection(), document.encodePrettily());
         Future<String> result = Future.future();
         mongo.insert(model.getHistoryCollection(), document, result.completer());
@@ -138,7 +142,7 @@ public class MongoVerticle extends AbstractVerticle {
     }
 
     private Future<MongoClientUpdateResult> storeIntoLatestCollection(AbstractModel model) {
-        JsonObject document = new JsonObject(model.getMap());
+        JsonObject document = new JsonObject().mergeIn(model);
         LOG.trace("Storing message into {} with body {}", model.getLatestCollection(), document.encodePrettily());
         Future<MongoClientUpdateResult> result = Future.future();
         mongo.replaceDocumentsWithOptions(model.getLatestCollection(),
