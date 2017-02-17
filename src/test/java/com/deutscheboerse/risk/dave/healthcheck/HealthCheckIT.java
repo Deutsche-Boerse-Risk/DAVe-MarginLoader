@@ -43,12 +43,12 @@ public class HealthCheckIT {
         JsonObject mongoConfig = new JsonObject()
                 .put("dbName", DB_NAME)
                 .put("connectionUrl", String.format("mongodb://localhost:%s/?waitqueuemultiple=%d", DB_PORT, 20000));
-        JsonObject httpConfig = new JsonObject()
+        JsonObject healthCheckConfig = new JsonObject()
                 .put("port", HTTP_PORT);
         JsonObject config = new JsonObject()
                 .put("broker", brokerConfig)
                 .put("mongo", mongoConfig)
-                .put("http", httpConfig);
+                .put("healthCheck", healthCheckConfig);
 
         return new DeploymentOptions().setConfig(config);
     }
