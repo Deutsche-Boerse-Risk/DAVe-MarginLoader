@@ -9,6 +9,7 @@ import com.google.protobuf.ExtensionRegistry;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.mongo.FindOptions;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -326,12 +327,14 @@ public class MongoVerticleIT {
 
     private void checkPoolMarginHistoryCollectionQuery(TestContext context) {
         JsonObject param = new JsonObject()
-            .put("clearer", "USWFC")
-            .put("pool", "default")
-            .put("marginCurrency", "CHF");
+                .put("clearer", "USWFC")
+                .put("pool", "default")
+                .put("marginCurrency", "CHF");
+        FindOptions findOptions = new FindOptions()
+                .setSort(new JsonObject().put("snapshotID", 1));
 
         Async asyncQuery = context.async();
-        MongoVerticleIT.mongoClient.find(PoolMarginModel.MONGO_HISTORY_COLLECTION, param, ar -> {
+        MongoVerticleIT.mongoClient.findWithOptions(PoolMarginModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
                 JsonObject result1 = ar.result().get(0);
@@ -365,7 +368,7 @@ public class MongoVerticleIT {
             .put("pool", "default")
             .put("marginCurrency", "CHF");
 
-        Async asyncQuery = context.async();;
+        Async asyncQuery = context.async();
         MongoVerticleIT.mongoClient.find(PoolMarginModel.MONGO_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());

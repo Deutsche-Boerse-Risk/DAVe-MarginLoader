@@ -16,7 +16,9 @@ import java.util.Map;
 
 public class MainVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(MainVerticle.class);
+    private static final String MONGO_CONF = "mongo";
     private static final String BROKER_CONF = "broker";
+    private static final String HEALTHCHECK_CONF = "healthCheck";
     private Map<String, String> verticleDeployments = new HashMap<>();
 
     @Override
@@ -46,7 +48,7 @@ public class MainVerticle extends AbstractVerticle {
     }
 
     private Future<Void> deployMongoVerticle() {
-        return this.deployVerticle(MongoVerticle.class, config().getJsonObject("mongo", new JsonObject()));
+        return this.deployVerticle(MongoVerticle.class, config().getJsonObject(MONGO_CONF, new JsonObject()));
     }
 
     private Future<Void> deployAccountMarginVerticle() {
@@ -62,7 +64,7 @@ public class MainVerticle extends AbstractVerticle {
     }
 
     private Future<Void> deployHealthCheckVerticle() {
-        return this.deployVerticle(HealthCheckVerticle.class, config().getJsonObject("healthCheck", new JsonObject()));
+        return this.deployVerticle(HealthCheckVerticle.class, config().getJsonObject(HEALTHCHECK_CONF, new JsonObject()));
     }
 
     private Future<Void> deployVerticle(Class clazz, JsonObject config) {
