@@ -5,10 +5,7 @@ import CIL.ObjectList;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.proton.ProtonClient;
@@ -16,12 +13,7 @@ import io.vertx.proton.ProtonConnection;
 import io.vertx.proton.ProtonReceiver;
 import org.apache.qpid.proton.amqp.Binary;
 import org.apache.qpid.proton.amqp.messaging.Data;
-import org.apache.qpid.proton.amqp.messaging.Released;
 import org.apache.qpid.proton.amqp.messaging.Section;
-
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 public abstract class AMQPVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(AMQPVerticle.class);
@@ -34,23 +26,21 @@ public abstract class AMQPVerticle extends AbstractVerticle {
     protected ProtonConnection protonBrokerConnection;
     protected ProtonReceiver protonBrokerReceiver;
 
-    public void start(Future<Void> fut, String verticleName) throws Exception {
+    public void start(Future<Void> fut, String verticleName) {
         LOG.info("Starting {} with configuration: {}", verticleName, config().encodePrettily());
         this.registerExtensions();
 
-        Future<Void> chainFuture = Future.future();
         createBrokerConnection()
-                .compose(this::createAmqpReceiver)
-                .compose(chainFuture::complete, chainFuture);
-        chainFuture.setHandler(ar -> {
-            if (ar.succeeded()) {
-                LOG.info("{} started", verticleName);
-                fut.complete();
-            } else {
-                LOG.error("{} verticle failed to deploy", verticleName, fut.cause());
-                fut.fail(ar.cause());
-            }
-        });
+                .compose(i -> createAmqpReceiver())
+                .setHandler(ar -> {
+                    if (ar.succeeded()) {
+                        LOG.info("{} started", verticleName);
+                        fut.complete();
+                    } else {
+                        LOG.error("{} verticle failed to deploy", verticleName, fut.cause());
+                        fut.fail(ar.cause());
+                    }
+                });
     }
 
     protected abstract String getAmqpContainerName();
@@ -59,7 +49,7 @@ public abstract class AMQPVerticle extends AbstractVerticle {
 
     protected void registerExtensions() {
         PrismaReports.registerAllExtensions(this.registry);
-    };
+    }
 
     private Future<Void> createBrokerConnection() {
         Future<Void> createBrokerConnectionFuture = Future.future();
@@ -87,7 +77,7 @@ public abstract class AMQPVerticle extends AbstractVerticle {
         return createBrokerConnectionFuture;
     }
 
-    protected Future<Void> createAmqpReceiver(Void unused) {
+    protected Future<Void> createAmqpReceiver() {
         Future<Void> receiverOpenFuture = Future.future();
         this.protonBrokerReceiver = this.protonBrokerConnection.createReceiver(this.getAmqpQueueName());
         this.protonBrokerReceiver.setPrefetch(1000);
@@ -99,9 +89,7 @@ public abstract class AMQPVerticle extends AbstractVerticle {
                 receiverOpenFuture.fail(ar.cause());
             }
         });
-        this.protonBrokerReceiver.closeHandler(ar -> {
-            LOG.info("Closed");
-        });
+        this.protonBrokerReceiver.closeHandler(ar -> LOG.info("Closed"));
         this.protonBrokerReceiver.handler((delivery, msg) -> {
             Section body = msg.getBody();
             this.processMessage(body);
