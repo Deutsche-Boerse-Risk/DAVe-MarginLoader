@@ -130,19 +130,34 @@ public class MongoVerticleIT {
 
     @Test
     public void testPoolMarginStore(TestContext context) throws IOException {
-        Async asyncStore = context.async(540);
-        readTTSaveFiles("poolMargin", IntStream.rangeClosed(1, 2), (header, gpbObject) -> {
+        Async asyncStore1 = context.async(270);
+        readTTSaveFiles("poolMargin", 1, (header, gpbObject) -> {
             PrismaReports.PoolMargin poolMarginData = gpbObject.getExtension(PrismaReports.poolMargin);
             PoolMarginModel poolMarginModel = new PoolMarginModel(header, poolMarginData);
             vertx.eventBus().send(PoolMarginModel.EB_STORE_ADDRESS, poolMarginModel, ar -> {
                 if (ar.succeeded()) {
-                    asyncStore.countDown();
+                    asyncStore1.countDown();
                 } else {
                     context.fail(ar.cause());
                 }
             });
         });
-        asyncStore.awaitSuccess(30000);
+        asyncStore1.awaitSuccess(30000);
+
+        Async asyncStore2 = context.async(270);
+        readTTSaveFiles("poolMargin", 2, (header, gpbObject) -> {
+            PrismaReports.PoolMargin poolMarginData = gpbObject.getExtension(PrismaReports.poolMargin);
+            PoolMarginModel poolMarginModel = new PoolMarginModel(header, poolMarginData);
+            vertx.eventBus().send(PoolMarginModel.EB_STORE_ADDRESS, poolMarginModel, ar -> {
+                if (ar.succeeded()) {
+                    asyncStore2.countDown();
+                } else {
+                    context.fail(ar.cause());
+                }
+            });
+        });
+        asyncStore2.awaitSuccess(30000);
+
         this.checkCountInCollection(context, PoolMarginModel.MONGO_HISTORY_COLLECTION, 540);
         this.checkCountInCollection(context, PoolMarginModel.MONGO_LATEST_COLLECTION, 270);
         this.checkPoolMarginHistoryCollectionQuery(context);
@@ -151,23 +166,20 @@ public class MongoVerticleIT {
 
     /**
      * @param folderName "accountMargin", "liquiGroupMargin" or "poolMargin"
-     * @param range 1 for the first snapshot, etc.
+     * @param ttsaveNo 1 for the first snapshot, etc.
      */
-    private void readTTSaveFiles(String folderName, IntStream range, BiConsumer<? super PrismaReports.PrismaHeader, ? super ObjectList.GPBObject> consumer) {
+    private void readTTSaveFiles(String folderName, int ttsaveNo, BiConsumer<? super PrismaReports.PrismaHeader, ? super ObjectList.GPBObject> consumer) {
         ExtensionRegistry registry = ExtensionRegistry.newInstance();
         PrismaReports.registerAllExtensions(registry);
-        range
-             .mapToObj(i -> String.format("%s/%03d.bin", MongoVerticleIT.class.getResource(folderName).getPath(), i))
-             .forEach(path -> {
-                 try {
-                     byte[] gpbBytes = Files.readAllBytes(Paths.get(path));
-                     ObjectList.GPBObjectList gpbObjectList = ObjectList.GPBObjectList.parseFrom(gpbBytes, registry);
-                     PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
-                     gpbObjectList.getItemList().forEach(gpbObject -> consumer.accept(header, gpbObject));
-                 } catch (IOException e) {
-                     e.printStackTrace();
-                 }
-             });
+        String path = String.format("%s/%03d.bin", MongoVerticleIT.class.getResource(folderName).getPath(), ttsaveNo);
+        try {
+            byte[] gpbBytes = Files.readAllBytes(Paths.get(path));
+            ObjectList.GPBObjectList gpbObjectList = ObjectList.GPBObjectList.parseFrom(gpbBytes, registry);
+            PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
+            gpbObjectList.getItemList().forEach(gpbObject -> consumer.accept(header, gpbObject));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void checkCountInCollection(TestContext context, String collection, long count) {

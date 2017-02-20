@@ -164,37 +164,24 @@ public class MongoVerticle extends AbstractVerticle {
     }
 
     private Future<String> storeIntoHistoryCollection(AbstractModel model) {
-        LOG.trace("Storing message into {} with body {}", model.getHistoryCollection(), model.encodePrettily());
+        JsonObject document = model.copy();
+        LOG.trace("Storing message into {} with body {}", model.getHistoryCollection(), document.encodePrettily());
         Future<String> result = Future.future();
-        mongo.insert(model.getHistoryCollection(), model.copy(), result.completer());
+        mongo.insert(model.getHistoryCollection(), document, result.completer());
         return result;
     }
 
     private Future<MongoClientUpdateResult> storeIntoLatestCollection(AbstractModel model) {
-        LOG.trace("Storing message into {} with body {}", model.getLatestCollection(), model.encodePrettily());
-
-        return this.insertIntoLatestIfMissing(model)
-                .compose(i -> this.updateLatestIfNewer(model));
-    }
-
-    private Future<JsonObject> insertIntoLatestIfMissing(AbstractModel model) {
-        Future<JsonObject> future = Future.future();
-        mongo.findOneAndUpdateWithOptions(model.getLatestCollection(),
-                model.getLatestQueryParams(),
-                new JsonObject().put("$setOnInsert", model.copy()),
-                new FindOptions(),
-                new UpdateOptions().setUpsert(true),
-                future.completer());
-        return future;
-    }
-
-    private Future<MongoClientUpdateResult> updateLatestIfNewer(AbstractModel model) {
-        Future<MongoClientUpdateResult> future = Future.future();
+        JsonObject document = model.copy();
+        LOG.trace("Storing message into {} with body {}", model.getLatestCollection(), document.encodePrettily());
+        Future<MongoClientUpdateResult> result = Future.future();
         mongo.replaceDocumentsWithOptions(model.getLatestCollection(),
-                model.getLatestQueryParams().put("snapshotID", new JsonObject().put("$lt", model.getSnapshotID())),
-                model.copy(),
-                new UpdateOptions(),
-                future.completer());
-        return future;
+                model.getLatestQueryParams(),
+                document,
+                new UpdateOptions().setUpsert(true),
+                result.completer());
+        return result;
+
     }
+
 }
