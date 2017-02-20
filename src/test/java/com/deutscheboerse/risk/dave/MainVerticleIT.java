@@ -22,6 +22,7 @@ public class MainVerticleIT {
     private static final int BROKER_PORT = Integer.getInteger("cil.tcpport", 5672);
     private static final String DB_NAME = "DAVe-Test" + UUID.randomUUID().getLeastSignificantBits();
     private static final int DB_PORT =  Integer.getInteger("mongodb.port", 27017);
+    private static final int HTTP_PORT = Integer.getInteger("http.port", 8083);
     private Vertx vertx;
     private MongoClient mongoClient;
 
@@ -48,16 +49,27 @@ public class MainVerticleIT {
         JsonObject mongoConfig = new JsonObject()
                 .put("dbName", MainVerticleIT.DB_NAME)
                 .put("connectionUrl", String.format("mongodb://localhost:%s/?waitqueuemultiple=%d", MainVerticleIT.DB_PORT, 20000));
+        JsonObject healthCheckConfig = new JsonObject()
+                .put("port", HTTP_PORT);
         JsonObject config = new JsonObject()
                 .put("broker", brokerConfig)
-                .put("mongo", mongoConfig);
+                .put("mongo", mongoConfig)
+                .put("healthCheck", healthCheckConfig);
         return new DeploymentOptions().setConfig(config);
     }
 
     @Test
     public void testFullChain(TestContext context) throws IOException, InterruptedException {
+        Async mainVerticleAsync = context.async();
         DeploymentOptions options = createDeploymentOptions();
-        this.vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertSuccess());
+        this.vertx.deployVerticle(MainVerticle.class.getName(), options, ar -> {
+            if (ar.succeeded()) {
+                mainVerticleAsync.complete();
+            } else {
+                context.fail(ar.cause());
+            }
+        });
+        mainVerticleAsync.awaitSuccess(30000);
         final BrokerFiller brokerFiller = new BrokerFiller(this.vertx);
         brokerFiller.setUpAllQueues(context.asyncAssertSuccess());
         this.testCountInCollection(context, AccountMarginModel.MONGO_HISTORY_COLLECTION, 1704);

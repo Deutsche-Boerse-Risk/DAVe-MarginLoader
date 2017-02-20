@@ -3,6 +3,7 @@ package com.deutscheboerse.risk.dave;
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
 import com.deutscheboerse.risk.dave.model.AccountMarginModel;
+import com.deutscheboerse.risk.dave.model.ModelType;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -34,8 +35,13 @@ public class AccountMarginVerticle extends AMQPVerticle {
                 PrismaReports.AccountMargin accountMarginData = gpbObject.getExtension(PrismaReports.accountMargin);
                 try {
                     AccountMarginModel accountMarginModel = new AccountMarginModel(header, accountMarginData);
-                    vertx.eventBus().send(AccountMarginModel.EB_STORE_ADDRESS, accountMarginModel);
-                    LOG.debug("Account Margin message processed");
+                    this.persistenceService.store(accountMarginModel, ModelType.ACCOUNT_MARGIN_MODEL, ar -> {
+                        if (ar.succeeded()) {
+                            LOG.debug("Account Margin message processed");
+                        } else {
+                            LOG.error("Unable to store message", ar.cause());
+                        }
+                    });
                 } catch (IllegalArgumentException ex) {
                     LOG.error("Unable to create Account Margin Model from GPB data", ex);
                 }

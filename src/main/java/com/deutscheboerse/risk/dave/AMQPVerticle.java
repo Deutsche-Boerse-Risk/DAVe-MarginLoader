@@ -2,6 +2,7 @@ package com.deutscheboerse.risk.dave;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.vertx.core.AbstractVerticle;
@@ -11,6 +12,7 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.proton.ProtonClient;
 import io.vertx.proton.ProtonConnection;
 import io.vertx.proton.ProtonReceiver;
+import io.vertx.serviceproxy.ProxyHelper;
 import org.apache.qpid.proton.amqp.Binary;
 import org.apache.qpid.proton.amqp.messaging.Data;
 import org.apache.qpid.proton.amqp.messaging.Section;
@@ -25,10 +27,13 @@ public abstract class AMQPVerticle extends AbstractVerticle {
     protected ExtensionRegistry registry = ExtensionRegistry.newInstance();
     protected ProtonConnection protonBrokerConnection;
     protected ProtonReceiver protonBrokerReceiver;
+    protected PersistenceService persistenceService;
 
     public void start(Future<Void> fut, String verticleName) {
         LOG.info("Starting {} with configuration: {}", verticleName, config().encodePrettily());
         this.registerExtensions();
+
+        this.persistenceService = PersistenceService.createProxy(vertx,"persistenceService");
 
         createBrokerConnection()
                 .compose(i -> createAmqpReceiver())

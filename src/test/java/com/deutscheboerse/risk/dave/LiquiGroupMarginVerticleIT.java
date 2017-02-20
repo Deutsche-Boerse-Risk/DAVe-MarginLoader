@@ -42,12 +42,12 @@ public class LiquiGroupMarginVerticleIT {
 
         // we expect 2171 messages to be received
         Async async = context.async(2171);
-        MessageConsumer<JsonObject> consumer = vertx.eventBus().consumer(LiquiGroupMarginModel.EB_STORE_ADDRESS);
+        MessageConsumer<JsonObject> consumer = vertx.eventBus().consumer("persistenceService");
         LiquiGroupMarginModel liquiGroupMarginModel = new LiquiGroupMarginModel();
         consumer.handler(message -> {
             JsonObject body = message.body();
             liquiGroupMarginModel.clear();
-            liquiGroupMarginModel.mergeIn(body);
+            liquiGroupMarginModel.mergeIn(body.getJsonObject("message"));
             async.countDown();
         });
         vertx.deployVerticle(LiquiGroupMarginVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());

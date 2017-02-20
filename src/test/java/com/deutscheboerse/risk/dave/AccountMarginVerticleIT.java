@@ -42,12 +42,12 @@ public class AccountMarginVerticleIT {
 
         // we expect 1704 messages to be received
         Async async = context.async(1704);
-        MessageConsumer<JsonObject> consumer = vertx.eventBus().consumer(AccountMarginModel.EB_STORE_ADDRESS);
+        MessageConsumer<JsonObject> consumer = vertx.eventBus().consumer("persistenceService");
         AccountMarginModel accountMargin = new AccountMarginModel();
         consumer.handler(message -> {
             JsonObject body = message.body();
             accountMargin.clear();
-            accountMargin.mergeIn(body);
+            accountMargin.mergeIn(body.getJsonObject("message"));
             async.countDown();
         });
         vertx.deployVerticle(AccountMarginVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
