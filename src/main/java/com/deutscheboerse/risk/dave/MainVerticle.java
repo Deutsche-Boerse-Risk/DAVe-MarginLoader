@@ -26,7 +26,7 @@ public class MainVerticle extends AbstractVerticle {
         HealthCheck healthCheck = new HealthCheck(this.vertx);
 
         Future<Void> chainFuture = Future.future();
-        this.deployMongoVerticle()
+        this.deployPersistenceVerticle()
                 .compose(i -> deployAccountMarginVerticle())
                 .compose(i -> deployLiquiGroupMarginVerticle())
                 .compose(i -> deployPoolMarginVerticle())
@@ -47,8 +47,8 @@ public class MainVerticle extends AbstractVerticle {
         });
     }
 
-    private Future<Void> deployMongoVerticle() {
-        return this.deployVerticle(MongoVerticle.class, config().getJsonObject(MONGO_CONF, new JsonObject()));
+    private Future<Void> deployPersistenceVerticle() {
+        return this.deployVerticle(PersistenceVerticle.class, config().getJsonObject(MONGO_CONF, new JsonObject()));
     }
 
     private Future<Void> deployAccountMarginVerticle() {

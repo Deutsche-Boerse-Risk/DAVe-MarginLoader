@@ -3,6 +3,7 @@ package com.deutscheboerse.risk.dave;
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
 import com.deutscheboerse.risk.dave.model.LiquiGroupMarginModel;
+import com.deutscheboerse.risk.dave.model.ModelType;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -34,8 +35,13 @@ public class LiquiGroupMarginVerticle extends AMQPVerticle {
                 PrismaReports.LiquiGroupMargin liquiGroupMarginData = gpbObject.getExtension(PrismaReports.liquiGroupMargin);
                 try {
                     LiquiGroupMarginModel liquiGroupMarginModel = new LiquiGroupMarginModel(header, liquiGroupMarginData);
-                    vertx.eventBus().send(LiquiGroupMarginModel.EB_STORE_ADDRESS, liquiGroupMarginModel);
-                    LOG.debug("Liqui Group Margin message processed");
+                    this.persistenceService.store(liquiGroupMarginModel, ModelType.LIQUI_GROUP_MARGIN_MODEL, ar -> {
+                        if (ar.succeeded()) {
+                            LOG.debug("Liqui Group Margin message processed");
+                        } else {
+                            LOG.error("Unable to store message", ar.cause());
+                        }
+                    });
                 } catch (IllegalArgumentException ex) {
                     LOG.error("Unable to create Liqui Group Margin Model from GPB data", ex);
                 }

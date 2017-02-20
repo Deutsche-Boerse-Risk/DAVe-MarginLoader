@@ -39,11 +39,12 @@ public class PoolMarginVerticleIT {
 
         // we expect 540 messages to be received
         Async async = context.async(540);
-        MessageConsumer<JsonObject> consumer = vertx.eventBus().consumer(PoolMarginModel.EB_STORE_ADDRESS);
+        MessageConsumer<JsonObject> consumer = vertx.eventBus().consumer("persistenceService");
         PoolMarginModel poolMarginModel = new PoolMarginModel();
         consumer.handler(message -> {
+            JsonObject body = message.body();
             poolMarginModel.clear();
-            poolMarginModel.mergeIn(message.body());
+            poolMarginModel.mergeIn(body.getJsonObject("message"));
             async.countDown();
         });
         vertx.deployVerticle(PoolMarginVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
