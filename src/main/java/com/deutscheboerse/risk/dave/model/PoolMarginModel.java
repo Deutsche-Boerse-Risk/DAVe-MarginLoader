@@ -67,4 +67,12 @@ public class PoolMarginModel extends AbstractModel {
             .put("pool", getString("pool"))
             .put("marginCurrency", getString("marginCurrency"));
     }
+
+    @Override
+    public JsonObject getLatestUniqueIndex() {
+        return new JsonObject()
+                .put("clearer", 1)
+                .put("pool", 1)
+                .put("marginCurrency", 1);
+    }
 }

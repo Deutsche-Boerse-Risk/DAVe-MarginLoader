@@ -67,6 +67,16 @@ public class LiquiGroupMarginModel extends AbstractModel {
         return queryParams;
     }
 
+    @Override
+    public JsonObject getLatestUniqueIndex() {
+        return new JsonObject()
+                .put("clearer", 1)
+                .put("member", 1)
+                .put("account", 1)
+                .put("marginClass", 1)
+                .put("marginCurrency", 1);
+    }
+
     public String getClearer() {
         return getString("clearer");
     }

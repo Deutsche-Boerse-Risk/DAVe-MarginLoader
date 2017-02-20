@@ -6,4 +6,6 @@ public interface MongoModel {
     String getHistoryCollection();
     String getLatestCollection();
     JsonObject getLatestQueryParams();
+    JsonObject getHistoryUniqueIndex();
+    JsonObject getLatestUniqueIndex();
 }

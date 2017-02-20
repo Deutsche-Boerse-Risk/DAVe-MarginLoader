@@ -26,6 +26,11 @@ public abstract class AbstractModel extends JsonObject implements MongoModel {
         if (!header.hasTimestamp()) throw new IllegalArgumentException("Missing timestamp in header in AMQP data");
     }
 
+    @Override
+    public JsonObject getHistoryUniqueIndex() {
+        return new JsonObject().put("snapshotID", 1).mergeIn(getLatestUniqueIndex());
+    }
+
     public int getSnapshotID() {
         return getInteger("snapshotID");
     }
