@@ -50,8 +50,6 @@ public class LiquiGroupSplitMarginVerticleIT {
         vertx.deployVerticle(LiquiGroupSplitMarginVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
         async.awaitSuccess(30000);
 
-        System.out.println(liquiGroupSplitMarginModel.encodePrettily());
-
         JsonObject expected = new JsonObject()
                 .put("snapshotID", 15)
                 .put("businessDate", 20091215)

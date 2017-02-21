@@ -43,31 +43,31 @@ public class AccountMarginVerticleIT {
         // we expect 1704 messages to be received
         Async async = context.async(1704);
         MessageConsumer<JsonObject> consumer = vertx.eventBus().consumer("persistenceService");
-        AccountMarginModel accountMargin = new AccountMarginModel();
+        AccountMarginModel accountMarginModel = new AccountMarginModel();
         consumer.handler(message -> {
             JsonObject body = message.body();
-            accountMargin.clear();
-            accountMargin.mergeIn(body.getJsonObject("message"));
+            accountMarginModel.clear();
+            accountMarginModel.mergeIn(body.getJsonObject("message"));
             async.countDown();
         });
         vertx.deployVerticle(AccountMarginVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
         async.awaitSuccess(30000);
 
         // verify the content of the last message
-        AccountMarginModel expectedAccountMargin = new AccountMarginModel();
-        expectedAccountMargin.setSnapshotID(10);
-        expectedAccountMargin.setBusinessDate(20091215);
-        expectedAccountMargin.setTimestamp(1487172422430L);
-        expectedAccountMargin.setClearer("SFUCC");
-        expectedAccountMargin.setMember("SFUFR");
-        expectedAccountMargin.setAccount("A5");
-        expectedAccountMargin.setMarginCurrency("EUR");
-        expectedAccountMargin.setClearingCurrency("EUR");
-        expectedAccountMargin.setPool("default");
-        expectedAccountMargin.setMarginReqInMarginCurr(5.035485884371926E7);
-        expectedAccountMargin.setMarginReqInCrlCurr(5.035485884371926E7);
-        expectedAccountMargin.setUnadjustedMarginRequirement(5.035485884371926E7);
-        expectedAccountMargin.setVariationPremiumPayment(0.0);
-        context.assertEquals(expectedAccountMargin, accountMargin);
+        JsonObject expected = new JsonObject()
+                .put("snapshotID", 10)
+                .put("businessDate", 20091215)
+                .put("timestamp", new JsonObject().put("$date", "2017-02-15T15:27:02.43Z"))
+                .put("clearer", "SFUCC")
+                .put("member", "SFUFR")
+                .put("account", "A5")
+                .put("marginCurrency", "EUR")
+                .put("clearingCurrency", "EUR")
+                .put("pool", "default")
+                .put("marginReqInMarginCurr", 5.035485884371926E7)
+                .put("marginReqInCrlCurr", 5.035485884371926E7)
+                .put("unadjustedMarginRequirement", 5.035485884371926E7)
+                .put("variationPremiumPayment", 0.0);
+        context.assertEquals(expected, new JsonObject(accountMarginModel.getMap()));
     }
 }

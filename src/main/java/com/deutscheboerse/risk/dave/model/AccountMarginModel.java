@@ -13,35 +13,36 @@ public class AccountMarginModel extends AbstractModel {
         super();
     }
 
-    public AccountMarginModel(PrismaReports.PrismaHeader header, PrismaReports.AccountMargin accountMarginData) {
+    public AccountMarginModel(PrismaReports.PrismaHeader header, PrismaReports.AccountMargin data) {
         super(header);
 
-        verify(accountMarginData);
+        verify(data);
 
-        this.setClearer(accountMarginData.getKey().getClearer());
-        this.setMember(accountMarginData.getKey().getMember());
-        this.setAccount(accountMarginData.getKey().getAccount());
-        this.setMarginCurrency(accountMarginData.getKey().getMarginCurrency());
-        this.setClearingCurrency(accountMarginData.getClearingCurrency());
-        this.setPool(accountMarginData.getPool());
-        this.setMarginReqInMarginCurr(accountMarginData.getMarginReqInMarginCurr());
-        this.setMarginReqInCrlCurr(accountMarginData.getMarginReqInClrCurr());
-        this.setUnadjustedMarginRequirement(accountMarginData.getUnadjustedMarginRequirement());
-        this.setVariationPremiumPayment(accountMarginData.getVariationPremiumPayment());
+        PrismaReports.AccountMarginKey key = data.getKey();
+        put("clearer", key.getClearer());
+        put("member", key.getMember());
+        put("account", key.getAccount());
+        put("marginCurrency", key.getMarginCurrency());
+        put("clearingCurrency", data.getClearingCurrency());
+        put("pool", data.getPool());
+        put("marginReqInMarginCurr", data.getMarginReqInMarginCurr());
+        put("marginReqInCrlCurr", data.getMarginReqInClrCurr());
+        put("unadjustedMarginRequirement", data.getUnadjustedMarginRequirement());
+        put("variationPremiumPayment", data.getVariationPremiumPayment());
     }
 
-    private void verify(PrismaReports.AccountMargin accountMarginData) {
-        checkArgument(accountMarginData.hasKey(), "Missing account margin key in AMQP data");
-        checkArgument(accountMarginData.getKey().hasClearer(), "Missing account margin clearer in AMQP data");
-        checkArgument(accountMarginData.getKey().hasMember(), "Missing account margin member in AMQP data");
-        checkArgument(accountMarginData.getKey().hasAccount(), "Missing account margin account in AMQP data");
-        checkArgument(accountMarginData.getKey().hasMarginCurrency(), "Missing account margin margin currency in AMQP data");
-        checkArgument(accountMarginData.hasClearingCurrency(), "Missing account margin clearing currency in AMQP data");
-        checkArgument(accountMarginData.hasPool(), "Missing account margin pool in AMQP data");
-        checkArgument(accountMarginData.hasMarginReqInMarginCurr(), "Missing account margin margin requirement in margin currency in AMQP data");
-        checkArgument(accountMarginData.hasMarginReqInClrCurr(), "Missing account margin margin requirement in clearing currency in AMQP data");
-        checkArgument(accountMarginData.hasUnadjustedMarginRequirement(), "Missing account margin unadjusted margin requirement in clearing currency in AMQP data");
-        checkArgument(accountMarginData.hasVariationPremiumPayment(), "Missing account margin variation premium payment in AMQP data");
+    private void verify(PrismaReports.AccountMargin data) {
+        checkArgument(data.hasKey(), "Missing account margin key in AMQP data");
+        checkArgument(data.getKey().hasClearer(), "Missing account margin clearer in AMQP data");
+        checkArgument(data.getKey().hasMember(), "Missing account margin member in AMQP data");
+        checkArgument(data.getKey().hasAccount(), "Missing account margin account in AMQP data");
+        checkArgument(data.getKey().hasMarginCurrency(), "Missing account margin margin currency in AMQP data");
+        checkArgument(data.hasClearingCurrency(), "Missing account margin clearing currency in AMQP data");
+        checkArgument(data.hasPool(), "Missing account margin pool in AMQP data");
+        checkArgument(data.hasMarginReqInMarginCurr(), "Missing account margin margin requirement in margin currency in AMQP data");
+        checkArgument(data.hasMarginReqInClrCurr(), "Missing account margin margin requirement in clearing currency in AMQP data");
+        checkArgument(data.hasUnadjustedMarginRequirement(), "Missing account margin unadjusted margin requirement in clearing currency in AMQP data");
+        checkArgument(data.hasVariationPremiumPayment(), "Missing account margin variation premium payment in AMQP data");
     }
 
     @Override
@@ -57,10 +58,10 @@ public class AccountMarginModel extends AbstractModel {
     @Override
     public JsonObject getLatestQueryParams() {
         JsonObject queryParams = new JsonObject();
-        queryParams.put("clearer", this.getClearer());
-        queryParams.put("member", this.getMember());
-        queryParams.put("account", this.getAccount());
-        queryParams.put("marginCurrency", this.getMarginCurrency());
+        queryParams.put("clearer", getString("clearer"));
+        queryParams.put("member", getString("member"));
+        queryParams.put("account", getString("account"));
+        queryParams.put("marginCurrency", getString("marginCurrency"));
         return queryParams;
     }
 
@@ -73,83 +74,4 @@ public class AccountMarginModel extends AbstractModel {
                 .put("marginCurrency", 1);
     }
 
-    public String getClearer() {
-        return getString("clearer");
-    }
-
-    public void setClearer(String clearer) {
-        put("clearer", clearer);
-    }
-
-    public String getMember() {
-        return getString("member");
-    }
-
-    public void setMember(String member) {
-        put("member", member);
-    }
-
-    public String getAccount() {
-        return getString("account");
-    }
-
-    public void setAccount(String account) {
-        put("account", account);
-    }
-
-    public String getMarginCurrency() {
-        return getString("marginCurrency");
-    }
-
-    public void setMarginCurrency(String currency) {
-        put("marginCurrency", currency);
-    }
-
-    public String getClearingCurrency() {
-        return getString("clearingCurrency");
-    }
-
-    public void setClearingCurrency(String currency) {
-        put("clearingCurrency", currency);
-    }
-
-    public String getPool() {
-        return getString("pool");
-    }
-
-    public void setPool(String pool) {
-        put("pool", pool);
-    }
-
-    public double getMarginReqInMarginCurr() {
-        return getDouble("marginReqInMarginCurr");
-    }
-
-    public void setMarginReqInMarginCurr(double req) {
-        put("marginReqInMarginCurr", req);
-    }
-
-    public double getMarginReqInCrlCurr() {
-        return getDouble("marginReqInCrlCurr");
-    }
-
-    public void setMarginReqInCrlCurr(double req) {
-        put("marginReqInCrlCurr", req);
-    }
-
-    public double getUnadjustedMarginRequirement() {
-        return getDouble("unadjustedMarginRequirement");
-    }
-
-    public void setUnadjustedMarginRequirement(double req) {
-        put("unadjustedMarginRequirement", req);
-    }
-
-    public double getVariationPremiumPayment() {
-        return getDouble("variationPremiumPayment");
-    }
-
-    public void setVariationPremiumPayment(double req) {
-        put("variationPremiumPayment", req);
-    }
 }
