@@ -38,7 +38,7 @@ public class PoolMarginVerticleIT {
                         .put("poolMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPoolMargin"));
 
         // we expect 540 messages to be received
-        Async async = context.async(540);
+        Async async = context.async(270);
         MessageConsumer<JsonObject> consumer = vertx.eventBus().consumer("persistenceService");
         PoolMarginModel poolMarginModel = new PoolMarginModel();
         consumer.handler(message -> {
@@ -51,9 +51,9 @@ public class PoolMarginVerticleIT {
         async.awaitSuccess(30000);
 
         JsonObject expected = new JsonObject()
-                .put("snapshotID", 11)
+                .put("snapshotID", 10)
                 .put("businessDate", 20091215)
-                .put("timestamp", new JsonObject().put("$date", "2017-02-15T15:28:50.03Z"))
+                .put("timestamp", new JsonObject().put("$date", "2017-02-15T15:27:02.43Z"))
                 .put("clearer", "CBKFR")
                 .put("pool", "default")
                 .put("marginCurrency", "CHF")

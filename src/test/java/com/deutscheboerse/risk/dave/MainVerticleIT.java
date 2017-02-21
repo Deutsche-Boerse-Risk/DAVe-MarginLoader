@@ -80,7 +80,7 @@ public class MainVerticleIT {
         this.testCountInCollection(context, LiquiGroupMarginModel.MONGO_LATEST_COLLECTION, 2171);
         this.testCountInCollection(context, LiquiGroupSplitMarginModel.MONGO_HISTORY_COLLECTION, 2472);
         this.testCountInCollection(context, LiquiGroupSplitMarginModel.MONGO_LATEST_COLLECTION, 2472);
-        this.testCountInCollection(context, PoolMarginModel.MONGO_HISTORY_COLLECTION, 540);
+        this.testCountInCollection(context, PoolMarginModel.MONGO_HISTORY_COLLECTION, 270);
         this.testCountInCollection(context, PoolMarginModel.MONGO_LATEST_COLLECTION, 270);
     }
 

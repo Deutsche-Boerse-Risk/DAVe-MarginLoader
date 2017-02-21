@@ -161,7 +161,7 @@ public class BrokerFiller {
     }
     private Future<ProtonConnection> populatePoolMarginQueue(ProtonConnection protonConnection) {
         final String queueName = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPoolMargin";
-        final Collection<String> messagePaths = IntStream.rangeClosed(1, 2)
+        final Collection<String> messagePaths = IntStream.rangeClosed(1, 1)
                 .mapToObj(i -> String.format("%s/%03d.bin", BrokerFiller.class.getResource("poolMargin").getPath(), i))
                 .collect(Collectors.toList());
         return this.populateQueue(protonConnection, queueName, messagePaths);
