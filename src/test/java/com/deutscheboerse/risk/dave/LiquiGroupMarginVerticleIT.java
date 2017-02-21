@@ -54,22 +54,23 @@ public class LiquiGroupMarginVerticleIT {
         async.awaitSuccess(30000);
 
         // verify the content of the last message
-        LiquiGroupMarginModel expectedLiquiGroupMarginMargin = new LiquiGroupMarginModel();
-        expectedLiquiGroupMarginMargin.setSnapshotID(10);
-        expectedLiquiGroupMarginMargin.setBusinessDate(20091215);
-        expectedLiquiGroupMarginMargin.setTimestamp(1487172422430L);
-        expectedLiquiGroupMarginMargin.setClearer("ABCFR");
-        expectedLiquiGroupMarginMargin.setMember("ABCFR");
-        expectedLiquiGroupMarginMargin.setAccount("PP");
-        expectedLiquiGroupMarginMargin.setMarginClass("ECC01");
-        expectedLiquiGroupMarginMargin.setMarginCurrency("EUR");
-        expectedLiquiGroupMarginMargin.setMarginGroup("");
-        expectedLiquiGroupMarginMargin.setPremiumMargin(135000.5);
-        expectedLiquiGroupMarginMargin.setCurrentLiquidatingMargin(0.0);
-        expectedLiquiGroupMarginMargin.setFuturesSpreadMargin(0.0);
-        expectedLiquiGroupMarginMargin.setAdditionalMargin(14914.841270178167);
-        expectedLiquiGroupMarginMargin.setUnadjustedMarginRequirement(149915.34127017818);
-        expectedLiquiGroupMarginMargin.setVariationPremiumPayment(0.0);
-        context.assertEquals(expectedLiquiGroupMarginMargin, liquiGroupMarginModel);
+        JsonObject expected = new JsonObject()
+                .put("snapshotID", 10)
+                .put("businessDate", 20091215)
+                .put("timestamp", new JsonObject().put("$date", "2017-02-15T15:27:02.43Z"))
+                .put("clearer", "ABCFR")
+                .put("member", "ABCFR")
+                .put("account", "PP")
+                .put("marginClass", "ECC01")
+                .put("marginCurrency", "EUR")
+
+                .put("marginGroup", "")
+                .put("premiumMargin", 135000.5)
+                .put("currentLiquidatingMargin", 0.0)
+                .put("futuresSpreadMargin", 0.0)
+                .put("additionalMargin", 14914.841270178167)
+                .put("unadjustedMarginRequirement", 149915.34127017818)
+                .put("variationPremiumPayment", 0.0);
+        context.assertEquals(expected, new JsonObject(liquiGroupMarginModel.getMap()));
     }
 }

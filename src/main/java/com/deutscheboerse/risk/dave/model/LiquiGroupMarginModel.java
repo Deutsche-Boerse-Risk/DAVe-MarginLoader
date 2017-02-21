@@ -13,23 +13,25 @@ public class LiquiGroupMarginModel extends AbstractModel {
         super();
     }
 
-    public LiquiGroupMarginModel(PrismaReports.PrismaHeader header, PrismaReports.LiquiGroupMargin liquiGroupMarginData) {
+    public LiquiGroupMarginModel(PrismaReports.PrismaHeader header, PrismaReports.LiquiGroupMargin data) {
         super(header);
 
-        verify(liquiGroupMarginData);
+        verify(data);
 
-        this.setClearer(liquiGroupMarginData.getKey().getClearer());
-        this.setMember(liquiGroupMarginData.getKey().getMember());
-        this.setAccount(liquiGroupMarginData.getKey().getAccount());
-        this.setMarginClass(liquiGroupMarginData.getKey().getMarginClass());
-        this.setMarginCurrency(liquiGroupMarginData.getKey().getMarginCurrency());
-        this.setMarginGroup(liquiGroupMarginData.getMarginGroup());
-        this.setPremiumMargin(liquiGroupMarginData.getPremiumMargin());
-        this.setCurrentLiquidatingMargin(liquiGroupMarginData.getCurrentLiquidatingMargin());
-        this.setFuturesSpreadMargin(liquiGroupMarginData.getFuturesSpreadMargin());
-        this.setAdditionalMargin(liquiGroupMarginData.getAdditionalMargin());
-        this.setUnadjustedMarginRequirement(liquiGroupMarginData.getUnadjustedMarginRequirement());
-        this.setVariationPremiumPayment(liquiGroupMarginData.getVariationPremiumPayment());
+        PrismaReports.LiquiGroupMarginKey key = data.getKey();
+        put("clearer", key.getClearer());
+        put("member", key.getMember());
+        put("account", key.getAccount());
+        put("marginClass", key.getMarginClass());
+        put("marginCurrency", key.getMarginCurrency());
+
+        put("marginGroup", data.getMarginGroup());
+        put("premiumMargin", data.getPremiumMargin());
+        put("currentLiquidatingMargin", data.getCurrentLiquidatingMargin());
+        put("futuresSpreadMargin", data.getFuturesSpreadMargin());
+        put("additionalMargin", data.getAdditionalMargin());
+        put("unadjustedMarginRequirement", data.getUnadjustedMarginRequirement());
+        put("variationPremiumPayment", data.getVariationPremiumPayment());
     }
 
     private void verify(PrismaReports.LiquiGroupMargin liquiGroupMarginData) {
@@ -60,11 +62,11 @@ public class LiquiGroupMarginModel extends AbstractModel {
     @Override
     public JsonObject getLatestQueryParams() {
         JsonObject queryParams = new JsonObject();
-        queryParams.put("clearer", this.getClearer());
-        queryParams.put("member", this.getMember());
-        queryParams.put("account", this.getAccount());
-        queryParams.put("marginClass", this.getMarginClass());
-        queryParams.put("marginCurrency", this.getMarginCurrency());
+        queryParams.put("clearer", getString("clearer"));
+        queryParams.put("member", getString("member"));
+        queryParams.put("account", getString("account"));
+        queryParams.put("marginClass", getString("marginClass"));
+        queryParams.put("marginCurrency", getString("marginCurrency"));
         return queryParams;
     }
 
@@ -76,100 +78,6 @@ public class LiquiGroupMarginModel extends AbstractModel {
                 .put("account", 1)
                 .put("marginClass", 1)
                 .put("marginCurrency", 1);
-    }
-
-    public String getClearer() {
-        return getString("clearer");
-    }
-
-    public void setClearer(String clearer) {
-        put("clearer", clearer);
-    }
-
-    public String getMember() {
-        return getString("member");
-    }
-
-    public void setMember(String member) {
-        put("member", member);
-    }
-
-    public String getAccount() {
-        return getString("account");
-    }
-
-    public void setAccount(String account) {
-        put("account", account);
-    }
-
-    public String getMarginClass() {
-        return getString("marginClass");
-    }
-
-    public void setMarginClass(String marginClass) { put("marginClass", marginClass); }
-
-    public String getMarginCurrency() {
-        return getString("marginCurrency");
-    }
-
-    public void setMarginCurrency(String currency) {
-        put("marginCurrency", currency);
-    }
-
-    public String getMarginGroup() {
-        return getString("marginGroup");
-    }
-
-    public void setMarginGroup(String group) {
-        put("marginGroup", group);
-    }
-
-    public double getPremiumMargin() {
-        return getDouble("premiumMargin");
-    }
-
-    public void setPremiumMargin(double margin) {
-        put("premiumMargin", margin);
-    }
-
-    public double getCurrentLiquidatingMargin() {
-        return getDouble("currentLiquidatingMargin");
-    }
-
-    public void setCurrentLiquidatingMargin(double margin) {
-        put("currentLiquidatingMargin", margin);
-    }
-
-    public double getFuturesSpreadMargin() {
-        return getDouble("futuresSpreadMargin");
-    }
-
-    public void setFuturesSpreadMargin(double margin) {
-        put("futuresSpreadMargin", margin);
-    }
-
-    public double getAdditionalMargin() {
-        return getDouble("additionalMargin");
-    }
-
-    public void setAdditionalMargin(double margin) {
-        put("additionalMargin", margin);
-    }
-
-    public double getUnadjustedMarginRequirement() {
-        return getDouble("unadjustedMarginRequirement");
-    }
-
-    public void setUnadjustedMarginRequirement(double req) {
-        put("unadjustedMarginRequirement", req);
-    }
-
-    public double getVariationPremiumPayment() {
-        return getDouble("variationPremiumPayment");
-    }
-
-    public void setVariationPremiumPayment(double req) {
-        put("variationPremiumPayment", req);
     }
 
 }
