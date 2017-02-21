@@ -1,12 +1,15 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
+import com.google.common.base.Preconditions;
 import io.vertx.core.json.JsonObject;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 public abstract class AbstractModel extends JsonObject implements MongoModel {
 
@@ -21,15 +24,9 @@ public abstract class AbstractModel extends JsonObject implements MongoModel {
     }
 
     private void verify(PrismaReports.PrismaHeader header) {
-        assertTrue(header.hasId(), "Missing snapshot ID in header in AMQP data");
-        assertTrue(header.hasBusinessDate(), "Missing business date in header in AMQP data");
-        assertTrue(header.hasTimestamp(), "Missing timestamp in header in AMQP data");
-    }
-
-    protected void assertTrue(boolean condition, String errorMessage) {
-        if (!condition) {
-            throw new IllegalArgumentException(errorMessage);
-        }
+        checkArgument(header.hasId(), "Missing snapshot ID in header in AMQP data");
+        checkArgument(header.hasBusinessDate(), "Missing business date in header in AMQP data");
+        checkArgument(header.hasTimestamp(), "Missing timestamp in header in AMQP data");
     }
 
     @Override

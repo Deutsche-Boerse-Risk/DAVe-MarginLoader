@@ -3,6 +3,8 @@ package com.deutscheboerse.risk.dave.model;
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import io.vertx.core.json.JsonObject;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 public class PoolMarginModel extends AbstractModel {
     public static final String EB_STORE_ADDRESS = "PoolMarginStore";
     public static final String MONGO_HISTORY_COLLECTION = "PoolMargin";
@@ -34,20 +36,20 @@ public class PoolMarginModel extends AbstractModel {
     }
 
     private void verify(PrismaReports.PoolMargin data) {
-        assertTrue(data.hasKey(), "Missing pool key in AMQP data");
-        assertTrue(data.getKey().hasClearer(), "Missing pool clearer in AMQP data");
-        assertTrue(data.getKey().hasPool(), "Missing pool name in AMQP data");
-        assertTrue(data.getKey().hasMarginCurrency(), "Missing pool margin currency in AMQP data");
-        assertTrue(data.hasClrRptCurrency(), "Missing pool reporting currency in AMQP data");
-        assertTrue(data.hasRequiredMargin(), "Missing pool required margin in AMQP data");
-        assertTrue(data.hasCashCollateralAmount(), "Missing pool cash collateral amount in AMQP data");
-        assertTrue(data.hasAdjustedSecurities(), "Missing pool adjusted securities in AMQP data");
-        assertTrue(data.hasAdjustedGuarantee(), "Missing pool adjusted guarantee in AMQP data");
-        assertTrue(data.hasOverUnderInMarginCurr(), "Missing pool over/under in margin currency in AMQP data");
-        assertTrue(data.hasOverUnderInClrRptCurr(), "Missing pool over/under in reporting currency in AMQP data");
-        assertTrue(data.hasVariPremInMarginCurr(), "Missing pool variation premium in AMQP data");
-        assertTrue(data.hasAdjustedExchangeRate(), "Missing pool adjusted exchange rate in AMQP data");
-        assertTrue(data.hasPoolOwner(), "Missing pool owner in AMQP data");
+        checkArgument(data.hasKey(), "Missing pool key in AMQP data");
+        checkArgument(data.getKey().hasClearer(), "Missing pool clearer in AMQP data");
+        checkArgument(data.getKey().hasPool(), "Missing pool name in AMQP data");
+        checkArgument(data.getKey().hasMarginCurrency(), "Missing pool margin currency in AMQP data");
+        checkArgument(data.hasClrRptCurrency(), "Missing pool reporting currency in AMQP data");
+        checkArgument(data.hasRequiredMargin(), "Missing pool required margin in AMQP data");
+        checkArgument(data.hasCashCollateralAmount(), "Missing pool cash collateral amount in AMQP data");
+        checkArgument(data.hasAdjustedSecurities(), "Missing pool adjusted securities in AMQP data");
+        checkArgument(data.hasAdjustedGuarantee(), "Missing pool adjusted guarantee in AMQP data");
+        checkArgument(data.hasOverUnderInMarginCurr(), "Missing pool over/under in margin currency in AMQP data");
+        checkArgument(data.hasOverUnderInClrRptCurr(), "Missing pool over/under in reporting currency in AMQP data");
+        checkArgument(data.hasVariPremInMarginCurr(), "Missing pool variation premium in AMQP data");
+        checkArgument(data.hasAdjustedExchangeRate(), "Missing pool adjusted exchange rate in AMQP data");
+        checkArgument(data.hasPoolOwner(), "Missing pool owner in AMQP data");
     }
 
     @Override

@@ -3,6 +3,8 @@ package com.deutscheboerse.risk.dave.model;
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import io.vertx.core.json.JsonObject;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 public class AccountMarginModel extends AbstractModel {
 
     public static final String EB_STORE_ADDRESS = "AccountMarginStore";
@@ -31,17 +33,17 @@ public class AccountMarginModel extends AbstractModel {
     }
 
     private void verify(PrismaReports.AccountMargin accountMarginData) {
-        assertTrue(accountMarginData.hasKey(), "Missing account margin key in AMQP data");
-        assertTrue(accountMarginData.getKey().hasClearer(), "Missing account margin clearer in AMQP data");
-        assertTrue(accountMarginData.getKey().hasMember(), "Missing account margin member in AMQP data");
-        assertTrue(accountMarginData.getKey().hasAccount(), "Missing account margin account in AMQP data");
-        assertTrue(accountMarginData.getKey().hasMarginCurrency(), "Missing account margin margin currency in AMQP data");
-        assertTrue(accountMarginData.hasClearingCurrency(), "Missing account margin clearing currency in AMQP data");
-        assertTrue(accountMarginData.hasPool(), "Missing account margin pool in AMQP data");
-        assertTrue(accountMarginData.hasMarginReqInMarginCurr(), "Missing account margin margin requirement in margin currency in AMQP data");
-        assertTrue(accountMarginData.hasMarginReqInClrCurr(), "Missing account margin margin requirement in clearing currency in AMQP data");
-        assertTrue(accountMarginData.hasUnadjustedMarginRequirement(), "Missing account margin unadjusted margin requirement in clearing currency in AMQP data");
-        assertTrue(accountMarginData.hasVariationPremiumPayment(), "Missing account margin variation premium payment in AMQP data");
+        checkArgument(accountMarginData.hasKey(), "Missing account margin key in AMQP data");
+        checkArgument(accountMarginData.getKey().hasClearer(), "Missing account margin clearer in AMQP data");
+        checkArgument(accountMarginData.getKey().hasMember(), "Missing account margin member in AMQP data");
+        checkArgument(accountMarginData.getKey().hasAccount(), "Missing account margin account in AMQP data");
+        checkArgument(accountMarginData.getKey().hasMarginCurrency(), "Missing account margin margin currency in AMQP data");
+        checkArgument(accountMarginData.hasClearingCurrency(), "Missing account margin clearing currency in AMQP data");
+        checkArgument(accountMarginData.hasPool(), "Missing account margin pool in AMQP data");
+        checkArgument(accountMarginData.hasMarginReqInMarginCurr(), "Missing account margin margin requirement in margin currency in AMQP data");
+        checkArgument(accountMarginData.hasMarginReqInClrCurr(), "Missing account margin margin requirement in clearing currency in AMQP data");
+        checkArgument(accountMarginData.hasUnadjustedMarginRequirement(), "Missing account margin unadjusted margin requirement in clearing currency in AMQP data");
+        checkArgument(accountMarginData.hasVariationPremiumPayment(), "Missing account margin variation premium payment in AMQP data");
     }
 
     @Override
