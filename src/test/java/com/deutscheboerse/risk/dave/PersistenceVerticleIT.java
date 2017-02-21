@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.BiConsumer;
-import java.util.stream.IntStream;
 
 @RunWith(VertxUnitRunner.class)
 public class PersistenceVerticleIT {
@@ -33,6 +32,7 @@ public class PersistenceVerticleIT {
     private static Vertx vertx;
     private static MongoClient mongoClient;
     private static PersistenceService persistenceService;
+    private static final double DOUBLE_DELTA = 1e-12;
 
     @BeforeClass
     public static void setUp(TestContext context) {
@@ -218,6 +218,40 @@ public class PersistenceVerticleIT {
         this.checkCountInCollection(context, PoolMarginModel.MONGO_LATEST_COLLECTION, 270);
         this.checkPoolMarginHistoryCollectionQuery(context);
         this.checkPoolMarginLatestCollectionQuery(context);
+    }
+
+    @Test
+    public void testPositionReportStore(TestContext context) throws IOException {
+        Async asyncFirstSnapshotStore = context.async(3596);
+        readTTSaveFile("positionReport", 1, (header, gpbObject) -> {
+            PrismaReports.PositionReport positionReportData = gpbObject.getExtension(PrismaReports.positionReport);
+            PositionReportModel positionReportModel = new PositionReportModel(header, positionReportData);
+            persistenceService.store(positionReportModel, ModelType.POSITION_REPORT_MODEL, ar -> {
+                if (ar.succeeded()) {
+                    asyncFirstSnapshotStore.countDown();
+                } else {
+                    context.fail(ar.cause());
+                }
+            });
+        });
+        asyncFirstSnapshotStore.awaitSuccess(30000);
+        Async asyncSecondSnapshotStore = context.async(3596);
+        readTTSaveFile("positionReport", 2, (header, gpbObject) -> {
+            PrismaReports.PositionReport positionReportData = gpbObject.getExtension(PrismaReports.positionReport);
+            PositionReportModel positionReportModel = new PositionReportModel(header, positionReportData);
+            persistenceService.store(positionReportModel, ModelType.POSITION_REPORT_MODEL, ar -> {
+                if (ar.succeeded()) {
+                    asyncSecondSnapshotStore.countDown();
+                } else {
+                    context.fail(ar.cause());
+                }
+            });
+        });
+        asyncSecondSnapshotStore.awaitSuccess(30000);
+        this.checkCountInCollection(context, PositionReportModel.MONGO_HISTORY_COLLECTION, 7192);
+        this.checkCountInCollection(context, PositionReportModel.MONGO_LATEST_COLLECTION, 3596);
+        this.checkPositionReportHistoryCollectionQuery(context);
+        this.checkPositionReportLatestCollectionQuery(context);
     }
 
     /**
@@ -614,6 +648,175 @@ public class PersistenceVerticleIT {
                 context.assertEquals(116938762.025, result1.getDouble("variPremInMarginCurr"));
                 context.assertEquals(0.748337194753, result1.getDouble("adjustedExchangeRate"));
                 context.assertEquals("USWFC", result1.getString("poolOwner"));
+                asyncQuery.complete();
+            } else {
+                context.fail(ar.cause());
+            }
+        });
+        asyncQuery.awaitSuccess(5000);
+    }
+
+    private void checkPositionReportHistoryCollectionQuery(TestContext context) {
+        /* You can use this query to paste it directly into MongoDB shell, this is
+           what this test case expects:
+           db.PositionReport.find({
+                clearer: "BERFR",
+                member: "BERFR",
+                account: "PP",
+                liquidationGroup: "PEQ01",
+                liquidationGroupSplit: "PEQ01_Basic",
+                product: "ALV",
+                callPut: "P",
+                contractYear: 2010,
+                contractMonth: 2,
+                expiryDay: 0,
+                exercisePrice: 170,
+                version: "0",
+                flexContractSymbol: ""
+           }).sort({snapshotID: 1}).pretty()
+        */
+        JsonObject param = new JsonObject()
+                .put("clearer", "BERFR")
+                .put("member", "BERFR")
+                .put("account", "PP")
+                .put("liquidationGroup", "PEQ01")
+                .put("liquidationGroupSplit", "PEQ01_Basic")
+                .put("product", "ALV")
+                .put("callPut", "P")
+                .put("contractYear", 2010)
+                .put("contractMonth", 2)
+                .put("expiryDay", 0)
+                .put("exercisePrice", 170)
+                .put("version", "0")
+                .put("flexContractSymbol", "");
+
+        FindOptions findOptions = new FindOptions()
+                .setSort(new JsonObject().put("snapshotID", 1));
+
+        Async asyncQuery = context.async();
+        PersistenceVerticleIT.mongoClient.findWithOptions(PositionReportModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
+            if (ar.succeeded()) {
+                context.assertEquals(2, ar.result().size());
+                JsonObject result1 = ar.result().get(0);
+
+                context.assertEquals(15, result1.getInteger("snapshotID"));
+                context.assertEquals(20091215, result1.getInteger("businessDate"));
+                context.assertEquals(new JsonObject().put("$date", "2017-02-21T11:43:34.791Z"), result1.getJsonObject("timestamp"));
+                context.assertEquals("BERFR", result1.getString("clearer"));
+                context.assertEquals("BERFR", result1.getString("member"));
+                context.assertEquals("PP", result1.getString("account"));
+                context.assertEquals("PEQ01", result1.getString("liquidationGroup"));
+                context.assertEquals("PEQ01_Basic", result1.getString("liquidationGroupSplit"));
+                context.assertEquals("ALV", result1.getString("product"));
+                context.assertEquals("P", result1.getString("callPut"));
+                context.assertEquals(2010, result1.getInteger("contractYear"));
+                context.assertEquals(2, result1.getInteger("contractMonth"));
+                context.assertEquals(0, result1.getInteger("expiryDay"));
+                context.assertEquals(170.0, result1.getDouble("exercisePrice"));
+                context.assertEquals("0", result1.getString("version"));
+                context.assertEquals("", result1.getString("flexContractSymbol"));
+                context.assertEquals(-1943.0, result1.getDouble("netQuantityLs"));
+                context.assertEquals(0.0, result1.getDouble("netQuantityEa"));
+                context.assertEquals("EUR", result1.getString("clearingCurrency"));
+                context.assertEquals(22.539110869169235, result1.getDouble("mVar"));
+                context.assertEquals(21.725328222930674, result1.getDouble("compVar"));
+                context.assertEquals(0.813782657069325, result1.getDouble("compCorrelationBreak"));
+                context.assertEquals(0.0060874443941714195, result1.getDouble("compCompressionError"));
+                context.assertEquals(6.287057332082233, result1.getDouble("compLiquidityAddOn"));
+                context.assertEquals(-28.832255656476406, result1.getDouble("compLongOptionCredit"));
+                context.assertEquals("EUR", result1.getString("productCurrency"));
+                context.assertInRange(0.0, result1.getDouble("variationPremiumPayment"), DOUBLE_DELTA);
+                context.assertInRange(0.0, result1.getDouble("premiumMargin"), DOUBLE_DELTA);
+                context.assertEquals(0.04391331213559379, result1.getDouble("normalizedDelta"));
+                context.assertEquals(-0.0021834196488993104, result1.getDouble("normalizedGamma"));
+                context.assertEquals(-0.002614335157912494, result1.getDouble("normalizedVega"));
+                context.assertEquals(0.00008193269784691068, result1.getDouble("normalizedRho"));
+                context.assertEquals(0.0004722838437817084, result1.getDouble("normalizedTheta"));
+                context.assertEquals("ALV", result1.getString("underlying"));
+
+                asyncQuery.complete();
+            } else {
+                context.fail(ar.cause());
+            }
+        });
+        asyncQuery.awaitSuccess(5000);
+    }
+
+    private void checkPositionReportLatestCollectionQuery(TestContext context) {
+        /* You can use this query to paste it directly into MongoDB shell, this is
+           what this test case expects:
+           db.PositionReport.latest.find({
+                clearer: "BERFR",
+                member: "BERFR",
+                account: "PP",
+                liquidationGroup: "PEQ01",
+                liquidationGroupSplit: "PEQ01_Basic",
+                product: "ALV",
+                callPut: "P",
+                contractYear: 2010,
+                contractMonth: 2,
+                expiryDay: 0,
+                exercisePrice: 170,
+                version: "0",
+                flexContractSymbol: ""
+           }).pretty()
+        */
+        JsonObject param = new JsonObject()
+                .put("clearer", "BERFR")
+                .put("member", "BERFR")
+                .put("account", "PP")
+                .put("liquidationGroup", "PEQ01")
+                .put("liquidationGroupSplit", "PEQ01_Basic")
+                .put("product", "ALV")
+                .put("callPut", "P")
+                .put("contractYear", 2010)
+                .put("contractMonth", 2)
+                .put("expiryDay", 0)
+                .put("exercisePrice", 170)
+                .put("version", "0")
+                .put("flexContractSymbol", "");
+
+        Async asyncQuery = context.async();
+        PersistenceVerticleIT.mongoClient.find(PositionReportModel.MONGO_LATEST_COLLECTION, param, ar -> {
+            if (ar.succeeded()) {
+                context.assertEquals(1, ar.result().size());
+                JsonObject result1 = ar.result().get(0);
+
+                context.assertEquals(16, result1.getInteger("snapshotID"));
+                context.assertEquals(20091215, result1.getInteger("businessDate"));
+                context.assertEquals(new JsonObject().put("$date", "2017-02-21T11:44:56.396Z"), result1.getJsonObject("timestamp"));
+                context.assertEquals("BERFR", result1.getString("clearer"));
+                context.assertEquals("BERFR", result1.getString("member"));
+                context.assertEquals("PP", result1.getString("account"));
+                context.assertEquals("PEQ01", result1.getString("liquidationGroup"));
+                context.assertEquals("PEQ01_Basic", result1.getString("liquidationGroupSplit"));
+                context.assertEquals("ALV", result1.getString("product"));
+                context.assertEquals("P", result1.getString("callPut"));
+                context.assertEquals(2010, result1.getInteger("contractYear"));
+                context.assertEquals(2, result1.getInteger("contractMonth"));
+                context.assertEquals(0, result1.getInteger("expiryDay"));
+                context.assertEquals(170.0, result1.getDouble("exercisePrice"));
+                context.assertEquals("0", result1.getString("version"));
+                context.assertEquals("", result1.getString("flexContractSymbol"));
+                context.assertEquals(-1943.0, result1.getDouble("netQuantityLs"));
+                context.assertEquals(0.0, result1.getDouble("netQuantityEa"));
+                context.assertEquals("EUR", result1.getString("clearingCurrency"));
+                context.assertEquals(22.539110869169235, result1.getDouble("mVar"));
+                context.assertEquals(21.725328222930678, result1.getDouble("compVar"));
+                context.assertEquals(0.8137826570693243, result1.getDouble("compCorrelationBreak"));
+                context.assertEquals(0.0060874443941714195, result1.getDouble("compCompressionError"));
+                context.assertEquals(6.287057332082231, result1.getDouble("compLiquidityAddOn"));
+                context.assertEquals(-28.832255656476406, result1.getDouble("compLongOptionCredit"));
+                context.assertEquals("EUR", result1.getString("productCurrency"));
+                context.assertInRange(0.0, result1.getDouble("variationPremiumPayment"), DOUBLE_DELTA);
+                context.assertInRange(0.0, result1.getDouble("premiumMargin"), DOUBLE_DELTA);
+                context.assertEquals(0.04391331213559379, result1.getDouble("normalizedDelta"));
+                context.assertEquals(-0.0021834196488993104, result1.getDouble("normalizedGamma"));
+                context.assertEquals(-0.002614335157912494, result1.getDouble("normalizedVega"));
+                context.assertEquals(0.00008193269784691068, result1.getDouble("normalizedRho"));
+                context.assertEquals(0.0004722838437817084, result1.getDouble("normalizedTheta"));
+                context.assertEquals("ALV", result1.getString("underlying"));
+
                 asyncQuery.complete();
             } else {
                 context.fail(ar.cause());
