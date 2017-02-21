@@ -31,17 +31,17 @@ public class AccountMarginModel extends AbstractModel {
     }
 
     private void verify(PrismaReports.AccountMargin accountMarginData) {
-        if (!accountMarginData.hasKey()) throw new IllegalArgumentException("Missing account margin key in AMQP data");
-        if (!accountMarginData.getKey().hasClearer()) throw new IllegalArgumentException("Missing account margin clearer in AMQP data");
-        if (!accountMarginData.getKey().hasMember()) throw new IllegalArgumentException("Missing account margin member in AMQP data");
-        if (!accountMarginData.getKey().hasAccount()) throw new IllegalArgumentException("Missing account margin account in AMQP data");
-        if (!accountMarginData.getKey().hasMarginCurrency()) throw new IllegalArgumentException("Missing account margin margin currency in AMQP data");
-        if (!accountMarginData.hasClearingCurrency()) throw new IllegalArgumentException("Missing account margin clearing currency in AMQP data");
-        if (!accountMarginData.hasPool()) throw new IllegalArgumentException("Missing account margin pool in AMQP data");
-        if (!accountMarginData.hasMarginReqInMarginCurr()) throw new IllegalArgumentException("Missing account margin margin requirement in margin currency in AMQP data");
-        if (!accountMarginData.hasMarginReqInClrCurr()) throw new IllegalArgumentException("Missing account margin margin requirement in clearing currency in AMQP data");
-        if (!accountMarginData.hasUnadjustedMarginRequirement()) throw new IllegalArgumentException("Missing account margin unadjusted margin requirement in clearing currency in AMQP data");
-        if (!accountMarginData.hasVariationPremiumPayment()) throw new IllegalArgumentException("Missing account margin variation premium payment in AMQP data");
+        assertTrue(accountMarginData.hasKey(), "Missing account margin key in AMQP data");
+        assertTrue(accountMarginData.getKey().hasClearer(), "Missing account margin clearer in AMQP data");
+        assertTrue(accountMarginData.getKey().hasMember(), "Missing account margin member in AMQP data");
+        assertTrue(accountMarginData.getKey().hasAccount(), "Missing account margin account in AMQP data");
+        assertTrue(accountMarginData.getKey().hasMarginCurrency(), "Missing account margin margin currency in AMQP data");
+        assertTrue(accountMarginData.hasClearingCurrency(), "Missing account margin clearing currency in AMQP data");
+        assertTrue(accountMarginData.hasPool(), "Missing account margin pool in AMQP data");
+        assertTrue(accountMarginData.hasMarginReqInMarginCurr(), "Missing account margin margin requirement in margin currency in AMQP data");
+        assertTrue(accountMarginData.hasMarginReqInClrCurr(), "Missing account margin margin requirement in clearing currency in AMQP data");
+        assertTrue(accountMarginData.hasUnadjustedMarginRequirement(), "Missing account margin unadjusted margin requirement in clearing currency in AMQP data");
+        assertTrue(accountMarginData.hasVariationPremiumPayment(), "Missing account margin variation premium payment in AMQP data");
     }
 
     @Override

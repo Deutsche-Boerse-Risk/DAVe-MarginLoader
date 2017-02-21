@@ -55,9 +55,9 @@ public class LiquiGroupMarginVerticleIT {
 
         // verify the content of the last message
         LiquiGroupMarginModel expectedLiquiGroupMarginMargin = new LiquiGroupMarginModel();
-        expectedLiquiGroupMarginMargin.setSnapshotID(5);
+        expectedLiquiGroupMarginMargin.setSnapshotID(10);
         expectedLiquiGroupMarginMargin.setBusinessDate(20091215);
-        expectedLiquiGroupMarginMargin.setTimestamp(1486465721933L);
+        expectedLiquiGroupMarginMargin.setTimestamp(1487172422430L);
         expectedLiquiGroupMarginMargin.setClearer("ABCFR");
         expectedLiquiGroupMarginMargin.setMember("ABCFR");
         expectedLiquiGroupMarginMargin.setAccount("PP");
