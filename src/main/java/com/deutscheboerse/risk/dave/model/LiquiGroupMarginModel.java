@@ -6,7 +6,6 @@ import io.vertx.core.json.JsonObject;
 import static com.google.common.base.Preconditions.checkArgument;
 
 public class LiquiGroupMarginModel extends AbstractModel {
-    public static final String EB_STORE_ADDRESS = "LiquiGroupMarginStore";
     public static final String MONGO_HISTORY_COLLECTION = "LiquiGroupMargin";
     public static final String MONGO_LATEST_COLLECTION = "LiquiGroupMargin.latest";
 

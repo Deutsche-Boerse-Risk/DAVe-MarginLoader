@@ -39,6 +39,7 @@ public class HealthCheckIT {
                 .put("listeners", new JsonObject()
                         .put("accountMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEAccountMargin")
                         .put("liquiGroupMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupMargin")
+                        .put("liquiGroupSplitMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupSplitMargin")
                         .put("poolMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPoolMargin"));
         JsonObject mongoConfig = new JsonObject()
                 .put("dbName", DB_NAME)

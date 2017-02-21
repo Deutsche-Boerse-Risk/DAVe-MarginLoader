@@ -2,6 +2,7 @@ package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.model.AccountMarginModel;
 import com.deutscheboerse.risk.dave.model.LiquiGroupMarginModel;
+import com.deutscheboerse.risk.dave.model.LiquiGroupSplitMarginModel;
 import com.deutscheboerse.risk.dave.model.PoolMarginModel;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -45,6 +46,7 @@ public class MainVerticleIT {
                 .put("listeners", new JsonObject()
                         .put("accountMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEAccountMargin")
                         .put("liquiGroupMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupMargin")
+                        .put("liquiGroupSplitMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupSplitMargin")
                         .put("poolMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPoolMargin"));
         JsonObject mongoConfig = new JsonObject()
                 .put("dbName", MainVerticleIT.DB_NAME)
@@ -76,6 +78,8 @@ public class MainVerticleIT {
         this.testCountInCollection(context, AccountMarginModel.MONGO_LATEST_COLLECTION, 1704);
         this.testCountInCollection(context, LiquiGroupMarginModel.MONGO_HISTORY_COLLECTION, 2171);
         this.testCountInCollection(context, LiquiGroupMarginModel.MONGO_LATEST_COLLECTION, 2171);
+        this.testCountInCollection(context, LiquiGroupSplitMarginModel.MONGO_HISTORY_COLLECTION, 2472);
+        this.testCountInCollection(context, LiquiGroupSplitMarginModel.MONGO_LATEST_COLLECTION, 2472);
         this.testCountInCollection(context, PoolMarginModel.MONGO_HISTORY_COLLECTION, 540);
         this.testCountInCollection(context, PoolMarginModel.MONGO_LATEST_COLLECTION, 270);
     }

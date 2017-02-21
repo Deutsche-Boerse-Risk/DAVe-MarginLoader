@@ -38,6 +38,7 @@ public class BrokerFiller {
         this.createAmqpConnection()
                 .compose(this::populateAccountMarginQueue)
                 .compose(this::populateLiquiGroupMarginQueue)
+                .compose(this::populateLiquiGroupSplitMarginQueue)
                 .compose(this::populatePoolMarginQueue)
 //                .compose(this::populateLiquiGroupSplitMarginQueue)
 //                .compose(this::populatePositionReportQueue)
@@ -69,6 +70,20 @@ public class BrokerFiller {
         Future<ProtonConnection> chainFuture = Future.future();
         this.createAmqpConnection()
                 .compose(this::populateLiquiGroupMarginQueue)
+                .compose(chainFuture::complete, chainFuture);
+        chainFuture.setHandler(ar -> {
+           if (ar.succeeded()) {
+               handler.handle(Future.succeededFuture());
+           } else {
+               handler.handle(Future.failedFuture(ar.cause()));
+           }
+        });
+    }
+
+    public void setUpLiquiGroupSplitMarginQueue(Handler<AsyncResult<String>> handler) {
+        Future<ProtonConnection> chainFuture = Future.future();
+        this.createAmqpConnection()
+                .compose(this::populateLiquiGroupSplitMarginQueue)
                 .compose(chainFuture::complete, chainFuture);
         chainFuture.setHandler(ar -> {
            if (ar.succeeded()) {
@@ -130,8 +145,8 @@ public class BrokerFiller {
     }
 
     private Future<ProtonConnection> populateLiquiGroupSplitMarginQueue(ProtonConnection protonConnection) {
-        final String queueName = "";
-        final Collection<String> messagePaths = IntStream.rangeClosed(1, 100)
+        final String queueName = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupSplitMargin";
+        final Collection<String> messagePaths = IntStream.rangeClosed(1, 1)
                 .mapToObj(i -> String.format("%s/%03d.bin", BrokerFiller.class.getResource("liquiGroupSplitMargin").getPath(), i))
                 .collect(Collectors.toList());
         return this.populateQueue(protonConnection, queueName, messagePaths);

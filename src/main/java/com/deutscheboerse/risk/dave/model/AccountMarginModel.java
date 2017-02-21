@@ -6,8 +6,6 @@ import io.vertx.core.json.JsonObject;
 import static com.google.common.base.Preconditions.checkArgument;
 
 public class AccountMarginModel extends AbstractModel {
-
-    public static final String EB_STORE_ADDRESS = "AccountMarginStore";
     public static final String MONGO_HISTORY_COLLECTION = "AccountMargin";
     public static final String MONGO_LATEST_COLLECTION = "AccountMargin.latest";
 

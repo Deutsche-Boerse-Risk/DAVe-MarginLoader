@@ -2,10 +2,7 @@ package com.deutscheboerse.risk.dave;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
-import com.deutscheboerse.risk.dave.model.AccountMarginModel;
-import com.deutscheboerse.risk.dave.model.LiquiGroupMarginModel;
-import com.deutscheboerse.risk.dave.model.ModelType;
-import com.deutscheboerse.risk.dave.model.PoolMarginModel;
+import com.deutscheboerse.risk.dave.model.*;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.google.protobuf.ExtensionRegistry;
 import io.vertx.core.DeploymentOptions;
@@ -62,6 +59,8 @@ public class PersistenceVerticleIT {
         requiredCollections.add(AccountMarginModel.MONGO_LATEST_COLLECTION);
         requiredCollections.add(LiquiGroupMarginModel.MONGO_HISTORY_COLLECTION);
         requiredCollections.add(LiquiGroupMarginModel.MONGO_LATEST_COLLECTION);
+        requiredCollections.add(LiquiGroupSplitMarginModel.MONGO_HISTORY_COLLECTION);
+        requiredCollections.add(LiquiGroupSplitMarginModel.MONGO_LATEST_COLLECTION);
         requiredCollections.add(PoolMarginModel.MONGO_HISTORY_COLLECTION);
         requiredCollections.add(PoolMarginModel.MONGO_LATEST_COLLECTION);
         final Async async = context.async();
@@ -149,6 +148,42 @@ public class PersistenceVerticleIT {
         this.checkCountInCollection(context, LiquiGroupMarginModel.MONGO_LATEST_COLLECTION, 2171);
         this.checkLiquiGroupMarginHistoryCollectionQuery(context);
         this.checkLiquiGroupMarginLatestCollectionQuery(context);
+    }
+
+    @Test
+    public void testLiquiGroupSplitMarginStore(TestContext context) throws IOException {
+        Async asyncStore1 = context.async(2472);
+        readTTSaveFile("liquiGroupSplitMargin", 1, (header, gpbObject) -> {
+            PrismaReports.LiquiGroupSplitMargin liquiGroupSplitMarginData = gpbObject.getExtension(PrismaReports.liquiGroupSplitMargin);
+            LiquiGroupSplitMarginModel liquiGroupSplitMarginModel = new LiquiGroupSplitMarginModel(header, liquiGroupSplitMarginData);
+            persistenceService.store(liquiGroupSplitMarginModel, ModelType.LIQUI_GROUP_SPLIT_MARGIN_MODEL, ar -> {
+                if (ar.succeeded()) {
+                    asyncStore1.countDown();
+                } else {
+                    context.fail(ar.cause());
+                }
+            });
+        });
+        asyncStore1.awaitSuccess(30000);
+
+        Async asyncStore2 = context.async(2472);
+        readTTSaveFile("liquiGroupSplitMargin", 2, (header, gpbObject) -> {
+            PrismaReports.LiquiGroupSplitMargin liquiGroupSplitMarginData = gpbObject.getExtension(PrismaReports.liquiGroupSplitMargin);
+            LiquiGroupSplitMarginModel liquiGroupSplitMarginModel = new LiquiGroupSplitMarginModel(header, liquiGroupSplitMarginData);
+            persistenceService.store(liquiGroupSplitMarginModel, ModelType.LIQUI_GROUP_SPLIT_MARGIN_MODEL, ar -> {
+                if (ar.succeeded()) {
+                    asyncStore2.countDown();
+                } else {
+                    context.fail(ar.cause());
+                }
+            });
+        });
+        asyncStore2.awaitSuccess(30000);
+
+        this.checkCountInCollection(context, LiquiGroupSplitMarginModel.MONGO_HISTORY_COLLECTION, 4944);
+        this.checkCountInCollection(context, LiquiGroupSplitMarginModel.MONGO_LATEST_COLLECTION, 2472);
+        //this.checkLiquiGroupSplitMarginHistoryCollectionQuery(context);
+        this.checkLiquiGroupSplitMarginLatestCollectionQuery(context);
     }
 
     @Test
@@ -391,6 +426,106 @@ public class PersistenceVerticleIT {
                 context.assertEquals(14914.841270178167, result.getDouble("additionalMargin"));
                 context.assertEquals(149915.34127017818, result.getDouble("unadjustedMarginRequirement"));
                 context.assertEquals(0.0, result.getDouble("variationPremiumPayment"));
+                asyncQuery.complete();
+            } else {
+                context.fail(ar.cause());
+            }
+        });
+        asyncQuery.awaitSuccess(5000);
+    }
+
+    private void checkLiquiGroupSplitMarginHistoryCollectionQuery(TestContext context) {
+        /* You can use this query to paste it directly into MongoDB shell, this is
+           what this test case expects:
+           db.LiquiGroupSplitMargin.find({
+               clearer: "USJPM",
+               member: "USJPM",
+               account: "PP",
+               liquidationGroup: "PFI02",
+               liquidationGroupSplit: "PFI02_HP2_T3-99999",
+               marginCurrency: "EUR"
+           }).sort({snapshotID: 1}).pretty()
+        */
+        JsonObject param = new JsonObject();
+        param.put("clearer", "USJPM");
+        param.put("member", "USJPM");
+        param.put("account", "PP");
+        param.put("liquidationGroup", "PFI02");
+        param.put("liquidationGroupSplit", "PFI02_HP2_T3-99999");
+        param.put("marginCurrency", "EUR");
+
+        FindOptions findOptions = new FindOptions()
+                .setSort(new JsonObject().put("snapshotID", 1));
+
+        Async asyncQuery = context.async();
+        PersistenceVerticleIT.mongoClient.findWithOptions(LiquiGroupSplitMarginModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
+            if (ar.succeeded()) {
+                context.assertEquals(2, ar.result().size());
+                JsonObject result = ar.result().get(0);
+
+                context.assertEquals(15, result.getInteger("snapshotID"));
+                context.assertEquals(20091215, result.getInteger("businessDate"));
+                context.assertEquals(new JsonObject().put("$date", "2017-02-21T11:43:34.791Z"), result.getJsonObject("timestamp"));
+                context.assertEquals("USJPM", result.getString("clearer"));
+                context.assertEquals("USJPM", result.getString("member"));
+                context.assertEquals("PP", result.getString("account"));
+                context.assertEquals("PFI02", result.getString("liquidationGroup"));
+                context.assertEquals("PFI02_HP2_T3-99999", result.getString("liquidationGroupSplit"));
+                context.assertEquals("EUR", result.getString("marginCurrency"));
+                context.assertEquals(0.0, result.getDouble("premiumMargin"));
+                context.assertEquals(2.7548216040760565E8, result.getDouble("marketRisk"));
+                context.assertEquals(3.690967426538666E7, result.getDouble("liquRisk"));
+                context.assertEquals(0.0, result.getDouble("longOptionCredit"));
+                context.assertEquals(4.86621581017E8, result.getDouble("variationPremiumPayment"));
+                asyncQuery.complete();
+            } else {
+                context.fail(ar.cause());
+            }
+        });
+        asyncQuery.awaitSuccess(5000);
+    }
+
+    private void checkLiquiGroupSplitMarginLatestCollectionQuery(TestContext context) {
+        /* You can use this query to paste it directly into MongoDB shell, this is
+           what this test case expects:
+           db.LiquiGroupSplitMargin.latest.find({
+               clearer: "USJPM",
+               member: "USJPM",
+               account: "PP",
+               liquidationGroup: "PFI02",
+               liquidationGroupSplit: "PFI02_HP2_T3-99999",
+               marginCurrency: "EUR"
+           }).pretty()
+        */
+        JsonObject param = new JsonObject();
+        param.put("clearer", "USJPM");
+        param.put("member", "USJPM");
+        param.put("account", "PP");
+        param.put("liquidationGroup", "PFI02");
+        param.put("liquidationGroupSplit", "PFI02_HP2_T3-99999");
+        param.put("marginCurrency", "EUR");
+
+
+        Async asyncQuery = context.async();
+        PersistenceVerticleIT.mongoClient.find(LiquiGroupSplitMarginModel.MONGO_LATEST_COLLECTION, param, ar -> {
+            if (ar.succeeded()) {
+                context.assertEquals(1, ar.result().size());
+                JsonObject result = ar.result().get(0);
+
+                context.assertEquals(16, result.getInteger("snapshotID"));
+                context.assertEquals(20091215, result.getInteger("businessDate"));
+                context.assertEquals(new JsonObject().put("$date", "2017-02-21T11:44:56.396Z"), result.getJsonObject("timestamp"));
+                context.assertEquals("USJPM", result.getString("clearer"));
+                context.assertEquals("USJPM", result.getString("member"));
+                context.assertEquals("PP", result.getString("account"));
+                context.assertEquals("PFI02", result.getString("liquidationGroup"));
+                context.assertEquals("PFI02_HP2_T3-99999", result.getString("liquidationGroupSplit"));
+                context.assertEquals("EUR", result.getString("marginCurrency"));
+                context.assertEquals(0.0, result.getDouble("premiumMargin"));
+                context.assertEquals(2.7548216040760565E8, result.getDouble("marketRisk"));
+                context.assertEquals(3.690967426538666E7, result.getDouble("liquRisk"));
+                context.assertEquals(0.0, result.getDouble("longOptionCredit"));
+                context.assertEquals(4.86621581017E8, result.getDouble("variationPremiumPayment"));
                 asyncQuery.complete();
             } else {
                 context.fail(ar.cause());

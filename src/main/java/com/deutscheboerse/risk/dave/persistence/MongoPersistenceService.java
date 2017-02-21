@@ -53,6 +53,9 @@ public class MongoPersistenceService implements PersistenceService {
             case LIQUI_GROUP_MARGIN_MODEL:
                 model = new LiquiGroupMarginModel();
                 break;
+            case LIQUI_GROUP_SPLIT_MARGIN_MODEL:
+                model = new LiquiGroupSplitMarginModel();
+                break;
             case POOL_MARGIN_MODEL:
                 model = new PoolMarginModel();
                 break;
@@ -114,6 +117,8 @@ public class MongoPersistenceService implements PersistenceService {
                         AccountMarginModel.MONGO_LATEST_COLLECTION,
                         LiquiGroupMarginModel.MONGO_HISTORY_COLLECTION,
                         LiquiGroupMarginModel.MONGO_LATEST_COLLECTION,
+                        LiquiGroupSplitMarginModel.MONGO_HISTORY_COLLECTION,
+                        LiquiGroupSplitMarginModel.MONGO_LATEST_COLLECTION,
                         PoolMarginModel.MONGO_HISTORY_COLLECTION,
                         PoolMarginModel.MONGO_LATEST_COLLECTION
                 ));
