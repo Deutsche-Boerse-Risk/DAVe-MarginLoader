@@ -32,18 +32,18 @@ public class LiquiGroupMarginModel extends AbstractModel {
     }
 
     private void verify(PrismaReports.LiquiGroupMargin liquiGroupMarginData) {
-        if (!liquiGroupMarginData.hasKey()) throw new IllegalArgumentException("Missing liqui group margin key in AMQP data");
-        if (!liquiGroupMarginData.getKey().hasClearer()) throw new IllegalArgumentException("Missing liqui group margin clearer in AMQP data");
-        if (!liquiGroupMarginData.getKey().hasMember()) throw new IllegalArgumentException("Missing liqui group margin member in AMQP data");
-        if (!liquiGroupMarginData.getKey().hasAccount()) throw new IllegalArgumentException("Missing liqui group margin account in AMQP data");
-        if (!liquiGroupMarginData.getKey().hasMarginClass()) throw new IllegalArgumentException("Missing liqui group margin class in AMQP data");
-        if (!liquiGroupMarginData.getKey().hasMarginCurrency()) throw new IllegalArgumentException("Missing liqui group margin margin currency in AMQP data");
-        if (!liquiGroupMarginData.hasPremiumMargin()) throw new IllegalArgumentException("Missing liqui group margin premium margin in AMQP data");
-        if (!liquiGroupMarginData.hasCurrentLiquidatingMargin()) throw new IllegalArgumentException("Missing liqui group current liquidating margin in AMQP data");
-        if (!liquiGroupMarginData.hasFuturesSpreadMargin()) throw new IllegalArgumentException("Missing liqui group futures spread margin in AMQP data");
-        if (!liquiGroupMarginData.hasAdditionalMargin()) throw new IllegalArgumentException("Missing liqui group additional margin in AMQP data");
-        if (!liquiGroupMarginData.hasUnadjustedMarginRequirement()) throw new IllegalArgumentException("Missing liqui group unadjusted margin in AMQP data");
-        if (!liquiGroupMarginData.hasVariationPremiumPayment()) throw new IllegalArgumentException("Missing liqui group variation premium payment in AMQP data");
+        assertTrue(liquiGroupMarginData.hasKey(), "Missing liqui group margin key in AMQP data");
+        assertTrue(liquiGroupMarginData.getKey().hasClearer(), "Missing liqui group margin clearer in AMQP data");
+        assertTrue(liquiGroupMarginData.getKey().hasMember(), "Missing liqui group margin member in AMQP data");
+        assertTrue(liquiGroupMarginData.getKey().hasAccount(), "Missing liqui group margin account in AMQP data");
+        assertTrue(liquiGroupMarginData.getKey().hasMarginClass(), "Missing liqui group margin class in AMQP data");
+        assertTrue(liquiGroupMarginData.getKey().hasMarginCurrency(), "Missing liqui group margin margin currency in AMQP data");
+        assertTrue(liquiGroupMarginData.hasPremiumMargin(), "Missing liqui group margin premium margin in AMQP data");
+        assertTrue(liquiGroupMarginData.hasCurrentLiquidatingMargin(), "Missing liqui group current liquidating margin in AMQP data");
+        assertTrue(liquiGroupMarginData.hasFuturesSpreadMargin(), "Missing liqui group futures spread margin in AMQP data");
+        assertTrue(liquiGroupMarginData.hasAdditionalMargin(), "Missing liqui group additional margin in AMQP data");
+        assertTrue(liquiGroupMarginData.hasUnadjustedMarginRequirement(), "Missing liqui group unadjusted margin in AMQP data");
+        assertTrue(liquiGroupMarginData.hasVariationPremiumPayment(), "Missing liqui group variation premium payment in AMQP data");
     }
 
     @Override
@@ -65,6 +65,16 @@ public class LiquiGroupMarginModel extends AbstractModel {
         queryParams.put("marginClass", this.getMarginClass());
         queryParams.put("marginCurrency", this.getMarginCurrency());
         return queryParams;
+    }
+
+    @Override
+    public JsonObject getLatestUniqueIndex() {
+        return new JsonObject()
+                .put("clearer", 1)
+                .put("member", 1)
+                .put("account", 1)
+                .put("marginClass", 1)
+                .put("marginCurrency", 1);
     }
 
     public String getClearer() {

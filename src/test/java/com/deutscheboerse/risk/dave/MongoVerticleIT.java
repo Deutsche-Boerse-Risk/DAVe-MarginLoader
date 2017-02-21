@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.BiConsumer;
-import java.util.stream.IntStream;
 
 @RunWith(VertxUnitRunner.class)
 public class MongoVerticleIT {
@@ -76,26 +75,35 @@ public class MongoVerticleIT {
 
     @Test
     public void testAccountMarginStore(TestContext context) throws IOException {
-        ExtensionRegistry registry = ExtensionRegistry.newInstance();
-        PrismaReports.registerAllExtensions(registry);
-        String dataFilePath = String.format("%s/%03d.bin", MongoVerticleIT.class.getResource("accountMargin").getPath(), 1);
-        byte[] gpbBytes = Files.readAllBytes(Paths.get(dataFilePath));
-        ObjectList.GPBObjectList gpbObjectList = ObjectList.GPBObjectList.parseFrom(gpbBytes, registry);
-        PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
-        Async asyncStore = context.async(1704);
-        gpbObjectList.getItemList().forEach(gpbObject -> {
+        Async asyncStore1 = context.async(1704);
+        readTTSaveFile("accountMargin", 1, (header, gpbObject) -> {
             PrismaReports.AccountMargin accountMarginData = gpbObject.getExtension(PrismaReports.accountMargin);
             AccountMarginModel accountMarginModel = new AccountMarginModel(header, accountMarginData);
             vertx.eventBus().send(AccountMarginModel.EB_STORE_ADDRESS, accountMarginModel, ar -> {
                 if (ar.succeeded()) {
-                    asyncStore.countDown();
+                    asyncStore1.countDown();
                 } else {
                     context.fail(ar.cause());
                 }
             });
         });
-        asyncStore.awaitSuccess(30000);
-        this.checkCountInCollection(context, AccountMarginModel.MONGO_HISTORY_COLLECTION, 1704);
+        asyncStore1.awaitSuccess(30000);
+
+        Async asyncStore2 = context.async(1704);
+        readTTSaveFile("accountMargin", 2, (header, gpbObject) -> {
+            PrismaReports.AccountMargin accountMarginData = gpbObject.getExtension(PrismaReports.accountMargin);
+            AccountMarginModel accountMarginModel = new AccountMarginModel(header, accountMarginData);
+            vertx.eventBus().send(AccountMarginModel.EB_STORE_ADDRESS, accountMarginModel, ar -> {
+                if (ar.succeeded()) {
+                    asyncStore2.countDown();
+                } else {
+                    context.fail(ar.cause());
+                }
+            });
+        });
+        asyncStore2.awaitSuccess(30000);
+
+        this.checkCountInCollection(context, AccountMarginModel.MONGO_HISTORY_COLLECTION, 3408);
         this.checkCountInCollection(context, AccountMarginModel.MONGO_LATEST_COLLECTION, 1704);
         this.checkAccountMarginHistoryCollectionQuery(context);
         this.checkAccountMarginLatestCollectionQuery(context);
@@ -103,26 +111,35 @@ public class MongoVerticleIT {
 
     @Test
     public void testLiquiGroupMarginStore(TestContext context) throws IOException {
-        ExtensionRegistry registry = ExtensionRegistry.newInstance();
-        PrismaReports.registerAllExtensions(registry);
-        String dataFilePath = String.format("%s/%03d.bin", MongoVerticleIT.class.getResource("liquiGroupMargin").getPath(), 1);
-        byte[] gpbBytes = Files.readAllBytes(Paths.get(dataFilePath));
-        ObjectList.GPBObjectList gpbObjectList = ObjectList.GPBObjectList.parseFrom(gpbBytes, registry);
-        PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
-        Async asyncStore = context.async(2171);
-        gpbObjectList.getItemList().forEach(gpbObject -> {
+        Async asyncStore1 = context.async(2171);
+        readTTSaveFile("liquiGroupMargin", 1, (header, gpbObject) -> {
             PrismaReports.LiquiGroupMargin liquiGroupMarginData = gpbObject.getExtension(PrismaReports.liquiGroupMargin);
             LiquiGroupMarginModel liquiGroupMarginModel = new LiquiGroupMarginModel(header, liquiGroupMarginData);
             vertx.eventBus().send(LiquiGroupMarginModel.EB_STORE_ADDRESS, liquiGroupMarginModel, ar -> {
                 if (ar.succeeded()) {
-                    asyncStore.countDown();
+                    asyncStore1.countDown();
                 } else {
                     context.fail(ar.cause());
                 }
             });
         });
-        asyncStore.awaitSuccess(30000);
-        this.checkCountInCollection(context, LiquiGroupMarginModel.MONGO_HISTORY_COLLECTION, 2171);
+        asyncStore1.awaitSuccess(30000);
+
+        Async asyncStore2 = context.async(2171);
+        readTTSaveFile("liquiGroupMargin", 2, (header, gpbObject) -> {
+            PrismaReports.LiquiGroupMargin liquiGroupMarginData = gpbObject.getExtension(PrismaReports.liquiGroupMargin);
+            LiquiGroupMarginModel liquiGroupMarginModel = new LiquiGroupMarginModel(header, liquiGroupMarginData);
+            vertx.eventBus().send(LiquiGroupMarginModel.EB_STORE_ADDRESS, liquiGroupMarginModel, ar -> {
+                if (ar.succeeded()) {
+                    asyncStore2.countDown();
+                } else {
+                    context.fail(ar.cause());
+                }
+            });
+        });
+        asyncStore2.awaitSuccess(30000);
+
+        this.checkCountInCollection(context, LiquiGroupMarginModel.MONGO_HISTORY_COLLECTION, 4342);
         this.checkCountInCollection(context, LiquiGroupMarginModel.MONGO_LATEST_COLLECTION, 2171);
         this.checkLiquiGroupMarginHistoryCollectionQuery(context);
         this.checkLiquiGroupMarginLatestCollectionQuery(context);
@@ -130,19 +147,34 @@ public class MongoVerticleIT {
 
     @Test
     public void testPoolMarginStore(TestContext context) throws IOException {
-        Async asyncStore = context.async(540);
-        readTTSaveFiles("poolMargin", IntStream.rangeClosed(1, 2), (header, gpbObject) -> {
+        Async asyncStore1 = context.async(270);
+        readTTSaveFile("poolMargin", 1, (header, gpbObject) -> {
             PrismaReports.PoolMargin poolMarginData = gpbObject.getExtension(PrismaReports.poolMargin);
             PoolMarginModel poolMarginModel = new PoolMarginModel(header, poolMarginData);
             vertx.eventBus().send(PoolMarginModel.EB_STORE_ADDRESS, poolMarginModel, ar -> {
                 if (ar.succeeded()) {
-                    asyncStore.countDown();
+                    asyncStore1.countDown();
                 } else {
                     context.fail(ar.cause());
                 }
             });
         });
-        asyncStore.awaitSuccess(30000);
+        asyncStore1.awaitSuccess(30000);
+
+        Async asyncStore2 = context.async(270);
+        readTTSaveFile("poolMargin", 2, (header, gpbObject) -> {
+            PrismaReports.PoolMargin poolMarginData = gpbObject.getExtension(PrismaReports.poolMargin);
+            PoolMarginModel poolMarginModel = new PoolMarginModel(header, poolMarginData);
+            vertx.eventBus().send(PoolMarginModel.EB_STORE_ADDRESS, poolMarginModel, ar -> {
+                if (ar.succeeded()) {
+                    asyncStore2.countDown();
+                } else {
+                    context.fail(ar.cause());
+                }
+            });
+        });
+        asyncStore2.awaitSuccess(30000);
+
         this.checkCountInCollection(context, PoolMarginModel.MONGO_HISTORY_COLLECTION, 540);
         this.checkCountInCollection(context, PoolMarginModel.MONGO_LATEST_COLLECTION, 270);
         this.checkPoolMarginHistoryCollectionQuery(context);
@@ -151,23 +183,20 @@ public class MongoVerticleIT {
 
     /**
      * @param folderName "accountMargin", "liquiGroupMargin" or "poolMargin"
-     * @param range 1 for the first snapshot, etc.
+     * @param ttsaveNo 1 for the first snapshot, etc.
      */
-    private void readTTSaveFiles(String folderName, IntStream range, BiConsumer<? super PrismaReports.PrismaHeader, ? super ObjectList.GPBObject> consumer) {
+    private void readTTSaveFile(String folderName, int ttsaveNo, BiConsumer<? super PrismaReports.PrismaHeader, ? super ObjectList.GPBObject> consumer) {
         ExtensionRegistry registry = ExtensionRegistry.newInstance();
         PrismaReports.registerAllExtensions(registry);
-        range
-             .mapToObj(i -> String.format("%s/%03d.bin", MongoVerticleIT.class.getResource(folderName).getPath(), i))
-             .forEach(path -> {
-                 try {
-                     byte[] gpbBytes = Files.readAllBytes(Paths.get(path));
-                     ObjectList.GPBObjectList gpbObjectList = ObjectList.GPBObjectList.parseFrom(gpbBytes, registry);
-                     PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
-                     gpbObjectList.getItemList().forEach(gpbObject -> consumer.accept(header, gpbObject));
-                 } catch (IOException e) {
-                     e.printStackTrace();
-                 }
-             });
+        String path = String.format("%s/%03d.bin", MongoVerticleIT.class.getResource(folderName).getPath(), ttsaveNo);
+        try {
+            byte[] gpbBytes = Files.readAllBytes(Paths.get(path));
+            ObjectList.GPBObjectList gpbObjectList = ObjectList.GPBObjectList.parseFrom(gpbBytes, registry);
+            PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
+            gpbObjectList.getItemList().forEach(gpbObject -> consumer.accept(header, gpbObject));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void checkCountInCollection(TestContext context, String collection, long count) {
@@ -184,6 +213,15 @@ public class MongoVerticleIT {
     }
 
     private void checkAccountMarginHistoryCollectionQuery(TestContext context) {
+        /* You can use this query to paste it directly into MongoDB shell, this is
+           what this test case expects:
+           db.AccountMargin.find({
+               clearer: "BERFR",
+               member: "BERFR",
+               account: "A5",
+               marginCurrency: "EUR"
+           }).sort({snapshotID: 1}).pretty()
+        */
         JsonObject param = new JsonObject();
         param.put("clearer", "BERFR");
         param.put("member", "BERFR");
@@ -193,12 +231,12 @@ public class MongoVerticleIT {
         Async asyncQuery = context.async();
         MongoVerticleIT.mongoClient.find(AccountMarginModel.MONGO_HISTORY_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
-                context.assertEquals(1, ar.result().size());
+                context.assertEquals(2, ar.result().size());
                 JsonObject result = ar.result().get(0);
 
-                context.assertEquals(5, result.getInteger("snapshotID"));
+                context.assertEquals(10, result.getInteger("snapshotID"));
                 context.assertEquals(20091215, result.getInteger("businessDate"));
-                context.assertEquals(new JsonObject().put("$date", "2017-02-07T11:08:41.933Z"), result.getJsonObject("timestamp"));
+                context.assertEquals(new JsonObject().put("$date", "2017-02-15T15:27:02.43Z"), result.getJsonObject("timestamp"));
                 context.assertEquals("BERFR", result.getString("clearer"));
                 context.assertEquals("BERFR", result.getString("member"));
                 context.assertEquals("A5", result.getString("account"));
@@ -218,6 +256,15 @@ public class MongoVerticleIT {
     }
 
     private void checkAccountMarginLatestCollectionQuery(TestContext context) {
+        /* You can use this query to paste it directly into MongoDB shell, this is
+           what this test case expects:
+           db.AccountMargin.latest.find({
+               clearer: "BERFR",
+               member: "BERFR",
+               account: "A5",
+               marginCurrency: "EUR"
+           }).pretty()
+        */
         JsonObject param = new JsonObject();
         param.put("clearer", "BERFR");
         param.put("member", "BERFR");
@@ -230,9 +277,9 @@ public class MongoVerticleIT {
                 context.assertEquals(1, ar.result().size());
                 JsonObject result = ar.result().get(0);
 
-                context.assertEquals(5, result.getInteger("snapshotID"));
+                context.assertEquals(11, result.getInteger("snapshotID"));
                 context.assertEquals(20091215, result.getInteger("businessDate"));
-                context.assertEquals(new JsonObject().put("$date", "2017-02-07T11:08:41.933Z"), result.getJsonObject("timestamp"));
+                context.assertEquals(new JsonObject().put("$date", "2017-02-15T15:28:50.03Z"), result.getJsonObject("timestamp"));
                 context.assertEquals("BERFR", result.getString("clearer"));
                 context.assertEquals("BERFR", result.getString("member"));
                 context.assertEquals("A5", result.getString("account"));
@@ -252,6 +299,16 @@ public class MongoVerticleIT {
     }
 
     private void checkLiquiGroupMarginHistoryCollectionQuery(TestContext context) {
+        /* You can use this query to paste it directly into MongoDB shell, this is
+           what this test case expects:
+           db.LiquiGroupMargin.find({
+               clearer: "ABCFR",
+               member: "ABCFR",
+               account: "PP",
+               marginClass: "ECC01",
+               marginCurrency: "EUR"
+           }).sort({snapshotID: 1}).pretty()
+        */
         JsonObject param = new JsonObject();
         param.put("clearer", "ABCFR");
         param.put("member", "ABCFR");
@@ -259,15 +316,18 @@ public class MongoVerticleIT {
         param.put("marginClass", "ECC01");
         param.put("marginCurrency", "EUR");
 
+        FindOptions findOptions = new FindOptions()
+                .setSort(new JsonObject().put("snapshotID", 1));
+
         Async asyncQuery = context.async();
-        MongoVerticleIT.mongoClient.find(LiquiGroupMarginModel.MONGO_HISTORY_COLLECTION, param, ar -> {
+        MongoVerticleIT.mongoClient.findWithOptions(LiquiGroupMarginModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
             if (ar.succeeded()) {
-                context.assertEquals(1, ar.result().size());
+                context.assertEquals(2, ar.result().size());
                 JsonObject result = ar.result().get(0);
 
-                context.assertEquals(5, result.getInteger("snapshotID"));
+                context.assertEquals(10, result.getInteger("snapshotID"));
                 context.assertEquals(20091215, result.getInteger("businessDate"));
-                context.assertEquals(new JsonObject().put("$date", "2017-02-07T11:08:41.933Z"), result.getJsonObject("timestamp"));
+                context.assertEquals(new JsonObject().put("$date", "2017-02-15T15:27:02.43Z"), result.getJsonObject("timestamp"));
                 context.assertEquals("ABCFR", result.getString("clearer"));
                 context.assertEquals("ABCFR", result.getString("member"));
                 context.assertEquals("PP", result.getString("account"));
@@ -289,6 +349,16 @@ public class MongoVerticleIT {
     }
 
     private void checkLiquiGroupMarginLatestCollectionQuery(TestContext context) {
+        /* You can use this query to paste it directly into MongoDB shell, this is
+           what this test case expects:
+           db.LiquiGroupMargin.latest.find({
+               clearer: "ABCFR",
+               member: "ABCFR",
+               account: "PP",
+               marginClass: "ECC01",
+               marginCurrency: "EUR"
+           }).pretty()
+        */
         JsonObject param = new JsonObject();
         param.put("clearer", "ABCFR");
         param.put("member", "ABCFR");
@@ -302,9 +372,9 @@ public class MongoVerticleIT {
                 context.assertEquals(1, ar.result().size());
                 JsonObject result = ar.result().get(0);
 
-                context.assertEquals(5, result.getInteger("snapshotID"));
+                context.assertEquals(11, result.getInteger("snapshotID"));
                 context.assertEquals(20091215, result.getInteger("businessDate"));
-                context.assertEquals(new JsonObject().put("$date", "2017-02-07T11:08:41.933Z"), result.getJsonObject("timestamp"));
+                context.assertEquals(new JsonObject().put("$date", "2017-02-15T15:28:50.03Z"), result.getJsonObject("timestamp"));
                 context.assertEquals("ABCFR", result.getString("clearer"));
                 context.assertEquals("ABCFR", result.getString("member"));
                 context.assertEquals("PP", result.getString("account"));
@@ -326,6 +396,14 @@ public class MongoVerticleIT {
     }
 
     private void checkPoolMarginHistoryCollectionQuery(TestContext context) {
+        /* You can use this query to paste it directly into MongoDB shell, this is
+           what this test case expects:
+           db.PoolMargin.find({
+               clearer: "USWFC",
+               pool: "default",
+               marginCurrency: "CHF"
+           }).sort({snapshotID: 1}).pretty()
+        */
         JsonObject param = new JsonObject()
                 .put("clearer", "USWFC")
                 .put("pool", "default")
@@ -363,6 +441,14 @@ public class MongoVerticleIT {
     }
 
     private void checkPoolMarginLatestCollectionQuery(TestContext context) {
+        /* You can use this query to paste it directly into MongoDB shell, this is
+           what this test case expects:
+           db.PoolMargin.latest.find({
+               clearer: "USWFC",
+               pool: "default",
+               marginCurrency: "CHF"
+           }).pretty()
+        */
         JsonObject param = new JsonObject()
             .put("clearer", "USWFC")
             .put("pool", "default")

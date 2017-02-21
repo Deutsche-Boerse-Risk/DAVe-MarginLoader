@@ -34,20 +34,20 @@ public class PoolMarginModel extends AbstractModel {
     }
 
     private void verify(PrismaReports.PoolMargin data) {
-        if (!data.hasKey()) throw new IllegalArgumentException("Missing pool key in AMQP data");
-        if (!data.getKey().hasClearer()) throw new IllegalArgumentException("Missing pool clearer in AMQP data");
-        if (!data.getKey().hasPool()) throw new IllegalArgumentException("Missing pool name in AMQP data");
-        if (!data.getKey().hasMarginCurrency()) throw new IllegalArgumentException("Missing pool margin currency in AMQP data");
-        if (!data.hasClrRptCurrency()) throw new IllegalArgumentException("Missing pool reporting currency in AMQP data");
-        if (!data.hasRequiredMargin()) throw new IllegalArgumentException("Missing pool required margin in AMQP data");
-        if (!data.hasCashCollateralAmount()) throw new IllegalArgumentException("Missing pool cash collateral amount in AMQP data");
-        if (!data.hasAdjustedSecurities()) throw new IllegalArgumentException("Missing pool adjusted securities in AMQP data");
-        if (!data.hasAdjustedGuarantee()) throw new IllegalArgumentException("Missing pool adjusted guarantee in AMQP data");
-        if (!data.hasOverUnderInMarginCurr()) throw new IllegalArgumentException("Missing pool over/under in margin currency in AMQP data");
-        if (!data.hasOverUnderInClrRptCurr()) throw new IllegalArgumentException("Missing pool over/under in reporting currency in AMQP data");
-        if (!data.hasVariPremInMarginCurr()) throw new IllegalArgumentException("Missing pool variation premium in AMQP data");
-        if (!data.hasAdjustedExchangeRate()) throw new IllegalArgumentException("Missing pool adjusted exchange rate in AMQP data");
-        if (!data.hasPoolOwner()) throw new IllegalArgumentException("Missing pool owner in AMQP data");
+        assertTrue(data.hasKey(), "Missing pool key in AMQP data");
+        assertTrue(data.getKey().hasClearer(), "Missing pool clearer in AMQP data");
+        assertTrue(data.getKey().hasPool(), "Missing pool name in AMQP data");
+        assertTrue(data.getKey().hasMarginCurrency(), "Missing pool margin currency in AMQP data");
+        assertTrue(data.hasClrRptCurrency(), "Missing pool reporting currency in AMQP data");
+        assertTrue(data.hasRequiredMargin(), "Missing pool required margin in AMQP data");
+        assertTrue(data.hasCashCollateralAmount(), "Missing pool cash collateral amount in AMQP data");
+        assertTrue(data.hasAdjustedSecurities(), "Missing pool adjusted securities in AMQP data");
+        assertTrue(data.hasAdjustedGuarantee(), "Missing pool adjusted guarantee in AMQP data");
+        assertTrue(data.hasOverUnderInMarginCurr(), "Missing pool over/under in margin currency in AMQP data");
+        assertTrue(data.hasOverUnderInClrRptCurr(), "Missing pool over/under in reporting currency in AMQP data");
+        assertTrue(data.hasVariPremInMarginCurr(), "Missing pool variation premium in AMQP data");
+        assertTrue(data.hasAdjustedExchangeRate(), "Missing pool adjusted exchange rate in AMQP data");
+        assertTrue(data.hasPoolOwner(), "Missing pool owner in AMQP data");
     }
 
     @Override
@@ -66,5 +66,13 @@ public class PoolMarginModel extends AbstractModel {
             .put("clearer", getString("clearer"))
             .put("pool", getString("pool"))
             .put("marginCurrency", getString("marginCurrency"));
+    }
+
+    @Override
+    public JsonObject getLatestUniqueIndex() {
+        return new JsonObject()
+                .put("clearer", 1)
+                .put("pool", 1)
+                .put("marginCurrency", 1);
     }
 }

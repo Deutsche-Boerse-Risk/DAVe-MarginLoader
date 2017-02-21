@@ -5,7 +5,7 @@ import com.deutscheboerse.risk.dave.MainVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -53,33 +53,31 @@ public class HealthCheckIT {
         return new DeploymentOptions().setConfig(config);
     }
 
-    private Handler<Buffer> assertEqualsBodyHandler(String expected, TestContext context) {
+    private Handler<HttpClientResponse> assertEqualsHttpHandler(int expectedCode, String expectedText, TestContext context) {
         final Async async = context.async();
-        return body -> {
-            try {
-                String response = body.toString();
-                context.assertEquals(expected, response);
-                async.complete();
-            } catch (Exception e) {
-                context.fail(e);
-            }
+        return response -> {
+            context.assertEquals(expectedCode, response.statusCode());
+            response.bodyHandler(body -> {
+                try {
+                    context.assertEquals(expectedText, body.toString());
+                    async.complete();
+                } catch (Exception e) {
+                    context.fail(e);
+                }
+            });
         };
     }
 
     @Test
     public void testHealth(TestContext context) throws InterruptedException {
-        vertx.createHttpClient().getNow(HTTP_PORT, "localhost", HealthCheckVerticle.REST_HEALTHZ, res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(assertEqualsBodyHandler("ok", context));
-        });
+        vertx.createHttpClient().getNow(HTTP_PORT, "localhost", HealthCheckVerticle.REST_HEALTHZ,
+                assertEqualsHttpHandler(200, "ok", context));
     }
 
     @Test
     public void testReadinessOk(TestContext context) throws InterruptedException {
-        vertx.createHttpClient().getNow(HTTP_PORT, "localhost", HealthCheckVerticle.REST_READINESS, res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(assertEqualsBodyHandler("ok", context));
-        });
+        vertx.createHttpClient().getNow(HTTP_PORT, "localhost", HealthCheckVerticle.REST_READINESS,
+                assertEqualsHttpHandler(200, "ok", context));
     }
 
     @Test
@@ -87,10 +85,8 @@ public class HealthCheckIT {
         HealthCheck healthCheck = new HealthCheck(vertx);
         healthCheck.setMainState(false);
 
-        vertx.createHttpClient().getNow(HTTP_PORT, "localhost", HealthCheckVerticle.REST_READINESS, res -> {
-            context.assertEquals(503, res.statusCode());
-            res.bodyHandler(assertEqualsBodyHandler("nok", context));
-        });
+        vertx.createHttpClient().getNow(HTTP_PORT, "localhost", HealthCheckVerticle.REST_READINESS,
+                assertEqualsHttpHandler(503, "nok", context));
     }
 
     @AfterClass

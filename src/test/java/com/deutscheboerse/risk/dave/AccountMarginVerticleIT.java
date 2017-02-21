@@ -55,9 +55,9 @@ public class AccountMarginVerticleIT {
 
         // verify the content of the last message
         AccountMarginModel expectedAccountMargin = new AccountMarginModel();
-        expectedAccountMargin.setSnapshotID(5);
+        expectedAccountMargin.setSnapshotID(10);
         expectedAccountMargin.setBusinessDate(20091215);
-        expectedAccountMargin.setTimestamp(1486465721933L);
+        expectedAccountMargin.setTimestamp(1487172422430L);
         expectedAccountMargin.setClearer("SFUCC");
         expectedAccountMargin.setMember("SFUFR");
         expectedAccountMargin.setAccount("A5");

@@ -14,13 +14,9 @@ import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.mongo.MongoClient;
-import io.vertx.ext.mongo.MongoClientUpdateResult;
-import io.vertx.ext.mongo.UpdateOptions;
+import io.vertx.ext.mongo.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 
 public class MongoVerticle extends AbstractVerticle {
@@ -39,6 +35,7 @@ public class MongoVerticle extends AbstractVerticle {
             Future<Void> chainFuture = Future.future();
             connectDb()
                     .compose(i -> initDb())
+                    .compose(i -> createIndexes())
                     .compose(i -> startStoreHandlers())
                     .compose(chainFuture::complete, chainFuture);
             chainFuture.setHandler(ar -> {
@@ -104,6 +101,39 @@ public class MongoVerticle extends AbstractVerticle {
             });
             return initDbFuture;
         }
+
+    private Future<Void> createIndexes() {
+        Future<Void> createIndexesFuture = Future.future();
+
+        List<AbstractModel> models = new ArrayList<>();
+        models.add(new AccountMarginModel());
+        models.add(new LiquiGroupMarginModel());
+        models.add(new PoolMarginModel());
+
+        List<Future> futs = new ArrayList<>();
+        models.forEach(model -> {
+            IndexOptions indexOptions = new IndexOptions().name("unique_idx").unique(true);
+
+            Future<Void> historyIndexFuture = Future.future();
+            mongo.createIndexWithOptions(model.getHistoryCollection(), model.getHistoryUniqueIndex(), indexOptions, historyIndexFuture.completer());
+            futs.add(historyIndexFuture);
+
+            Future<Void> latestIndexFuture = Future.future();
+            mongo.createIndexWithOptions(model.getLatestCollection(), model.getLatestUniqueIndex(), indexOptions, latestIndexFuture.completer());
+            futs.add(latestIndexFuture);
+        });
+
+        CompositeFuture.all(futs).setHandler(ar -> {
+            if (ar.succeeded()) {
+                LOG.info("Mongo has all needed indexes");
+                createIndexesFuture.complete();
+            } else {
+                LOG.error("Failed to create all needed indexes in Mongo", ar.cause());
+                createIndexesFuture.fail(ar.cause());
+            }
+        });
+        return createIndexesFuture;
+    }
 
     private Future<Void> startStoreHandlers() {
         this.registerConsumer(AccountMarginModel.EB_STORE_ADDRESS, message -> store(message, new AccountMarginModel()));

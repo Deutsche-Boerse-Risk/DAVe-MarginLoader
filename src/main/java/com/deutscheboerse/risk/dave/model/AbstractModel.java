@@ -21,9 +21,20 @@ public abstract class AbstractModel extends JsonObject implements MongoModel {
     }
 
     private void verify(PrismaReports.PrismaHeader header) {
-        if (!header.hasId()) throw new IllegalArgumentException("Missing snapshot ID in header in AMQP data");
-        if (!header.hasBusinessDate()) throw new IllegalArgumentException("Missing business date in header in AMQP data");
-        if (!header.hasTimestamp()) throw new IllegalArgumentException("Missing timestamp in header in AMQP data");
+        assertTrue(header.hasId(), "Missing snapshot ID in header in AMQP data");
+        assertTrue(header.hasBusinessDate(), "Missing business date in header in AMQP data");
+        assertTrue(header.hasTimestamp(), "Missing timestamp in header in AMQP data");
+    }
+
+    protected void assertTrue(boolean condition, String errorMessage) {
+        if (!condition) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+    }
+
+    @Override
+    public JsonObject getHistoryUniqueIndex() {
+        return new JsonObject().put("snapshotID", 1).mergeIn(getLatestUniqueIndex());
     }
 
     public int getSnapshotID() {
