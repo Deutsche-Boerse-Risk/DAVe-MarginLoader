@@ -31,6 +31,7 @@ public class MainVerticle extends AbstractVerticle {
                 .compose(i -> deployLiquiGroupMarginVerticle())
                 .compose(i -> deployLiquiGroupSplitMarginVerticle())
                 .compose(i -> deployPoolMarginVerticle())
+                .compose(i -> deployPositionReportVerticle())
                 .compose(i -> deployHealthCheckVerticle())
                 .compose(chainFuture::complete, chainFuture);
 
@@ -66,6 +67,10 @@ public class MainVerticle extends AbstractVerticle {
 
     private Future<Void> deployPoolMarginVerticle() {
         return this.deployVerticle(PoolMarginVerticle.class, config().getJsonObject(BROKER_CONF, new JsonObject()));
+    }
+
+    private Future<Void> deployPositionReportVerticle() {
+        return this.deployVerticle(PositionReportVerticle.class, config().getJsonObject(BROKER_CONF, new JsonObject()));
     }
 
     private Future<Void> deployHealthCheckVerticle() {

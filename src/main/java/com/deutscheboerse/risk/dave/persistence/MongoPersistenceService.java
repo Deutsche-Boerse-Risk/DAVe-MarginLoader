@@ -59,6 +59,9 @@ public class MongoPersistenceService implements PersistenceService {
             case POOL_MARGIN_MODEL:
                 model = new PoolMarginModel();
                 break;
+            case POSITION_REPORT_MODEL:
+                model = new PositionReportModel();
+                break;
             default:
                 resultHandler.handle(ServiceException.fail(STORE_UNKNOWN_MODEL_ERROR, "Unknown model"));
                 return;
@@ -98,11 +101,11 @@ public class MongoPersistenceService implements PersistenceService {
     }
 
     private Future<Void> connectDb() {
-        JsonObject config = new JsonObject();
-        config.put("db_name", config.getString("dbName", MongoPersistenceService.DEFAULT_DB_NAME));
-        config.put("useObjectId", true);
-        config.put("connection_string", config.getString("connectionUrl", MongoPersistenceService.DEFAULT_CONNECTION_URL));
-        mongo = MongoClient.createShared(vertx, config);
+        JsonObject mongoConfig = new JsonObject();
+        mongoConfig.put("db_name", this.config.getString("dbName", MongoPersistenceService.DEFAULT_DB_NAME));
+        mongoConfig.put("useObjectId", true);
+        mongoConfig.put("connection_string", this.config.getString("connectionUrl", MongoPersistenceService.DEFAULT_CONNECTION_URL));
+        mongo = MongoClient.createShared(vertx, mongoConfig);
         LOG.info("Connected to MongoDB");
         return Future.succeededFuture();
     }
@@ -120,7 +123,9 @@ public class MongoPersistenceService implements PersistenceService {
                         LiquiGroupSplitMarginModel.MONGO_HISTORY_COLLECTION,
                         LiquiGroupSplitMarginModel.MONGO_LATEST_COLLECTION,
                         PoolMarginModel.MONGO_HISTORY_COLLECTION,
-                        PoolMarginModel.MONGO_LATEST_COLLECTION
+                        PoolMarginModel.MONGO_LATEST_COLLECTION,
+                        PositionReportModel.MONGO_HISTORY_COLLECTION,
+                        PositionReportModel.MONGO_LATEST_COLLECTION
                 ));
 
                 List<Future> futs = new ArrayList<>();

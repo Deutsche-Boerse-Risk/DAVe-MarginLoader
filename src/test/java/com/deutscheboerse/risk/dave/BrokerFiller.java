@@ -40,8 +40,7 @@ public class BrokerFiller {
                 .compose(this::populateLiquiGroupMarginQueue)
                 .compose(this::populateLiquiGroupSplitMarginQueue)
                 .compose(this::populatePoolMarginQueue)
-//                .compose(this::populateLiquiGroupSplitMarginQueue)
-//                .compose(this::populatePositionReportQueue)
+                .compose(this::populatePositionReportQueue)
                 .compose(chainFuture::complete, chainFuture);
         chainFuture.setHandler(ar -> {
            if (ar.succeeded()) {
@@ -108,6 +107,20 @@ public class BrokerFiller {
         });
     }
 
+    public void setUpPositionReportQueue(Handler<AsyncResult<String>> handler) {
+        Future<ProtonConnection> chainFuture = Future.future();
+        this.createAmqpConnection()
+                .compose(this::populatePositionReportQueue)
+                .compose(chainFuture::complete, chainFuture);
+        chainFuture.setHandler(ar -> {
+            if (ar.succeeded()) {
+                handler.handle(Future.succeededFuture());
+            } else {
+                handler.handle(Future.failedFuture(ar.cause()));
+            }
+        });
+    }
+
     private Future<ProtonConnection> createAmqpConnection() {
         Future<ProtonConnection> createAmqpConnectionFuture = Future.future();
         ProtonClient protonClient = ProtonClient.create(vertx);
@@ -153,7 +166,7 @@ public class BrokerFiller {
     }
 
     private Future<ProtonConnection> populatePositionReportQueue(ProtonConnection protonConnection) {
-        final String queueName = "broadcast.PRISMA_BRIDGE.EUREX_SODSecurity";
+        final String queueName = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPositionReport";
         final Collection<String> messagePaths = IntStream.rangeClosed(1, 1)
                 .mapToObj(i -> String.format("%s/%03d.bin", BrokerFiller.class.getResource("positionReport").getPath(), i))
                 .collect(Collectors.toList());
