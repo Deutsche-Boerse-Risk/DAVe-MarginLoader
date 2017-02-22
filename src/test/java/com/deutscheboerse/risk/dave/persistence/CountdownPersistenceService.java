@@ -5,27 +5,27 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.ext.unit.Async;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.unit.Async;
 
 public class CountdownPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(CountdownPersistenceService.class);
 
     private final Vertx vertx;
-    private final JsonObject config;
     private Async async;
+    private boolean initialized = false;
     private JsonObject lastMessage;
 
     public CountdownPersistenceService(Vertx vertx, Async async) {
         this.vertx = vertx;
-        this.config = vertx.getOrCreateContext().config();
         this.async = async;
     }
 
     @Override
     public void initialize(Handler<AsyncResult<Void>> resultHandler) {
+        this.initialized = true;
         resultHandler.handle(Future.succeededFuture());
     }
 
@@ -43,5 +43,9 @@ public class CountdownPersistenceService implements PersistenceService {
 
     public JsonObject getLastMessage() {
         return this.lastMessage;
+    }
+
+    public boolean isInitialized() {
+        return this.initialized;
     }
 }

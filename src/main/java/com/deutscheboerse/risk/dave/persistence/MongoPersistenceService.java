@@ -24,9 +24,9 @@ public class MongoPersistenceService implements PersistenceService {
     private final JsonObject config;
     private MongoClient mongo;
 
-    public MongoPersistenceService(Vertx vertx) {
+    public MongoPersistenceService(Vertx vertx, JsonObject config) {
         this.vertx = vertx;
-        this.config = vertx.getOrCreateContext().config();
+        this.config = config;
     }
 
     @Override

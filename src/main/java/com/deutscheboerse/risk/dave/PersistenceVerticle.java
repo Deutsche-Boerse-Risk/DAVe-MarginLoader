@@ -19,7 +19,7 @@ public class PersistenceVerticle extends AbstractVerticle {
     public void start(Future<Void> fut) throws Exception {
         LOG.info("Starting {} with configuration: {}", PersistenceVerticle.class.getSimpleName(), config().encodePrettily());
 
-        PersistenceService persistenceService = new MongoPersistenceService(vertx);
+        PersistenceService persistenceService = new MongoPersistenceService(vertx, config());
         this.persistenceServiceConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
 
         persistenceService.initialize(ar -> {
