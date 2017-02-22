@@ -24,6 +24,8 @@
         <docker.maven.plugin.fabric8.version>0.18.1</docker.maven.plugin.fabric8.version>
         <coveralls.maven.plugin.version>4.3.0</coveralls.maven.plugin.version>
         <jacoco.maven.plugin.version>0.7.7.201606060606</jacoco.maven.plugin.version>
+        <surefire.maven.plugin.version>2.19</surefire.maven.plugin.version>
+        <failsafe.maven.plugin.version>2.19</failsafe.maven.plugin.version>
         <build.helper.maven.plugin.version>1.12</build.helper.maven.plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -66,6 +68,41 @@
                     <groupId>io.fabric8</groupId>
                     <artifactId>docker-maven-plugin</artifactId>
                     <version>${docker.maven.plugin.fabric8.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${surefire.maven.plugin.version}</version>
+                    <configuration>
+                        <systemPropertyVariables>
+                            <http.port>${http.port}</http.port>
+                            <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
+                        </systemPropertyVariables>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${failsafe.maven.plugin.version}</version>
+                    <configuration>
+                        <systemPropertyVariables>
+                            <http.port>${http.port}</http.port>
+                            <mongodb.port>${mongodb.port}</mongodb.port>
+                            <cil.tcpport>${cil.tcpport}</cil.tcpport>
+                            <cil.sslport>${cil.sslport}</cil.sslport>
+                            <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
+                            <logback.configurationFile>${project.basedir}/src/test/resources/logback.xml</logback.configurationFile>
+                        </systemPropertyVariables>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>integration-tests</id>
+                            <goals>
+                                <goal>integration-test</goal>
+                                <goal>verify</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -223,29 +260,7 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19</version>
-                <configuration>
-                    <systemPropertyVariables>
-                        <http.port>${http.port}</http.port>
-                        <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
-                    </systemPropertyVariables>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.19</version>
-                <configuration>
-                    <systemPropertyVariables>
-                        <http.port>${http.port}</http.port>
-                        <mongodb.port>${mongodb.port}</mongodb.port>
-                        <cil.tcpport>${cil.tcpport}</cil.tcpport>
-                        <cil.sslport>${cil.sslport}</cil.sslport>
-                        <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
-                        <logback.configurationFile>${project.basedir}/src/test/resources/logback.xml</logback.configurationFile>
-                    </systemPropertyVariables>
-                </configuration>
                 <executions>
                     <execution>
                         <id>integration-tests</id>
