@@ -28,7 +28,7 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 
 @RunWith(VertxUnitRunner.class)
-public class MongoPersistenceServiceTest {
+public class MongoPersistenceServiceIT {
     private static final int DB_PORT = Integer.getInteger("mongodb.port", 27017);
     private static Vertx vertx;
     private static MongoClient mongoClient;
@@ -38,21 +38,21 @@ public class MongoPersistenceServiceTest {
 
     @BeforeClass
     public static void setUp(TestContext context) {
-        MongoPersistenceServiceTest.vertx = Vertx.vertx();
+        MongoPersistenceServiceIT.vertx = Vertx.vertx();
         JsonObject config = new JsonObject()
                 .put("dbName", "DAVe-Test" + UUID.randomUUID().getLeastSignificantBits())
-                .put("connectionUrl", String.format("mongodb://localhost:%s/?waitqueuemultiple=%d", MongoPersistenceServiceTest.DB_PORT, 20000));
+                .put("connectionUrl", String.format("mongodb://localhost:%s/?waitqueuemultiple=%d", MongoPersistenceServiceIT.DB_PORT, 20000));
 
         JsonObject mongoConfig = new JsonObject();
         mongoConfig.put("db_name", config.getString("dbName"));
         mongoConfig.put("useObjectId", true);
         mongoConfig.put("connection_string", config.getString("connectionUrl"));
-        MongoPersistenceServiceTest.mongoClient = MongoClient.createShared(MongoPersistenceServiceTest.vertx, mongoConfig);
+        MongoPersistenceServiceIT.mongoClient = MongoClient.createShared(MongoPersistenceServiceIT.vertx, mongoConfig);
 
-        MongoPersistenceServiceTest.persistenceService = new MongoPersistenceService(vertx, config);
-        MongoPersistenceServiceTest.persistenceServiceConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
+        MongoPersistenceServiceIT.persistenceService = new MongoPersistenceService(vertx, config);
+        MongoPersistenceServiceIT.persistenceServiceConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
 
-        MongoPersistenceServiceTest.persistenceService.initialize(context.asyncAssertSuccess());
+        MongoPersistenceServiceIT.persistenceService.initialize(context.asyncAssertSuccess());
     }
 
     @Test
@@ -69,7 +69,7 @@ public class MongoPersistenceServiceTest {
         requiredCollections.add(RiskLimitUtilizationModel.MONGO_HISTORY_COLLECTION);
         requiredCollections.add(RiskLimitUtilizationModel.MONGO_LATEST_COLLECTION);
         final Async async = context.async();
-        MongoPersistenceServiceTest.mongoClient.getCollections(ar -> {
+        MongoPersistenceServiceIT.mongoClient.getCollections(ar -> {
             if (ar.succeeded()) {
                 if (ar.result().containsAll(requiredCollections)) {
                     async.complete();
@@ -313,7 +313,7 @@ public class MongoPersistenceServiceTest {
 
     private void checkCountInCollection(TestContext context, String collection, long count) {
         Async asyncHistoryCount = context.async();
-        MongoPersistenceServiceTest.mongoClient.count(collection, new JsonObject(), ar -> {
+        MongoPersistenceServiceIT.mongoClient.count(collection, new JsonObject(), ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(count, ar.result());
                 asyncHistoryCount.complete();
@@ -341,7 +341,7 @@ public class MongoPersistenceServiceTest {
         param.put("marginCurrency", "EUR");
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceTest.mongoClient.find(AccountMarginModel.MONGO_HISTORY_COLLECTION, param, ar -> {
+        MongoPersistenceServiceIT.mongoClient.find(AccountMarginModel.MONGO_HISTORY_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
                 JsonObject result = ar.result().get(0);
@@ -384,7 +384,7 @@ public class MongoPersistenceServiceTest {
         param.put("marginCurrency", "EUR");
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceTest.mongoClient.find(AccountMarginModel.MONGO_LATEST_COLLECTION, param, ar -> {
+        MongoPersistenceServiceIT.mongoClient.find(AccountMarginModel.MONGO_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
                 JsonObject result = ar.result().get(0);
@@ -432,7 +432,7 @@ public class MongoPersistenceServiceTest {
                 .setSort(new JsonObject().put("snapshotID", 1));
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceTest.mongoClient.findWithOptions(LiquiGroupMarginModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
+        MongoPersistenceServiceIT.mongoClient.findWithOptions(LiquiGroupMarginModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
                 JsonObject result = ar.result().get(0);
@@ -479,7 +479,7 @@ public class MongoPersistenceServiceTest {
         param.put("marginCurrency", "EUR");
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceTest.mongoClient.find(LiquiGroupMarginModel.MONGO_LATEST_COLLECTION, param, ar -> {
+        MongoPersistenceServiceIT.mongoClient.find(LiquiGroupMarginModel.MONGO_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
                 JsonObject result = ar.result().get(0);
@@ -531,7 +531,7 @@ public class MongoPersistenceServiceTest {
                 .setSort(new JsonObject().put("snapshotID", 1));
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceTest.mongoClient.findWithOptions(LiquiGroupSplitMarginModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
+        MongoPersistenceServiceIT.mongoClient.findWithOptions(LiquiGroupSplitMarginModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
                 JsonObject result = ar.result().get(0);
@@ -580,7 +580,7 @@ public class MongoPersistenceServiceTest {
 
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceTest.mongoClient.find(LiquiGroupSplitMarginModel.MONGO_LATEST_COLLECTION, param, ar -> {
+        MongoPersistenceServiceIT.mongoClient.find(LiquiGroupSplitMarginModel.MONGO_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
                 JsonObject result = ar.result().get(0);
@@ -624,7 +624,7 @@ public class MongoPersistenceServiceTest {
                 .setSort(new JsonObject().put("snapshotID", 1));
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceTest.mongoClient.findWithOptions(PoolMarginModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
+        MongoPersistenceServiceIT.mongoClient.findWithOptions(PoolMarginModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
                 JsonObject result1 = ar.result().get(0);
@@ -667,7 +667,7 @@ public class MongoPersistenceServiceTest {
                 .put("marginCurrency", "CHF");
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceTest.mongoClient.find(PoolMarginModel.MONGO_LATEST_COLLECTION, param, ar -> {
+        MongoPersistenceServiceIT.mongoClient.find(PoolMarginModel.MONGO_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
                 JsonObject result1 = ar.result().get(0);
@@ -733,7 +733,7 @@ public class MongoPersistenceServiceTest {
                 .setSort(new JsonObject().put("snapshotID", 1));
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceTest.mongoClient.findWithOptions(PositionReportModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
+        MongoPersistenceServiceIT.mongoClient.findWithOptions(PositionReportModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
                 JsonObject result1 = ar.result().get(0);
@@ -816,7 +816,7 @@ public class MongoPersistenceServiceTest {
                 .put("flexContractSymbol", "");
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceTest.mongoClient.find(PositionReportModel.MONGO_LATEST_COLLECTION, param, ar -> {
+        MongoPersistenceServiceIT.mongoClient.find(PositionReportModel.MONGO_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
                 JsonObject result1 = ar.result().get(0);
@@ -884,7 +884,7 @@ public class MongoPersistenceServiceTest {
                 .setSort(new JsonObject().put("snapshotID", 1));
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceTest.mongoClient.findWithOptions(RiskLimitUtilizationModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
+        MongoPersistenceServiceIT.mongoClient.findWithOptions(RiskLimitUtilizationModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
                 JsonObject result1 = ar.result().get(0);
@@ -926,7 +926,7 @@ public class MongoPersistenceServiceTest {
                 .put("limitType", "TMR");
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceTest.mongoClient.find(RiskLimitUtilizationModel.MONGO_LATEST_COLLECTION, param, ar -> {
+        MongoPersistenceServiceIT.mongoClient.find(RiskLimitUtilizationModel.MONGO_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
                 JsonObject result1 = ar.result().get(0);
@@ -953,8 +953,8 @@ public class MongoPersistenceServiceTest {
 
     @AfterClass
     public static void tearDown(TestContext context) {
-        ProxyHelper.unregisterService(MongoPersistenceServiceTest.persistenceServiceConsumer);
-        MongoPersistenceServiceTest.vertx.close(context.asyncAssertSuccess());
+        ProxyHelper.unregisterService(MongoPersistenceServiceIT.persistenceServiceConsumer);
+        MongoPersistenceServiceIT.vertx.close(context.asyncAssertSuccess());
     }
 
 }
