@@ -1,10 +1,12 @@
 package com.deutscheboerse.risk.dave;
 
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import com.deutscheboerse.risk.dave.persistence.CountdownPersistenceService;
+import io.vertx.core.eventbus.MessageConsumer;
+import io.vertx.serviceproxy.ProxyHelper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-import com.deutscheboerse.risk.dave.model.AccountMarginModel;
-import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -19,7 +21,7 @@ import io.vertx.core.Vertx;
 @RunWith(VertxUnitRunner.class)
 public class AccountMarginVerticleIT {
     private static Vertx vertx;
-    
+
     @BeforeClass
     public static void setUp(TestContext context) {
         AccountMarginVerticleIT.vertx = Vertx.vertx();
@@ -42,14 +44,11 @@ public class AccountMarginVerticleIT {
 
         // we expect 1704 messages to be received
         Async async = context.async(1704);
-        MessageConsumer<JsonObject> consumer = vertx.eventBus().consumer("persistenceService");
-        AccountMarginModel accountMarginModel = new AccountMarginModel();
-        consumer.handler(message -> {
-            JsonObject body = message.body();
-            accountMarginModel.clear();
-            accountMarginModel.mergeIn(body.getJsonObject("message"));
-            async.countDown();
-        });
+
+        // Setup persistence persistence
+        CountdownPersistenceService persistenceService = new CountdownPersistenceService(vertx, async);
+        MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
+
         vertx.deployVerticle(AccountMarginVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
         async.awaitSuccess(30000);
 
@@ -68,6 +67,8 @@ public class AccountMarginVerticleIT {
                 .put("marginReqInCrlCurr", 5.035485884371926E7)
                 .put("unadjustedMarginRequirement", 5.035485884371926E7)
                 .put("variationPremiumPayment", 0.0);
-        context.assertEquals(expected, new JsonObject(accountMarginModel.getMap()));
+        context.assertEquals(expected, persistenceService.getLastMessage());
+
+        ProxyHelper.unregisterService(serviceMessageConsumer);
     }
 }

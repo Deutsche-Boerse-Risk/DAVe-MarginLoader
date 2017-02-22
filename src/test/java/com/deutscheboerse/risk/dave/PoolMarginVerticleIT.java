@@ -1,6 +1,7 @@
 package com.deutscheboerse.risk.dave;
 
-import com.deutscheboerse.risk.dave.model.PoolMarginModel;
+import com.deutscheboerse.risk.dave.persistence.CountdownPersistenceService;
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
@@ -8,6 +9,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.serviceproxy.ProxyHelper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -39,14 +41,11 @@ public class PoolMarginVerticleIT {
 
         // we expect 540 messages to be received
         Async async = context.async(270);
-        MessageConsumer<JsonObject> consumer = vertx.eventBus().consumer("persistenceService");
-        PoolMarginModel poolMarginModel = new PoolMarginModel();
-        consumer.handler(message -> {
-            JsonObject body = message.body();
-            poolMarginModel.clear();
-            poolMarginModel.mergeIn(body.getJsonObject("message"));
-            async.countDown();
-        });
+
+        // Setup persistence persistence
+        CountdownPersistenceService persistenceService = new CountdownPersistenceService(vertx, async);
+        MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
+
         vertx.deployVerticle(PoolMarginVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
         async.awaitSuccess(30000);
 
@@ -67,6 +66,8 @@ public class PoolMarginVerticleIT {
                 .put("variPremInMarginCurr", 920294764.124)
                 .put("adjustedExchangeRate", 0.748337194753)
                 .put("poolOwner", "CBKFR");
-        context.assertEquals(expected, new JsonObject(poolMarginModel.getMap()));
+        context.assertEquals(expected, persistenceService.getLastMessage());
+
+        ProxyHelper.unregisterService(serviceMessageConsumer);
     }
 }

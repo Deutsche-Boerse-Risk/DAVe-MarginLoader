@@ -1,6 +1,7 @@
 package com.deutscheboerse.risk.dave;
 
-import com.deutscheboerse.risk.dave.model.LiquiGroupSplitMarginModel;
+import com.deutscheboerse.risk.dave.persistence.CountdownPersistenceService;
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
@@ -8,6 +9,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.serviceproxy.ProxyHelper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -39,14 +41,11 @@ public class LiquiGroupSplitMarginVerticleIT {
 
         // we expect 2472 messages to be received
         Async async = context.async(2472);
-        MessageConsumer<JsonObject> consumer = vertx.eventBus().consumer("persistenceService");
-        LiquiGroupSplitMarginModel liquiGroupSplitMarginModel = new LiquiGroupSplitMarginModel();
-        consumer.handler(message -> {
-            JsonObject body = message.body();
-            liquiGroupSplitMarginModel.clear();
-            liquiGroupSplitMarginModel.mergeIn(body.getJsonObject("message"));
-            async.countDown();
-        });
+
+        // Setup persistence persistence
+        CountdownPersistenceService persistenceService = new CountdownPersistenceService(vertx, async);
+        MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
+
         vertx.deployVerticle(LiquiGroupSplitMarginVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
         async.awaitSuccess(30000);
 
@@ -65,6 +64,8 @@ public class LiquiGroupSplitMarginVerticleIT {
                 .put("liquRisk", 3.690967426538666E7)
                 .put("longOptionCredit", 0.0)
                 .put("variationPremiumPayment", 4.86621581017E8);
-        context.assertEquals(expected, new JsonObject(liquiGroupSplitMarginModel.getMap()));
+        context.assertEquals(expected, persistenceService.getLastMessage());
+
+        ProxyHelper.unregisterService(serviceMessageConsumer);
     }
 }
