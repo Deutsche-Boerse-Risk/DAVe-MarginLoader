@@ -282,8 +282,8 @@
                 <configuration>
                     <excludes>
                         <exclude>CIL/**/*</exclude>
-                        <exclude>**/PersistenceServiceVertxEBProxy.java</exclude>
-                        <exclude>**/PersistenceServiceVertxProxyHandler.java</exclude>
+                        <exclude>**/PersistenceServiceVertxEBProxy</exclude>
+                        <exclude>**/PersistenceServiceVertxProxyHandler</exclude>
                     </excludes>
                 </configuration>
                 <executions>
