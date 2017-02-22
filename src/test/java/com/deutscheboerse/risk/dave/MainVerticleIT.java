@@ -102,7 +102,7 @@ public class MainVerticleIT {
             this.mongoClient.count(collection, new JsonObject(), ar -> {
                 if (ar.succeeded()) {
                     currentCount.set(ar.result());
-                    if (currentCount.get() == count) {
+                    if (currentCount.get() == count && !asyncHistoryCount.isCompleted()) {
                         asyncHistoryCount.complete();
                     }
                 } else {
