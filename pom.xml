@@ -203,10 +203,11 @@
                 <configuration>
                     <logDate>default</logDate>
                     <autoPull>true</autoPull>
+                    <skip>${skipTests}</skip>
                     <images>
                         <image>
                             <alias>db</alias>
-                            <name>mongo:3.4</name>
+                            <name>mongo:3.2</name>
                             <run>
                                 <wait>
                                     <log>waiting for connections on port</log>
