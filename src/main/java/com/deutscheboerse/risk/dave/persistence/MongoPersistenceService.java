@@ -62,6 +62,9 @@ public class MongoPersistenceService implements PersistenceService {
             case POSITION_REPORT_MODEL:
                 model = new PositionReportModel();
                 break;
+            case RISK_LIMIT_UTILIZATION_MODEL:
+                model = new RiskLimitUtilizationModel();
+                break;
             default:
                 resultHandler.handle(ServiceException.fail(STORE_UNKNOWN_MODEL_ERROR, "Unknown model"));
                 return;
@@ -125,7 +128,9 @@ public class MongoPersistenceService implements PersistenceService {
                         PoolMarginModel.MONGO_HISTORY_COLLECTION,
                         PoolMarginModel.MONGO_LATEST_COLLECTION,
                         PositionReportModel.MONGO_HISTORY_COLLECTION,
-                        PositionReportModel.MONGO_LATEST_COLLECTION
+                        PositionReportModel.MONGO_LATEST_COLLECTION,
+                        RiskLimitUtilizationModel.MONGO_HISTORY_COLLECTION,
+                        RiskLimitUtilizationModel.MONGO_LATEST_COLLECTION
                 ));
 
                 List<Future> futs = new ArrayList<>();

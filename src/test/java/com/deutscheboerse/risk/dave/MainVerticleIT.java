@@ -45,7 +45,8 @@ public class MainVerticleIT {
                         .put("liquiGroupMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupMargin")
                         .put("liquiGroupSplitMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupSplitMargin")
                         .put("poolMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPoolMargin")
-                        .put("positionReport", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPositionReport"));
+                        .put("positionReport", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPositionReport")
+                        .put("riskLimitUtilization", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVERiskLimitUtilization"));
         JsonObject mongoConfig = new JsonObject()
                 .put("dbName", MainVerticleIT.DB_NAME)
                 .put("connectionUrl", String.format("mongodb://localhost:%s/?waitqueuemultiple=%d", MainVerticleIT.DB_PORT, 20000));
@@ -82,6 +83,8 @@ public class MainVerticleIT {
         this.testCountInCollection(context, PoolMarginModel.MONGO_LATEST_COLLECTION, 270);
         this.testCountInCollection(context, PositionReportModel.MONGO_HISTORY_COLLECTION, 3596);
         this.testCountInCollection(context, PositionReportModel.MONGO_LATEST_COLLECTION, 3596);
+        this.testCountInCollection(context, RiskLimitUtilizationModel.MONGO_HISTORY_COLLECTION, 6);
+        this.testCountInCollection(context, RiskLimitUtilizationModel.MONGO_LATEST_COLLECTION, 6);
     }
 
     @Test

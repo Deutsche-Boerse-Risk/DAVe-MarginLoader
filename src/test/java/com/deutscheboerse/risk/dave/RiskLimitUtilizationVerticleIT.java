@@ -14,19 +14,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(VertxUnitRunner.class)
-public class PositionReportVerticleIT {
+public class RiskLimitUtilizationVerticleIT {
     private static Vertx vertx;
 
     @BeforeClass
     public static void setUp(TestContext context) {
-        PositionReportVerticleIT.vertx = Vertx.vertx();
-        final BrokerFiller brokerFiller = new BrokerFiller(PositionReportVerticleIT.vertx);
+        RiskLimitUtilizationVerticleIT.vertx = Vertx.vertx();
+        final BrokerFiller brokerFiller = new BrokerFiller(RiskLimitUtilizationVerticleIT.vertx);
         brokerFiller.setUpPositionReportQueue(context.asyncAssertSuccess());
     }
 
     @AfterClass
     public static void tearDown(TestContext context) {
-        PositionReportVerticleIT.vertx.close(context.asyncAssertSuccess());
+        RiskLimitUtilizationVerticleIT.vertx.close(context.asyncAssertSuccess());
     }
 
     @Test
