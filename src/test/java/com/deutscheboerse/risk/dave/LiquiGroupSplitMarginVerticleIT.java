@@ -30,7 +30,7 @@ public class LiquiGroupSplitMarginVerticleIT {
     }
 
     @Test
-    public void testPoolMarginVerticle(TestContext context) throws InterruptedException {
+    public void testLiquiGroupSplitMarginVerticle(TestContext context) throws InterruptedException {
         int tcpPort = Integer.getInteger("cil.tcpport", 5672);
         JsonObject config = new JsonObject()
                 .put("port", tcpPort)

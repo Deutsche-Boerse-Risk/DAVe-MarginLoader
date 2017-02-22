@@ -51,7 +51,7 @@ public class PositionReportTest {
                 .setUnderlying("ALV")
                 .build();
 
-        PositionReportModel poolMargin = new PositionReportModel(header, data);
+        PositionReportModel positionReport = new PositionReportModel(header, data);
 
         JsonObject expected = new JsonObject()
                 .put("snapshotID", 16)
@@ -89,6 +89,6 @@ public class PositionReportTest {
                 .put("normalizedTheta", 0.0004722838437817084)
                 .put("underlying", "ALV");
 
-        Assert.assertEquals(expected, new JsonObject(poolMargin.getMap()));
+        Assert.assertEquals(expected, new JsonObject(positionReport.getMap()));
     }
 }

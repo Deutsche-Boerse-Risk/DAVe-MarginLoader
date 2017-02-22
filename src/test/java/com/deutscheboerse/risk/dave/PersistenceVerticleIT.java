@@ -63,6 +63,8 @@ public class PersistenceVerticleIT {
         requiredCollections.add(LiquiGroupSplitMarginModel.MONGO_LATEST_COLLECTION);
         requiredCollections.add(PoolMarginModel.MONGO_HISTORY_COLLECTION);
         requiredCollections.add(PoolMarginModel.MONGO_LATEST_COLLECTION);
+        requiredCollections.add(RiskLimitUtilizationModel.MONGO_HISTORY_COLLECTION);
+        requiredCollections.add(RiskLimitUtilizationModel.MONGO_LATEST_COLLECTION);
         final Async async = context.async();
         PersistenceVerticleIT.mongoClient.getCollections(ar -> {
             if (ar.succeeded()) {
@@ -182,7 +184,7 @@ public class PersistenceVerticleIT {
 
         this.checkCountInCollection(context, LiquiGroupSplitMarginModel.MONGO_HISTORY_COLLECTION, 4944);
         this.checkCountInCollection(context, LiquiGroupSplitMarginModel.MONGO_LATEST_COLLECTION, 2472);
-        //this.checkLiquiGroupSplitMarginHistoryCollectionQuery(context);
+        this.checkLiquiGroupSplitMarginHistoryCollectionQuery(context);
         this.checkLiquiGroupSplitMarginLatestCollectionQuery(context);
     }
 
@@ -252,6 +254,40 @@ public class PersistenceVerticleIT {
         this.checkCountInCollection(context, PositionReportModel.MONGO_LATEST_COLLECTION, 3596);
         this.checkPositionReportHistoryCollectionQuery(context);
         this.checkPositionReportLatestCollectionQuery(context);
+    }
+
+    @Test
+    public void testRiskLimitUtilizationStore(TestContext context) throws IOException {
+        Async asyncFirstSnapshotStore = context.async(6);
+        readTTSaveFile("riskLimitUtilization", 1, (header, gpbObject) -> {
+            PrismaReports.RiskLimitUtilization data = gpbObject.getExtension(PrismaReports.riskLimitUtilization);
+            RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(header, data);
+            persistenceService.store(model, ModelType.RISK_LIMIT_UTILIZATION_MODEL, ar -> {
+                if (ar.succeeded()) {
+                    asyncFirstSnapshotStore.countDown();
+                } else {
+                    context.fail(ar.cause());
+                }
+            });
+        });
+        asyncFirstSnapshotStore.awaitSuccess(30000);
+        Async asyncSecondSnapshotStore = context.async(6);
+        readTTSaveFile("riskLimitUtilization", 2, (header, gpbObject) -> {
+            PrismaReports.RiskLimitUtilization date = gpbObject.getExtension(PrismaReports.riskLimitUtilization);
+            RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(header, date);
+            persistenceService.store(model, ModelType.RISK_LIMIT_UTILIZATION_MODEL, ar -> {
+                if (ar.succeeded()) {
+                    asyncSecondSnapshotStore.countDown();
+                } else {
+                    context.fail(ar.cause());
+                }
+            });
+        });
+        asyncSecondSnapshotStore.awaitSuccess(30000);
+        this.checkCountInCollection(context, RiskLimitUtilizationModel.MONGO_HISTORY_COLLECTION, 12);
+        this.checkCountInCollection(context, RiskLimitUtilizationModel.MONGO_LATEST_COLLECTION, 6);
+        this.checkRiskLimitUtilizationHistoryCollectionQuery(context);
+        this.checkRiskLimitUtilizationLatestCollectionQuery(context);
     }
 
     /**
@@ -816,6 +852,93 @@ public class PersistenceVerticleIT {
                 context.assertEquals(0.00008193269784691068, result1.getDouble("normalizedRho"));
                 context.assertEquals(0.0004722838437817084, result1.getDouble("normalizedTheta"));
                 context.assertEquals("ALV", result1.getString("underlying"));
+
+                asyncQuery.complete();
+            } else {
+                context.fail(ar.cause());
+            }
+        });
+        asyncQuery.awaitSuccess(5000);
+    }
+
+    private void checkRiskLimitUtilizationHistoryCollectionQuery(TestContext context) {
+        /* You can use this query to paste it directly into MongoDB shell, this is
+           what this test case expects:
+           db.RiskLimitUtilization.find({
+                clearer : "FULCC",
+                member : "MALFR",
+                maintainer : "MALFR",
+                limitType : "TMR",
+           }).sort({snapshotID: 1}).pretty()
+        */
+        JsonObject param = new JsonObject()
+                .put("clearer", "FULCC")
+                .put("member", "MALFR")
+                .put("maintainer", "MALFR")
+                .put("limitType", "TMR");
+
+        FindOptions findOptions = new FindOptions()
+                .setSort(new JsonObject().put("snapshotID", 1));
+
+        Async asyncQuery = context.async();
+        PersistenceVerticleIT.mongoClient.findWithOptions(RiskLimitUtilizationModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
+            if (ar.succeeded()) {
+                context.assertEquals(2, ar.result().size());
+                JsonObject result1 = ar.result().get(0);
+
+                context.assertEquals(15, result1.getInteger("snapshotID"));
+                context.assertEquals(20091215, result1.getInteger("businessDate"));
+                context.assertEquals(new JsonObject().put("$date", "2017-02-21T11:43:34.791Z"), result1.getJsonObject("timestamp"));
+                context.assertEquals("FULCC", result1.getString("clearer"));
+                context.assertEquals("MALFR", result1.getString("member"));
+                context.assertEquals("MALFR", result1.getString("maintainer"));
+                context.assertEquals("TMR", result1.getString("limitType"));
+                context.assertEquals(8862049569.447277, result1.getDouble("utilization"));
+                context.assertEquals(1010020.0, result1.getDouble("warningLevel"));
+                context.assertEquals(0.0, result1.getDouble("throttleLevel"));
+                context.assertEquals(1010020.0, result1.getDouble("rejectLevel"));
+
+                asyncQuery.complete();
+            } else {
+                context.fail(ar.cause());
+            }
+        });
+        asyncQuery.awaitSuccess(5000);
+    }
+
+    private void checkRiskLimitUtilizationLatestCollectionQuery(TestContext context) {
+        /* You can use this query to paste it directly into MongoDB shell, this is
+           what this test case expects:
+           db.RiskLimitUtilization.find({
+                clearer : "FULCC",
+                member : "MALFR",
+                maintainer : "MALFR",
+                limitType : "TMR",
+           }).sort({snapshotID: 1}).pretty()
+        */
+        JsonObject param = new JsonObject()
+                .put("clearer", "FULCC")
+                .put("member", "MALFR")
+                .put("maintainer", "MALFR")
+                .put("limitType", "TMR");
+
+        Async asyncQuery = context.async();
+        PersistenceVerticleIT.mongoClient.find(RiskLimitUtilizationModel.MONGO_LATEST_COLLECTION, param, ar -> {
+            if (ar.succeeded()) {
+                context.assertEquals(1, ar.result().size());
+                JsonObject result1 = ar.result().get(0);
+
+                context.assertEquals(16, result1.getInteger("snapshotID"));
+                context.assertEquals(20091215, result1.getInteger("businessDate"));
+                context.assertEquals(new JsonObject().put("$date", "2017-02-21T11:44:56.396Z"), result1.getJsonObject("timestamp"));
+                context.assertEquals("FULCC", result1.getString("clearer"));
+                context.assertEquals("MALFR", result1.getString("member"));
+                context.assertEquals("MALFR", result1.getString("maintainer"));
+                context.assertEquals("TMR", result1.getString("limitType"));
+                context.assertEquals(8862049569.447277, result1.getDouble("utilization"));
+                context.assertEquals(1010020.0, result1.getDouble("warningLevel"));
+                context.assertEquals(0.0, result1.getDouble("throttleLevel"));
+                context.assertEquals(1010020.0, result1.getDouble("rejectLevel"));
 
                 asyncQuery.complete();
             } else {

@@ -41,6 +41,7 @@ public class BrokerFiller {
                 .compose(this::populateLiquiGroupSplitMarginQueue)
                 .compose(this::populatePoolMarginQueue)
                 .compose(this::populatePositionReportQueue)
+                .compose(this::populateRiskLimitUtilizationQueue)
                 .compose(chainFuture::complete, chainFuture);
         chainFuture.setHandler(ar -> {
            if (ar.succeeded()) {
@@ -180,7 +181,7 @@ public class BrokerFiller {
         return this.populateQueue(protonConnection, queueName, messagePaths);
     }
     private Future<ProtonConnection> populateRiskLimitUtilizationQueue(ProtonConnection protonConnection) {
-        final String queueName = "";
+        final String queueName = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVERiskLimitUtilization";
         final Collection<String> messagePaths = IntStream.rangeClosed(1, 1)
                 .mapToObj(i -> String.format("%s/%03d.bin", BrokerFiller.class.getResource("riskLimitUtilization").getPath(), i))
                 .collect(Collectors.toList());
