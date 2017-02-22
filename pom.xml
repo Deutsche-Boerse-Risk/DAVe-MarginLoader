@@ -204,6 +204,7 @@
                     <logDate>default</logDate>
                     <autoPull>true</autoPull>
                     <skip>${skipTests}</skip>
+                    <logStdout>false</logStdout>
                     <images>
                         <image>
                             <alias>db</alias>
@@ -216,6 +217,7 @@
                                 <log>
                                     <prefix>DB</prefix>
                                     <color>yellow</color>
+                                    <file>${project.build.directory}/mongo.log</file>
                                 </log>
                                 <ports>
                                     <port>mongodb.port:27017</port>
@@ -233,6 +235,7 @@
                                 <log>
                                     <prefix>CIL</prefix>
                                     <color>cyan</color>
+                                    <file>${project.build.directory}/broker.log</file>
                                 </log>
                                 <ports>
                                     <port>cil.tcpport:5672</port>
