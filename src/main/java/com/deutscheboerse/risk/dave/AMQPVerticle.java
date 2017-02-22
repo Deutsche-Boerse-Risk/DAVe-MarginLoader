@@ -10,6 +10,7 @@ import io.vertx.core.Future;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.proton.ProtonClient;
+import io.vertx.proton.ProtonClientOptions;
 import io.vertx.proton.ProtonConnection;
 import io.vertx.proton.ProtonReceiver;
 import io.vertx.serviceproxy.ProxyHelper;
@@ -32,8 +33,7 @@ public abstract class AMQPVerticle extends AbstractVerticle {
     public void start(Future<Void> fut, String verticleName) {
         LOG.info("Starting {} with configuration: {}", verticleName, config().encodePrettily());
         this.registerExtensions();
-
-        this.persistenceService = PersistenceService.createProxy(vertx,"persistenceService");
+        this.persistenceService = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
 
         createBrokerConnection()
                 .compose(i -> createAmqpReceiver())

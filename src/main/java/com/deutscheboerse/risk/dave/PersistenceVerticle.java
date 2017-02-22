@@ -20,7 +20,7 @@ public class PersistenceVerticle extends AbstractVerticle {
         LOG.info("Starting {} with configuration: {}", PersistenceVerticle.class.getSimpleName(), config().encodePrettily());
 
         PersistenceService persistenceService = new MongoPersistenceService(vertx);
-        this.persistenceServiceConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, "persistenceService");
+        this.persistenceServiceConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
 
         persistenceService.initialize(ar -> {
             if (ar.succeeded()) {

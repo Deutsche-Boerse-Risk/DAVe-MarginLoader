@@ -13,6 +13,7 @@ import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.serviceproxy.ProxyHelper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -48,8 +49,7 @@ public class PersistenceVerticleIT {
         mongoConfig.put("useObjectId", true);
         mongoConfig.put("connection_string", config.getString("connectionUrl"));
         PersistenceVerticleIT.mongoClient = MongoClient.createShared(PersistenceVerticleIT.vertx, mongoConfig);
-        PersistenceVerticleIT.persistenceService = PersistenceService.createProxy(vertx, "persistenceService");
-
+        PersistenceVerticleIT.persistenceService = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
     }
 
     @Test
