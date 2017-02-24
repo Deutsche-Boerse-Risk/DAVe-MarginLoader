@@ -23,7 +23,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 
 @RunWith(VertxUnitRunner.class)
-public class LiquiGroupSplitMarginVerticleIT {
+public class LiquiGroupSplitMarginVerticleIT  extends BaseTest {
     private final TestAppender testAppender = TestAppender.getAppender(LiquiGroupSplitMarginVerticle.class);
     private final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
     private Vertx vertx;
@@ -33,7 +33,6 @@ public class LiquiGroupSplitMarginVerticleIT {
         this.vertx = Vertx.vertx();
         final BrokerFiller brokerFiller = new BrokerFiller(this.vertx);
         brokerFiller.setUpLiquiGroupSplitMarginQueue(context.asyncAssertSuccess());
-
         rootLogger.addAppender(testAppender);
     }
 
@@ -45,12 +44,7 @@ public class LiquiGroupSplitMarginVerticleIT {
 
     @Test
     public void testLiquiGroupSplitMarginVerticle(TestContext context) throws InterruptedException {
-        int tcpPort = Integer.getInteger("cil.tcpport", 5672);
-        JsonObject config = new JsonObject()
-                .put("port", tcpPort)
-                .put("listeners", new JsonObject()
-                        .put("liquiGroupSplitMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupSplitMargin"));
-
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
         // we expect 2472 messages to be received
         Async async = context.async(2472);
 
@@ -58,7 +52,7 @@ public class LiquiGroupSplitMarginVerticleIT {
         CountdownPersistenceService persistenceService = new CountdownPersistenceService(vertx, async);
         MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
 
-        vertx.deployVerticle(LiquiGroupSplitMarginVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
+        vertx.deployVerticle(LiquiGroupSplitMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         async.awaitSuccess(30000);
 
         JsonObject expected = new JsonObject()
@@ -83,12 +77,7 @@ public class LiquiGroupSplitMarginVerticleIT {
 
     @Test
     public void testLiquiGroupSplitMarginVerticleError(TestContext context) throws InterruptedException {
-        final int tcpPort = Integer.getInteger("cil.tcpport", 5672);
-        JsonObject config = new JsonObject()
-                .put("port", tcpPort)
-                .put("listeners", new JsonObject()
-                        .put("liquiGroupSplitMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupSplitMargin"));
-
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
         // Setup persistence persistence
         ErrorPersistenceService persistenceService = new ErrorPersistenceService(vertx);
         MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
@@ -97,7 +86,7 @@ public class LiquiGroupSplitMarginVerticleIT {
         Appender<ILoggingEvent> stdout = rootLogger.getAppender("STDOUT");
         rootLogger.detachAppender(stdout);
         testAppender.start();
-        vertx.deployVerticle(LiquiGroupSplitMarginVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
+        vertx.deployVerticle(LiquiGroupSplitMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         ILoggingEvent logMessage = testAppender.getLastMessage();
         testAppender.waitForMessageCount(2472);
         testAppender.stop();

@@ -45,12 +45,7 @@ public class LiquiGroupMarginVerticleIT {
 
     @Test
     public void testLiquiGroupMarginVerticle(TestContext context) throws InterruptedException {
-        int tcpPort = Integer.getInteger("cil.tcpport", 5672);
-        JsonObject config = new JsonObject()
-                .put("port", tcpPort)
-                .put("listeners", new JsonObject()
-                        .put("liquiGroupMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupMargin"));
-
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
         // we expect 2171 messages to be received
         Async async = context.async(2171);
 
@@ -58,7 +53,7 @@ public class LiquiGroupMarginVerticleIT {
         CountdownPersistenceService persistenceService = new CountdownPersistenceService(vertx, async);
         MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
 
-        vertx.deployVerticle(LiquiGroupMarginVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
+        vertx.deployVerticle(LiquiGroupMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         async.awaitSuccess(30000);
 
         // verify the content of the last message

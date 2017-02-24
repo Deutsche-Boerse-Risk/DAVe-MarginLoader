@@ -2,6 +2,7 @@ package com.deutscheboerse.risk.dave.persistence;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
+import com.deutscheboerse.risk.dave.BaseTest;
 import com.deutscheboerse.risk.dave.MainVerticleIT;
 import com.deutscheboerse.risk.dave.model.*;
 import com.google.protobuf.ExtensionRegistry;
@@ -24,12 +25,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.BiConsumer;
 
 @RunWith(VertxUnitRunner.class)
-public class MongoPersistenceServiceIT {
-    private static final int DB_PORT = Integer.getInteger("mongodb.port", 27017);
+public class MongoPersistenceServiceIT extends BaseTest {
     private static Vertx vertx;
     private static MongoClient mongoClient;
     private static PersistenceService persistenceProxy;
@@ -39,14 +38,9 @@ public class MongoPersistenceServiceIT {
     @BeforeClass
     public static void setUp(TestContext context) {
         MongoPersistenceServiceIT.vertx = Vertx.vertx();
-        JsonObject config = new JsonObject()
-                .put("dbName", "DAVe-Test" + UUID.randomUUID().getLeastSignificantBits())
-                .put("connectionUrl", String.format("mongodb://localhost:%s/?waitqueuemultiple=%d", MongoPersistenceServiceIT.DB_PORT, 20000));
+        JsonObject config = BaseTest.getMongoConfig();
+        JsonObject mongoConfig = BaseTest.getMongoClientConfig(config);
 
-        JsonObject mongoConfig = new JsonObject();
-        mongoConfig.put("db_name", config.getString("dbName"));
-        mongoConfig.put("useObjectId", true);
-        mongoConfig.put("connection_string", config.getString("connectionUrl"));
         MongoPersistenceServiceIT.mongoClient = MongoClient.createShared(MongoPersistenceServiceIT.vertx, mongoConfig);
 
         PersistenceService mongoPersistenceService = new MongoPersistenceService(vertx, config);

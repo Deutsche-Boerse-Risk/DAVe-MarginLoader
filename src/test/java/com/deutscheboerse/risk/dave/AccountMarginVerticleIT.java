@@ -23,7 +23,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 
 @RunWith(VertxUnitRunner.class)
-public class AccountMarginVerticleIT {
+public class AccountMarginVerticleIT extends BaseTest {
     private final TestAppender testAppender = TestAppender.getAppender(AccountMarginVerticle.class);
     private final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
     private Vertx vertx;
@@ -33,18 +33,12 @@ public class AccountMarginVerticleIT {
         this.vertx = Vertx.vertx();
         final BrokerFiller brokerFiller = new BrokerFiller(this.vertx);
         brokerFiller.setUpAccountMarginQueue(context.asyncAssertSuccess());
-
         rootLogger.addAppender(testAppender);
     }
 
     @Test
     public void testAccountMarginVerticle(TestContext context) throws InterruptedException {
-        int tcpPort = Integer.getInteger("cil.tcpport", 5672);
-        JsonObject config = new JsonObject()
-                .put("port", tcpPort)
-                .put("listeners", new JsonObject()
-                        .put("accountMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEAccountMargin"));
-
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
         // we expect 1704 messages to be received
         Async async = context.async(1704);
 
@@ -52,7 +46,7 @@ public class AccountMarginVerticleIT {
         CountdownPersistenceService persistenceService = new CountdownPersistenceService(vertx, async);
         MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
 
-        vertx.deployVerticle(AccountMarginVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
+        vertx.deployVerticle(AccountMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         async.awaitSuccess(30000);
 
         // verify the content of the last message
@@ -77,12 +71,7 @@ public class AccountMarginVerticleIT {
 
     @Test
     public void testAccountMarginVerticleError(TestContext context) throws InterruptedException {
-        final int tcpPort = Integer.getInteger("cil.tcpport", 5672);
-        JsonObject config = new JsonObject()
-                .put("port", tcpPort)
-                .put("listeners", new JsonObject()
-                        .put("accountMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEAccountMargin"));
-
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
         // Setup persistence persistence
         ErrorPersistenceService persistenceService = new ErrorPersistenceService(vertx);
         MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
@@ -91,7 +80,7 @@ public class AccountMarginVerticleIT {
         Appender<ILoggingEvent> stdout = rootLogger.getAppender("STDOUT");
         rootLogger.detachAppender(stdout);
         testAppender.start();
-        vertx.deployVerticle(AccountMarginVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
+        vertx.deployVerticle(AccountMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         ILoggingEvent logMessage = testAppender.getLastMessage();
         testAppender.waitForMessageCount(1704);
         testAppender.stop();
