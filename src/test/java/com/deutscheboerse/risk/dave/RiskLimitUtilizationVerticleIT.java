@@ -1,6 +1,12 @@
 package com.deutscheboerse.risk.dave;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
+import com.deutscheboerse.risk.dave.log.TestAppender;
 import com.deutscheboerse.risk.dave.persistence.CountdownPersistenceService;
+import com.deutscheboerse.risk.dave.persistence.ErrorPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -10,82 +16,93 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.serviceproxy.ProxyHelper;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.LoggerFactory;
 
 @RunWith(VertxUnitRunner.class)
 public class RiskLimitUtilizationVerticleIT {
-    private static Vertx vertx;
+    private final TestAppender testAppender = TestAppender.getAppender(RiskLimitUtilizationVerticle.class);
+    private final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+    private Vertx vertx;
 
-    @BeforeClass
-    public static void setUp(TestContext context) {
-        RiskLimitUtilizationVerticleIT.vertx = Vertx.vertx();
-        final BrokerFiller brokerFiller = new BrokerFiller(RiskLimitUtilizationVerticleIT.vertx);
-        brokerFiller.setUpPositionReportQueue(context.asyncAssertSuccess());
+    @Before
+    public void setUp(TestContext context) {
+        this.vertx = Vertx.vertx();
+        final BrokerFiller brokerFiller = new BrokerFiller(this.vertx);
+        brokerFiller.setUpRiskLimitUtilizationQueue(context.asyncAssertSuccess());
+
+        rootLogger.addAppender(testAppender);
     }
 
-    @AfterClass
-    public static void tearDown(TestContext context) {
-        RiskLimitUtilizationVerticleIT.vertx.close(context.asyncAssertSuccess());
+    @After
+    public void cleanup(TestContext context) {
+        this.vertx.close(context.asyncAssertSuccess());
+        rootLogger.detachAppender(testAppender);
     }
 
     @Test
-    public void testPoolMarginVerticle(TestContext context) throws InterruptedException {
+    public void testRiskLimitUtilizationVerticle(TestContext context) throws InterruptedException {
         int tcpPort = Integer.getInteger("cil.tcpport", 5672);
         JsonObject config = new JsonObject()
                 .put("port", tcpPort)
                 .put("listeners", new JsonObject()
-                        .put("positionReport", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPositionReport"));
+                        .put("riskLimitUtilization", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVERiskLimitUtilization"));
 
-        // we expect 2472 messages to be received
-        Async async = context.async(3596);
+        // we expect 6 messages to be received
+        Async async = context.async(6);
 
         // Setup persistence persistence
         CountdownPersistenceService persistenceService = new CountdownPersistenceService(vertx, async);
         MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
 
-        vertx.deployVerticle(PositionReportVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
+        vertx.deployVerticle(RiskLimitUtilizationVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
         async.awaitSuccess(30000);
 
         JsonObject expected = new JsonObject()
                 .put("snapshotID", 15)
                 .put("businessDate", 20091215)
                 .put("timestamp", new JsonObject().put("$date", "2017-02-21T11:43:34.791Z"))
-                .put("clearer", "ECAXX")
-                .put("member", "ECAXX")
-                .put("account", "A1")
-                .put("liquidationGroup", "PFI02")
-                .put("liquidationGroupSplit", "PFI02_HP5_T6-99999")
-                .put("product", "OTC Portfolio")
-                .put("callPut", "")
-                .put("contractYear", 0)
-                .put("contractMonth", 0)
-                .put("expiryDay", 0)
-                .put("exercisePrice", 0)
-                .put("version", "")
-                .put("flexContractSymbol", "")
-                .put("netQuantityLs", 0)
-                .put("netQuantityEa", 0)
-                .put("clearingCurrency", "EUR")
-                .put("mVar", -1038.9371665706567)
-                .put("compVar", -1038.9371665706801)
-                .put("compCorrelationBreak", 0)
-                .put("compCompressionError", 0)
-                .put("compLiquidityAddOn", 91236.25738021567)
-                .put("compLongOptionCredit", 0)
-                .put("productCurrency", "")
-                .put("variationPremiumPayment", 0)
-                .put("premiumMargin", 0)
-                .put("normalizedDelta", 0)
-                .put("normalizedGamma", 0)
-                .put("normalizedVega", 0)
-                .put("normalizedRho", 0)
-                .put("normalizedTheta", 0)
-                .put("underlying", "OTC Portfolio");
+                .put("clearer", "FULCC")
+                .put("member", "MALFR")
+                .put("maintainer", "FULCC")
+                .put("limitType", "NDM")
+                .put("utilization", 8.630965788947277E9)
+                .put("warningLevel", 0.0)
+                .put("throttleLevel", 0.0)
+                .put("rejectLevel", 1010000.0);
 
         context.assertEquals(expected, persistenceService.getLastMessage());
+
+        ProxyHelper.unregisterService(serviceMessageConsumer);
+    }
+
+    @Test
+    public void testRiskLimitUtilizationVerticleError(TestContext context) throws InterruptedException {
+        final int tcpPort = Integer.getInteger("cil.tcpport", 5672);
+        JsonObject config = new JsonObject()
+                .put("port", tcpPort)
+                .put("listeners", new JsonObject()
+                        .put("riskLimitUtilization", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVERiskLimitUtilization"));
+
+        // Setup persistence persistence
+        ErrorPersistenceService persistenceService = new ErrorPersistenceService(vertx);
+        MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
+
+        // Catch log messages generated by RiskLimitUtilizationVerticle
+        Appender<ILoggingEvent> stdout = rootLogger.getAppender("STDOUT");
+        rootLogger.detachAppender(stdout);
+        testAppender.start();
+        vertx.deployVerticle(RiskLimitUtilizationVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
+        ILoggingEvent logMessage = testAppender.getLastMessage();
+        testAppender.waitForMessageCount(6);
+        testAppender.stop();
+        rootLogger.addAppender(stdout);
+
+        context.assertEquals(Level.ERROR, logMessage.getLevel());
+        context.assertTrue(logMessage.getFormattedMessage().contains("Unable to store message"));
 
         ProxyHelper.unregisterService(serviceMessageConsumer);
     }

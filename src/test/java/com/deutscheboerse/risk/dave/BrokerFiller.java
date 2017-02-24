@@ -1,13 +1,14 @@
 package com.deutscheboerse.risk.dave;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.proton.ProtonClient;
 import io.vertx.proton.ProtonConnection;
 import io.vertx.proton.ProtonSender;
-
 import org.apache.qpid.proton.amqp.Binary;
 import org.apache.qpid.proton.amqp.messaging.Data;
 import org.apache.qpid.proton.message.Message;
@@ -16,11 +17,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
 
 public class BrokerFiller {
     private static final Logger LOG = LoggerFactory.getLogger(BrokerFiller.class);
@@ -53,73 +52,39 @@ public class BrokerFiller {
     }
 
     public void setUpAccountMarginQueue(Handler<AsyncResult<String>> handler) {
-        Future<ProtonConnection> chainFuture = Future.future();
-        this.createAmqpConnection()
-                .compose(this::populateAccountMarginQueue)
-                .compose(chainFuture::complete, chainFuture);
-        chainFuture.setHandler(ar -> {
-           if (ar.succeeded()) {
-               handler.handle(Future.succeededFuture());
-           } else {
-               handler.handle(Future.failedFuture(ar.cause()));
-           }
-        });
+        setUpQueue(this::populateAccountMarginQueue, handler);
     }
 
     public void setUpLiquiGroupMarginQueue(Handler<AsyncResult<String>> handler) {
-        Future<ProtonConnection> chainFuture = Future.future();
-        this.createAmqpConnection()
-                .compose(this::populateLiquiGroupMarginQueue)
-                .compose(chainFuture::complete, chainFuture);
-        chainFuture.setHandler(ar -> {
-           if (ar.succeeded()) {
-               handler.handle(Future.succeededFuture());
-           } else {
-               handler.handle(Future.failedFuture(ar.cause()));
-           }
-        });
+        setUpQueue(this::populateLiquiGroupMarginQueue, handler);
     }
 
     public void setUpLiquiGroupSplitMarginQueue(Handler<AsyncResult<String>> handler) {
-        Future<ProtonConnection> chainFuture = Future.future();
-        this.createAmqpConnection()
-                .compose(this::populateLiquiGroupSplitMarginQueue)
-                .compose(chainFuture::complete, chainFuture);
-        chainFuture.setHandler(ar -> {
-           if (ar.succeeded()) {
-               handler.handle(Future.succeededFuture());
-           } else {
-               handler.handle(Future.failedFuture(ar.cause()));
-           }
-        });
+        setUpQueue(this::populateLiquiGroupSplitMarginQueue, handler);
     }
 
     public void setUpPoolMarginQueue(Handler<AsyncResult<String>> handler) {
-        Future<ProtonConnection> chainFuture = Future.future();
-        this.createAmqpConnection()
-                .compose(this::populatePoolMarginQueue)
-                .compose(chainFuture::complete, chainFuture);
-        chainFuture.setHandler(ar -> {
-            if (ar.succeeded()) {
-                handler.handle(Future.succeededFuture());
-            } else {
-                handler.handle(Future.failedFuture(ar.cause()));
-            }
-        });
+        setUpQueue(this::populatePoolMarginQueue, handler);
     }
 
     public void setUpPositionReportQueue(Handler<AsyncResult<String>> handler) {
-        Future<ProtonConnection> chainFuture = Future.future();
+        setUpQueue(this::populatePositionReportQueue, handler);
+    }
+
+    public void setUpRiskLimitUtilizationQueue(Handler<AsyncResult<String>> handler) {
+        setUpQueue(this::populateRiskLimitUtilizationQueue, handler);
+    }
+
+    private void setUpQueue(Function<ProtonConnection, Future<ProtonConnection>> populateFunction, Handler<AsyncResult<String>> handler) {
         this.createAmqpConnection()
-                .compose(this::populatePositionReportQueue)
-                .compose(chainFuture::complete, chainFuture);
-        chainFuture.setHandler(ar -> {
-            if (ar.succeeded()) {
-                handler.handle(Future.succeededFuture());
-            } else {
-                handler.handle(Future.failedFuture(ar.cause()));
-            }
-        });
+                .compose(populateFunction)
+                .setHandler(ar -> {
+                    if (ar.succeeded()) {
+                        handler.handle(Future.succeededFuture());
+                    } else {
+                        handler.handle(Future.failedFuture(ar.cause()));
+                    }
+                });
     }
 
     private Future<ProtonConnection> createAmqpConnection() {
