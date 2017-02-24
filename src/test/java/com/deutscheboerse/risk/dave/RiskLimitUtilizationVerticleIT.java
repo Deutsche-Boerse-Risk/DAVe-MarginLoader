@@ -23,7 +23,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 
 @RunWith(VertxUnitRunner.class)
-public class RiskLimitUtilizationVerticleIT {
+public class RiskLimitUtilizationVerticleIT extends BaseTest {
     private final TestAppender testAppender = TestAppender.getAppender(RiskLimitUtilizationVerticle.class);
     private final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
     private Vertx vertx;
@@ -33,7 +33,6 @@ public class RiskLimitUtilizationVerticleIT {
         this.vertx = Vertx.vertx();
         final BrokerFiller brokerFiller = new BrokerFiller(this.vertx);
         brokerFiller.setUpRiskLimitUtilizationQueue(context.asyncAssertSuccess());
-
         rootLogger.addAppender(testAppender);
     }
 
@@ -45,12 +44,7 @@ public class RiskLimitUtilizationVerticleIT {
 
     @Test
     public void testRiskLimitUtilizationVerticle(TestContext context) throws InterruptedException {
-        int tcpPort = Integer.getInteger("cil.tcpport", 5672);
-        JsonObject config = new JsonObject()
-                .put("port", tcpPort)
-                .put("listeners", new JsonObject()
-                        .put("riskLimitUtilization", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVERiskLimitUtilization"));
-
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
         // we expect 6 messages to be received
         Async async = context.async(6);
 
@@ -58,7 +52,7 @@ public class RiskLimitUtilizationVerticleIT {
         CountdownPersistenceService persistenceService = new CountdownPersistenceService(vertx, async);
         MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
 
-        vertx.deployVerticle(RiskLimitUtilizationVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
+        vertx.deployVerticle(RiskLimitUtilizationVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         async.awaitSuccess(30000);
 
         JsonObject expected = new JsonObject()
@@ -81,12 +75,7 @@ public class RiskLimitUtilizationVerticleIT {
 
     @Test
     public void testRiskLimitUtilizationVerticleError(TestContext context) throws InterruptedException {
-        final int tcpPort = Integer.getInteger("cil.tcpport", 5672);
-        JsonObject config = new JsonObject()
-                .put("port", tcpPort)
-                .put("listeners", new JsonObject()
-                        .put("riskLimitUtilization", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVERiskLimitUtilization"));
-
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
         // Setup persistence persistence
         ErrorPersistenceService persistenceService = new ErrorPersistenceService(vertx);
         MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
@@ -95,7 +84,7 @@ public class RiskLimitUtilizationVerticleIT {
         Appender<ILoggingEvent> stdout = rootLogger.getAppender("STDOUT");
         rootLogger.detachAppender(stdout);
         testAppender.start();
-        vertx.deployVerticle(RiskLimitUtilizationVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
+        vertx.deployVerticle(RiskLimitUtilizationVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         ILoggingEvent logMessage = testAppender.getLastMessage();
         testAppender.waitForMessageCount(6);
         testAppender.stop();

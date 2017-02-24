@@ -23,7 +23,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 
 @RunWith(VertxUnitRunner.class)
-public class PoolMarginVerticleIT {
+public class PoolMarginVerticleIT  extends BaseTest {
     private final TestAppender testAppender = TestAppender.getAppender(PoolMarginVerticle.class);
     private final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
     private Vertx vertx;
@@ -33,7 +33,6 @@ public class PoolMarginVerticleIT {
         this.vertx = Vertx.vertx();
         final BrokerFiller brokerFiller = new BrokerFiller(this.vertx);
         brokerFiller.setUpPoolMarginQueue(context.asyncAssertSuccess());
-
         rootLogger.addAppender(testAppender);
     }
 
@@ -45,12 +44,7 @@ public class PoolMarginVerticleIT {
 
     @Test
     public void testPoolMarginVerticle(TestContext context) throws InterruptedException {
-        int tcpPort = Integer.getInteger("cil.tcpport", 5672);
-        JsonObject config = new JsonObject()
-                .put("port", tcpPort)
-                .put("listeners", new JsonObject()
-                        .put("poolMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPoolMargin"));
-
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
         // we expect 270 messages to be received
         Async async = context.async(270);
 
@@ -58,7 +52,7 @@ public class PoolMarginVerticleIT {
         CountdownPersistenceService persistenceService = new CountdownPersistenceService(vertx, async);
         MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
 
-        vertx.deployVerticle(PoolMarginVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
+        vertx.deployVerticle(PoolMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         async.awaitSuccess(30000);
 
         JsonObject expected = new JsonObject()
@@ -85,12 +79,7 @@ public class PoolMarginVerticleIT {
 
     @Test
     public void testPoolMarginVerticleError(TestContext context) throws InterruptedException {
-        final int tcpPort = Integer.getInteger("cil.tcpport", 5672);
-        JsonObject config = new JsonObject()
-                .put("port", tcpPort)
-                .put("listeners", new JsonObject()
-                        .put("poolMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPoolMargin"));
-
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
         // Setup persistence persistence
         ErrorPersistenceService persistenceService = new ErrorPersistenceService(vertx);
         MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
@@ -99,7 +88,7 @@ public class PoolMarginVerticleIT {
         Appender<ILoggingEvent> stdout = rootLogger.getAppender("STDOUT");
         rootLogger.detachAppender(stdout);
         testAppender.start();
-        vertx.deployVerticle(PoolMarginVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
+        vertx.deployVerticle(PoolMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         ILoggingEvent logMessage = testAppender.getLastMessage();
         testAppender.waitForMessageCount(270);
         testAppender.stop();
