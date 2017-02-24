@@ -1,7 +1,6 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
-import com.google.common.base.Preconditions;
 import io.vertx.core.json.JsonObject;
 
 import java.time.Instant;
@@ -18,9 +17,11 @@ public abstract class AbstractModel extends JsonObject implements MongoModel {
 
     public AbstractModel(PrismaReports.PrismaHeader header) {
         verify(header);
-        this.setSnapshotID(header.getId());
-        this.setBusinessDate(header.getBusinessDate());
-        this.setTimestamp(header.getTimestamp());
+
+        put("snapshotID", header.getId());
+        put("businessDate", header.getBusinessDate());
+        Instant instant = Instant.ofEpochMilli(header.getTimestamp());
+        put("timestamp", new JsonObject().put("$date", ZonedDateTime.ofInstant(instant, ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
     }
 
     private void verify(PrismaReports.PrismaHeader header) {
@@ -34,28 +35,4 @@ public abstract class AbstractModel extends JsonObject implements MongoModel {
         return new JsonObject().put("snapshotID", 1).mergeIn(getLatestUniqueIndex());
     }
 
-    public int getSnapshotID() {
-        return getInteger("snapshotID");
-    }
-
-    public void setSnapshotID(int snapshotID) {
-        put("snapshotID", snapshotID);
-    }
-
-    public int getBusinessDate() {
-        return getInteger("businessDate");
-    }
-
-    public void setBusinessDate(int businessDate) {
-        put("businessDate", businessDate);
-    }
-
-    public JsonObject getTimestamp() {
-        return getJsonObject("timestamp");
-    }
-
-    public void setTimestamp(long timestamp) {
-        Instant instant = Instant.ofEpochMilli(timestamp);
-        put("timestamp", new JsonObject().put("$date", ZonedDateTime.ofInstant(instant, ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
-    }
 }
