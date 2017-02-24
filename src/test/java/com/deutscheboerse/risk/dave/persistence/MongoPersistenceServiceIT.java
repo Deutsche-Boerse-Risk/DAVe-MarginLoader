@@ -32,7 +32,7 @@ public class MongoPersistenceServiceIT {
     private static final int DB_PORT = Integer.getInteger("mongodb.port", 27017);
     private static Vertx vertx;
     private static MongoClient mongoClient;
-    private static PersistenceService persistenceService;
+    private static PersistenceService persistenceProxy;
     private static final double DOUBLE_DELTA = 1e-12;
     private static MessageConsumer<JsonObject> persistenceServiceConsumer;
 
@@ -49,10 +49,12 @@ public class MongoPersistenceServiceIT {
         mongoConfig.put("connection_string", config.getString("connectionUrl"));
         MongoPersistenceServiceIT.mongoClient = MongoClient.createShared(MongoPersistenceServiceIT.vertx, mongoConfig);
 
-        MongoPersistenceServiceIT.persistenceService = new MongoPersistenceService(vertx, config);
-        MongoPersistenceServiceIT.persistenceServiceConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
+        PersistenceService mongoPersistenceService = new MongoPersistenceService(vertx, config);
 
-        MongoPersistenceServiceIT.persistenceService.initialize(context.asyncAssertSuccess());
+        MongoPersistenceServiceIT.persistenceServiceConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, mongoPersistenceService, PersistenceService.SERVICE_ADDRESS);
+        MongoPersistenceServiceIT.persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
+
+        mongoPersistenceService.initialize(context.asyncAssertSuccess());
     }
 
     @Test
@@ -89,7 +91,7 @@ public class MongoPersistenceServiceIT {
         readTTSaveFile("accountMargin", 1, (header, gpbObject) -> {
             PrismaReports.AccountMargin accountMarginData = gpbObject.getExtension(PrismaReports.accountMargin);
             AccountMarginModel accountMarginModel = new AccountMarginModel(header, accountMarginData);
-            persistenceService.store(accountMarginModel, ModelType.ACCOUNT_MARGIN_MODEL, ar -> {
+            persistenceProxy.store(accountMarginModel, ModelType.ACCOUNT_MARGIN_MODEL, ar -> {
                 if (ar.succeeded()) {
                     asyncStore1.countDown();
                 } else {
@@ -103,7 +105,7 @@ public class MongoPersistenceServiceIT {
         readTTSaveFile("accountMargin", 2, (header, gpbObject) -> {
             PrismaReports.AccountMargin accountMarginData = gpbObject.getExtension(PrismaReports.accountMargin);
             AccountMarginModel accountMarginModel = new AccountMarginModel(header, accountMarginData);
-            persistenceService.store(accountMarginModel, ModelType.ACCOUNT_MARGIN_MODEL, ar -> {
+            persistenceProxy.store(accountMarginModel, ModelType.ACCOUNT_MARGIN_MODEL, ar -> {
                 if (ar.succeeded()) {
                     asyncStore2.countDown();
                 } else {
@@ -125,7 +127,7 @@ public class MongoPersistenceServiceIT {
         readTTSaveFile("liquiGroupMargin", 1, (header, gpbObject) -> {
             PrismaReports.LiquiGroupMargin liquiGroupMarginData = gpbObject.getExtension(PrismaReports.liquiGroupMargin);
             LiquiGroupMarginModel liquiGroupMarginModel = new LiquiGroupMarginModel(header, liquiGroupMarginData);
-            persistenceService.store(liquiGroupMarginModel, ModelType.LIQUI_GROUP_MARGIN_MODEL, ar -> {
+            persistenceProxy.store(liquiGroupMarginModel, ModelType.LIQUI_GROUP_MARGIN_MODEL, ar -> {
                 if (ar.succeeded()) {
                     asyncStore1.countDown();
                 } else {
@@ -139,7 +141,7 @@ public class MongoPersistenceServiceIT {
         readTTSaveFile("liquiGroupMargin", 2, (header, gpbObject) -> {
             PrismaReports.LiquiGroupMargin liquiGroupMarginData = gpbObject.getExtension(PrismaReports.liquiGroupMargin);
             LiquiGroupMarginModel liquiGroupMarginModel = new LiquiGroupMarginModel(header, liquiGroupMarginData);
-            persistenceService.store(liquiGroupMarginModel, ModelType.LIQUI_GROUP_MARGIN_MODEL, ar -> {
+            persistenceProxy.store(liquiGroupMarginModel, ModelType.LIQUI_GROUP_MARGIN_MODEL, ar -> {
                 if (ar.succeeded()) {
                     asyncStore2.countDown();
                 } else {
@@ -161,7 +163,7 @@ public class MongoPersistenceServiceIT {
         readTTSaveFile("liquiGroupSplitMargin", 1, (header, gpbObject) -> {
             PrismaReports.LiquiGroupSplitMargin liquiGroupSplitMarginData = gpbObject.getExtension(PrismaReports.liquiGroupSplitMargin);
             LiquiGroupSplitMarginModel liquiGroupSplitMarginModel = new LiquiGroupSplitMarginModel(header, liquiGroupSplitMarginData);
-            persistenceService.store(liquiGroupSplitMarginModel, ModelType.LIQUI_GROUP_SPLIT_MARGIN_MODEL, ar -> {
+            persistenceProxy.store(liquiGroupSplitMarginModel, ModelType.LIQUI_GROUP_SPLIT_MARGIN_MODEL, ar -> {
                 if (ar.succeeded()) {
                     asyncStore1.countDown();
                 } else {
@@ -175,7 +177,7 @@ public class MongoPersistenceServiceIT {
         readTTSaveFile("liquiGroupSplitMargin", 2, (header, gpbObject) -> {
             PrismaReports.LiquiGroupSplitMargin liquiGroupSplitMarginData = gpbObject.getExtension(PrismaReports.liquiGroupSplitMargin);
             LiquiGroupSplitMarginModel liquiGroupSplitMarginModel = new LiquiGroupSplitMarginModel(header, liquiGroupSplitMarginData);
-            persistenceService.store(liquiGroupSplitMarginModel, ModelType.LIQUI_GROUP_SPLIT_MARGIN_MODEL, ar -> {
+            persistenceProxy.store(liquiGroupSplitMarginModel, ModelType.LIQUI_GROUP_SPLIT_MARGIN_MODEL, ar -> {
                 if (ar.succeeded()) {
                     asyncStore2.countDown();
                 } else {
@@ -197,7 +199,7 @@ public class MongoPersistenceServiceIT {
         readTTSaveFile("poolMargin", 1, (header, gpbObject) -> {
             PrismaReports.PoolMargin poolMarginData = gpbObject.getExtension(PrismaReports.poolMargin);
             PoolMarginModel poolMarginModel = new PoolMarginModel(header, poolMarginData);
-            persistenceService.store(poolMarginModel, ModelType.POOL_MARGIN_MODEL, ar -> {
+            persistenceProxy.store(poolMarginModel, ModelType.POOL_MARGIN_MODEL, ar -> {
                 if (ar.succeeded()) {
                     asyncFirstSnapshotStore.countDown();
                 } else {
@@ -210,7 +212,7 @@ public class MongoPersistenceServiceIT {
         readTTSaveFile("poolMargin", 2, (header, gpbObject) -> {
             PrismaReports.PoolMargin poolMarginData = gpbObject.getExtension(PrismaReports.poolMargin);
             PoolMarginModel poolMarginModel = new PoolMarginModel(header, poolMarginData);
-            persistenceService.store(poolMarginModel, ModelType.POOL_MARGIN_MODEL, ar -> {
+            persistenceProxy.store(poolMarginModel, ModelType.POOL_MARGIN_MODEL, ar -> {
                 if (ar.succeeded()) {
                     asyncSecondSnapshotStore.countDown();
                 } else {
@@ -231,7 +233,7 @@ public class MongoPersistenceServiceIT {
         readTTSaveFile("positionReport", 1, (header, gpbObject) -> {
             PrismaReports.PositionReport positionReportData = gpbObject.getExtension(PrismaReports.positionReport);
             PositionReportModel positionReportModel = new PositionReportModel(header, positionReportData);
-            persistenceService.store(positionReportModel, ModelType.POSITION_REPORT_MODEL, ar -> {
+            persistenceProxy.store(positionReportModel, ModelType.POSITION_REPORT_MODEL, ar -> {
                 if (ar.succeeded()) {
                     asyncFirstSnapshotStore.countDown();
                 } else {
@@ -244,7 +246,7 @@ public class MongoPersistenceServiceIT {
         readTTSaveFile("positionReport", 2, (header, gpbObject) -> {
             PrismaReports.PositionReport positionReportData = gpbObject.getExtension(PrismaReports.positionReport);
             PositionReportModel positionReportModel = new PositionReportModel(header, positionReportData);
-            persistenceService.store(positionReportModel, ModelType.POSITION_REPORT_MODEL, ar -> {
+            persistenceProxy.store(positionReportModel, ModelType.POSITION_REPORT_MODEL, ar -> {
                 if (ar.succeeded()) {
                     asyncSecondSnapshotStore.countDown();
                 } else {
@@ -265,7 +267,7 @@ public class MongoPersistenceServiceIT {
         readTTSaveFile("riskLimitUtilization", 1, (header, gpbObject) -> {
             PrismaReports.RiskLimitUtilization data = gpbObject.getExtension(PrismaReports.riskLimitUtilization);
             RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(header, data);
-            persistenceService.store(model, ModelType.RISK_LIMIT_UTILIZATION_MODEL, ar -> {
+            persistenceProxy.store(model, ModelType.RISK_LIMIT_UTILIZATION_MODEL, ar -> {
                 if (ar.succeeded()) {
                     asyncFirstSnapshotStore.countDown();
                 } else {
@@ -278,7 +280,7 @@ public class MongoPersistenceServiceIT {
         readTTSaveFile("riskLimitUtilization", 2, (header, gpbObject) -> {
             PrismaReports.RiskLimitUtilization date = gpbObject.getExtension(PrismaReports.riskLimitUtilization);
             RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(header, date);
-            persistenceService.store(model, ModelType.RISK_LIMIT_UTILIZATION_MODEL, ar -> {
+            persistenceProxy.store(model, ModelType.RISK_LIMIT_UTILIZATION_MODEL, ar -> {
                 if (ar.succeeded()) {
                     asyncSecondSnapshotStore.countDown();
                 } else {
