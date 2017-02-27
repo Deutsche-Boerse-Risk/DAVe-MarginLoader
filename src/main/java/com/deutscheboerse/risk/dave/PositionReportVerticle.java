@@ -46,7 +46,7 @@ public class PositionReportVerticle extends AMQPVerticle {
                     LOG.error("Unable to create Position Report Model from GPB data", ex);
                 }
             } else {
-                LOG.error("Unknown extension (should be {})", PrismaReports.positionReport);
+                LOG.error("Unknown extension (should be {})", PrismaReports.positionReport.getDescriptor().getName());
             }
         });
     }

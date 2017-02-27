@@ -46,7 +46,7 @@ public class LiquiGroupMarginVerticle extends AMQPVerticle {
                     LOG.error("Unable to create Liqui Group Margin Model from GPB data", ex);
                 }
             } else {
-                LOG.error("Unknown extension (should be {})", PrismaReports.liquiGroupMargin);
+                LOG.error("Unknown extension (should be {})", PrismaReports.liquiGroupMargin.getDescriptor().getName());
             }
         });
     }

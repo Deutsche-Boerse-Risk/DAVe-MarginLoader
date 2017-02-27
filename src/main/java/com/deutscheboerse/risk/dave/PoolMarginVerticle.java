@@ -46,7 +46,7 @@ public class PoolMarginVerticle extends AMQPVerticle {
                     LOG.error("Unable to create Pool Margin Model from GPB data", ex);
                 }
             } else {
-                LOG.error("Unknown extension (should be {})", PrismaReports.poolMargin);
+                LOG.error("Unknown extension (should be {})", PrismaReports.poolMargin.getDescriptor().getName());
             }
         });
     }
