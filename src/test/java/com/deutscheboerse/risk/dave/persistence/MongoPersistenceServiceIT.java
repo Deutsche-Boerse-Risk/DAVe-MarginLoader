@@ -8,6 +8,7 @@ import com.deutscheboerse.risk.dave.model.*;
 import com.google.protobuf.ExtensionRegistry;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.FindOptions;
 import io.vertx.ext.mongo.MongoClient;
@@ -25,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 
 @RunWith(VertxUnitRunner.class)
@@ -76,6 +78,43 @@ public class MongoPersistenceServiceIT extends BaseTest {
             } else {
                 context.fail(ar.cause());
             }
+        });
+    }
+
+    @Test
+    public void checkIndexesExist(TestContext context) {
+        List<MongoModel> requiredModels = new ArrayList<>();
+        requiredModels.add(new AccountMarginModel());
+        requiredModels.add(new LiquiGroupMarginModel());
+        requiredModels.add(new LiquiGroupSplitMarginModel());
+        requiredModels.add(new PoolMarginModel());
+        requiredModels.add(new PositionReportModel());
+        requiredModels.add(new RiskLimitUtilizationModel());
+        // one index for history and one for latest collection in each model
+        final Async async = context.async(requiredModels.size() * 2);
+        BiConsumer<String, JsonObject> indexCheck = (collectionName, expectedIndex) -> {
+            MongoPersistenceServiceIT.mongoClient.listIndexes(collectionName, ar -> {
+                if (ar.succeeded()) {
+                    JsonArray result = ar.result();
+                    Optional<Object> latestUniqueIndex = result.stream()
+                            .filter(index -> index instanceof JsonObject)
+                            .filter(index -> ((JsonObject) index).getString("name", "").equals("unique_idx"))
+                            .filter(index -> ((JsonObject) index).getJsonObject("key", new JsonObject()).equals(expectedIndex))
+                            .findFirst();
+                    if (latestUniqueIndex.isPresent()) {
+                        async.countDown();
+                    } else {
+                        context.fail("Missing unique index for collection " + collectionName);
+                    }
+                } else {
+                    context.fail("Unable to list indexes from collection " + collectionName);
+                }
+            });
+        };
+
+        requiredModels.forEach(model -> {
+            indexCheck.accept(model.getHistoryCollection(), model.getHistoryUniqueIndex());
+            indexCheck.accept(model.getLatestCollection(), model.getLatestUniqueIndex());
         });
     }
 
