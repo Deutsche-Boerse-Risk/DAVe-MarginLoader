@@ -45,12 +45,12 @@ public class MongoPersistenceServiceIT extends BaseTest {
 
         MongoPersistenceServiceIT.mongoClient = MongoClient.createShared(MongoPersistenceServiceIT.vertx, mongoConfig);
 
-        PersistenceService mongoPersistenceService = new MongoPersistenceService(vertx, config);
+        PersistenceService mongoPersistenceService = new MongoPersistenceService(vertx);
 
         MongoPersistenceServiceIT.persistenceServiceConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, mongoPersistenceService, PersistenceService.SERVICE_ADDRESS);
         MongoPersistenceServiceIT.persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
 
-        mongoPersistenceService.initialize(context.asyncAssertSuccess());
+        mongoPersistenceService.initialize(config, context.asyncAssertSuccess());
     }
 
     @Test

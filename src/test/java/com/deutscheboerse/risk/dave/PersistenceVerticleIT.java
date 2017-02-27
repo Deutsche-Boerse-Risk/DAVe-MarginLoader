@@ -1,41 +1,69 @@
 package com.deutscheboerse.risk.dave;
 
-import com.deutscheboerse.risk.dave.persistence.CountdownPersistenceService;
+import com.deutscheboerse.risk.dave.persistence.InitPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import com.google.inject.AbstractModule;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.serviceproxy.ProxyHelper;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(VertxUnitRunner.class)
 public class PersistenceVerticleIT {
-    private static Vertx vertx;
-
-    @BeforeClass
-    public static void setUp(TestContext context) {
-        PersistenceVerticleIT.vertx = Vertx.vertx();
-    }
+    private Vertx vertx;
+    public static InitPersistenceService persistenceService;
 
     @Test
     public void checkPersistenceServiceInitialized(TestContext context) {
-//        Async async = context.async();
-//        CountdownPersistenceService persistenceService = new CountdownPersistenceService(vertx, async);
-//        MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
-//        DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject());
-//        PersistenceVerticleIT.vertx.deployVerticle(PersistenceVerticle.class.getName(), options, context.asyncAssertSuccess());
-//        context.assertTrue(persistenceService.isInitialized());
+        this.vertx = Vertx.vertx();
+        PersistenceVerticleIT.persistenceService = new InitPersistenceService(this.vertx, true);
+        JsonObject config = new JsonObject().put("guice_binder", TestBinder.class.getName());
+        DeploymentOptions options = new DeploymentOptions().setConfig(config);
+        Async async = context.async();
+        this.vertx.deployVerticle("java-guice:" + PersistenceVerticle.class.getName(), options, ar -> {
+            if (ar.succeeded()) {
+                async.complete();
+            } else {
+                context.fail((ar.cause()));
+            }
+        });
+        async.awaitSuccess(10000);
+        context.assertTrue(persistenceService.isInitialized());
     }
 
-    @AfterClass
-    public static void tearDown(TestContext context) {
-        PersistenceVerticleIT.vertx.close(context.asyncAssertSuccess());
+    @Test
+    public void checkPersistenceServiceNotInitialized(TestContext context) {
+        this.vertx = Vertx.vertx();
+        PersistenceVerticleIT.persistenceService = new InitPersistenceService(this.vertx, false);
+        JsonObject config = new JsonObject().put("guice_binder", TestBinder.class.getName());
+        DeploymentOptions options = new DeploymentOptions().setConfig(config);
+        Async async = context.async();
+        this.vertx.deployVerticle("java-guice:" + PersistenceVerticle.class.getName(), options, ar -> {
+            if (ar.succeeded()) {
+                context.fail((ar.cause()));
+            } else {
+                async.complete();
+            }
+        });
+        async.awaitSuccess(10000);
+        context.assertFalse(persistenceService.isInitialized());
+    }
+
+    @After
+    public void tearDown(TestContext context) {
+        this.vertx.close(context.asyncAssertSuccess());
+    }
+
+    public static class TestBinder extends AbstractModule {
+
+        @Override
+        protected void configure() {
+            bind(PersistenceService.class).toInstance(persistenceService);
+        }
     }
 }

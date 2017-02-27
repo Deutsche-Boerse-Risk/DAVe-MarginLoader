@@ -11,6 +11,7 @@ import io.vertx.ext.mongo.MongoClientUpdateResult;
 import io.vertx.ext.mongo.UpdateOptions;
 import io.vertx.serviceproxy.ServiceException;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -22,17 +23,16 @@ public class MongoPersistenceService implements PersistenceService {
     private static final String DEFAULT_CONNECTION_URL = "mongodb://localhost:27017/?waitqueuemultiple=20000";
 
     private final Vertx vertx;
-    private final JsonObject config;
     private MongoClient mongo;
 
-    public MongoPersistenceService(Vertx vertx, JsonObject config) {
+    @Inject
+    public MongoPersistenceService(Vertx vertx) {
         this.vertx = vertx;
-        this.config = config;
     }
 
     @Override
-    public void initialize(Handler<AsyncResult<Void>> resultHandler) {
-        connectDb()
+    public void initialize(JsonObject config, Handler<AsyncResult<Void>> resultHandler) {
+        connectDb(config)
                 .compose(i -> initDb())
                 .compose(i -> createIndexes())
                 .setHandler(ar -> {
@@ -105,11 +105,11 @@ public class MongoPersistenceService implements PersistenceService {
 
     }
 
-    private Future<Void> connectDb() {
+    private Future<Void> connectDb(JsonObject config) {
         JsonObject mongoConfig = new JsonObject();
-        mongoConfig.put("db_name", this.config.getString("dbName", MongoPersistenceService.DEFAULT_DB_NAME));
+        mongoConfig.put("db_name", config.getString("dbName", MongoPersistenceService.DEFAULT_DB_NAME));
         mongoConfig.put("useObjectId", true);
-        mongoConfig.put("connection_string", this.config.getString("connectionUrl", MongoPersistenceService.DEFAULT_CONNECTION_URL));
+        mongoConfig.put("connection_string", config.getString("connectionUrl", MongoPersistenceService.DEFAULT_CONNECTION_URL));
         mongo = MongoClient.createShared(vertx, mongoConfig);
         LOG.info("Connected to MongoDB");
         return Future.succeededFuture();

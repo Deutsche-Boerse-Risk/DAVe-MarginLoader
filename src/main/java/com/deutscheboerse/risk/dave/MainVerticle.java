@@ -84,8 +84,9 @@ public class MainVerticle extends AbstractVerticle {
 
     private Future<Void> deployVerticle(Class clazz, JsonObject config) {
         Future<Void> verticleFuture = Future.future();
+        config.put("guice_binder", Binder.class.getName());
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
-        vertx.deployVerticle(clazz.getName(), options, ar -> {
+        vertx.deployVerticle("java-guice:" +  clazz.getName(), options, ar -> {
             if (ar.succeeded()) {
                 LOG.info("Deployed {} with ID {}", clazz.getName(), ar.result());
                 verticleDeployments.put(clazz.getSimpleName(), ar.result());

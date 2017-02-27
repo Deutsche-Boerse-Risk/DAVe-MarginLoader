@@ -8,41 +8,34 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.unit.Async;
+import io.vertx.serviceproxy.ServiceException;
 
-public class CountdownPersistenceService implements PersistenceService {
-    private static final Logger LOG = LoggerFactory.getLogger(CountdownPersistenceService.class);
+public class InitPersistenceService implements PersistenceService {
+    private static final Logger LOG = LoggerFactory.getLogger(InitPersistenceService.class);
 
     private final Vertx vertx;
-    private Async async;
+    private final boolean succeeds;
     private boolean initialized = false;
-    private JsonObject lastMessage;
 
-    public CountdownPersistenceService(Vertx vertx, Async async) {
+    public InitPersistenceService(Vertx vertx, boolean succeeds) {
         this.vertx = vertx;
-        this.async = async;
+        this.succeeds = succeeds;
     }
 
     @Override
     public void initialize(JsonObject config, Handler<AsyncResult<Void>> resultHandler) {
-        this.initialized = true;
-        resultHandler.handle(Future.succeededFuture());
+        if (this.succeeds) {
+            this.initialized = true;
+            resultHandler.handle(Future.succeededFuture());
+        } else {
+            this.initialized = false;
+            resultHandler.handle(ServiceException.fail(INIT_ERROR, "Init failed"));
+        }
     }
 
     @Override
     public void store(JsonObject message, ModelType modelType, Handler<AsyncResult<Void>> resultHandler) {
-
-        // Store the message
-        this.lastMessage = message;
-
-        this.async.countDown();
-
-        // Always succeeds
-        resultHandler.handle(Future.succeededFuture());
-    }
-
-    public JsonObject getLastMessage() {
-        return this.lastMessage;
+        resultHandler.handle(ServiceException.fail(STORE_ERROR, "Store not implemented"));
     }
 
     public boolean isInitialized() {
