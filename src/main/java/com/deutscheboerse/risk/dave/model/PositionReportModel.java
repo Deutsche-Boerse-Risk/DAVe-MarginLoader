@@ -94,7 +94,7 @@ public class PositionReportModel extends AbstractModel {
 
     @Override
     public Collection<String> getKeys() {
-        List<String> keys = new ArrayList();
+        List<String> keys = new ArrayList<>();
         keys.add("clearer");
         keys.add("member");
         keys.add("account");
