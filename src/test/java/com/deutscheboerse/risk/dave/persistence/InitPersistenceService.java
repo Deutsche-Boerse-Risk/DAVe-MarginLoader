@@ -1,6 +1,5 @@
 package com.deutscheboerse.risk.dave.persistence;
 
-import com.deutscheboerse.risk.dave.model.ModelType;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -34,7 +33,32 @@ public class InitPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void store(JsonObject message, ModelType modelType, Handler<AsyncResult<Void>> resultHandler) {
+    public void storeAccountMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(STORE_ERROR, "Store not implemented"));
+    }
+
+    @Override
+    public void storeLiquiGroupMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(STORE_ERROR, "Store not implemented"));
+    }
+
+    @Override
+    public void storeLiquiGroupSplitMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(STORE_ERROR, "Store not implemented"));
+    }
+
+    @Override
+    public void storePoolMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(STORE_ERROR, "Store not implemented"));
+    }
+
+    @Override
+    public void storePositionReport(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(STORE_ERROR, "Store not implemented"));
+    }
+
+    @Override
+    public void storeRiskLimitUtilization(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
         resultHandler.handle(ServiceException.fail(STORE_ERROR, "Store not implemented"));
     }
 

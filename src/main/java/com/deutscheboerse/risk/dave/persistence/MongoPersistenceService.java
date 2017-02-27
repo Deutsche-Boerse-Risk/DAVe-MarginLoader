@@ -15,12 +15,26 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 public class MongoPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(MongoPersistenceService.class);
 
     private static final String DEFAULT_DB_NAME = "DAVe";
     private static final String DEFAULT_CONNECTION_URL = "mongodb://localhost:27017/?waitqueuemultiple=20000";
+
+    public static final String ACCOUNT_MARGIN_HISTORY_COLLECTION = "AccountMargin";
+    public static final String ACCOUNT_MARGIN_LATEST_COLLECTION = "AccountMargin.latest";
+    public static final String LIQUI_GROUP_MARGIN_HISTORY_COLLECTION = "LiquiGroupMargin";
+    public static final String LIQUI_GROUP_MARGIN_LATEST_COLLECTION = "LiquiGroupMargin.latest";
+    public static final String LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION = "LiquiGroupSplitMargin";
+    public static final String LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION = "LiquiGroupSplitMargin.latest";
+    public static final String POOL_MARGIN_HISTORY_COLLECTION = "PoolMargin";
+    public static final String POOL_MARGIN_LATEST_COLLECTION = "PoolMargin.latest";
+    public static final String POSITION_REPORT_HISTORY_COLLECTION = "PositionReport";
+    public static final String POSITION_REPORT_LATEST_COLLECTION = "PositionReport.latest";
+    public static final String RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION = "RiskLimitUtilization";
+    public static final String RISK_LIMIT_UTILIZATION_LATEST_COLLECTION = "RiskLimitUtilization.latest";
 
     private final Vertx vertx;
     private MongoClient mongo;
@@ -42,39 +56,55 @@ public class MongoPersistenceService implements PersistenceService {
                 resultHandler.handle(ServiceException.fail(INIT_ERROR, ar.cause().getMessage()));
             }
         });
-
     }
 
     @Override
-    public void store(JsonObject message, ModelType modelType, Handler<AsyncResult<Void>> resultHandler) {
-        AbstractModel model;
-        switch(modelType) {
-            case ACCOUNT_MARGIN_MODEL:
-                model = new AccountMarginModel();
-                break;
-            case LIQUI_GROUP_MARGIN_MODEL:
-                model = new LiquiGroupMarginModel();
-                break;
-            case LIQUI_GROUP_SPLIT_MARGIN_MODEL:
-                model = new LiquiGroupSplitMarginModel();
-                break;
-            case POOL_MARGIN_MODEL:
-                model = new PoolMarginModel();
-                break;
-            case POSITION_REPORT_MODEL:
-                model = new PositionReportModel();
-                break;
-            case RISK_LIMIT_UTILIZATION_MODEL:
-                model = new RiskLimitUtilizationModel();
-                break;
-            default:
-                resultHandler.handle(ServiceException.fail(STORE_UNKNOWN_MODEL_ERROR, "Unknown model"));
-                return;
-        }
+    public void storeAccountMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
+        AbstractModel model = new AccountMarginModel();
         model.mergeIn(message);
+        this.store(model, ACCOUNT_MARGIN_HISTORY_COLLECTION, ACCOUNT_MARGIN_LATEST_COLLECTION, resultHandler);
+    }
+
+    @Override
+    public void storeLiquiGroupMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
+        AbstractModel model = new LiquiGroupMarginModel();
+        model.mergeIn(message);
+        this.store(model, LIQUI_GROUP_MARGIN_HISTORY_COLLECTION, LIQUI_GROUP_MARGIN_LATEST_COLLECTION, resultHandler);
+    }
+
+    @Override
+    public void storeLiquiGroupSplitMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
+        AbstractModel model = new LiquiGroupSplitMarginModel();
+        model.mergeIn(message);
+        this.store(model, LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION, LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION, resultHandler);
+    }
+
+    @Override
+    public void storePoolMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
+        AbstractModel model = new PoolMarginModel();
+        model.mergeIn(message);
+        this.store(model, POOL_MARGIN_HISTORY_COLLECTION, POOL_MARGIN_LATEST_COLLECTION, resultHandler);
+    }
+
+    @Override
+    public void storePositionReport(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
+        AbstractModel model = new PositionReportModel();
+        model.mergeIn(message);
+        this.store(model, POSITION_REPORT_HISTORY_COLLECTION, POSITION_REPORT_LATEST_COLLECTION, resultHandler);
+    }
+
+    @Override
+    public void storeRiskLimitUtilization(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
+        AbstractModel model = new RiskLimitUtilizationModel();
+        model.mergeIn(message);
+        this.store(model, RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, resultHandler);
+    }
+
+    private void store(AbstractModel model, String historyCollection, String latestCollection, Handler<AsyncResult<Void>> resultHandler) {
+        JsonObject latestQueryParams = MongoPersistenceService.getLatestQueryParams(model);
         List<Future> tasks = new ArrayList<>();
-        tasks.add(this.storeIntoHistoryCollection(model));
-        tasks.add(this.storeIntoLatestCollection(model));
+        tasks.add(this.storeIntoHistoryCollection(model, historyCollection));
+        tasks.add(this.storeIntoLatestCollection(model, latestCollection, latestQueryParams));
         CompositeFuture.all(tasks).setHandler(ar -> {
             if (ar.succeeded()) {
                 resultHandler.handle(Future.succeededFuture());
@@ -84,20 +114,39 @@ public class MongoPersistenceService implements PersistenceService {
         });
     }
 
-    private Future<String> storeIntoHistoryCollection(AbstractModel model) {
+    public static JsonObject getLatestQueryParams(AbstractModel model) {
+        JsonObject queryParams = new JsonObject();
+        model.getKeys().stream().forEach(key -> queryParams.put(key, model.getValue(key)));
+        return queryParams;
+    }
+
+    public static JsonObject getHistoryUniqueIndex(AbstractModel model) {
+        JsonObject uniqueIndex = new JsonObject();
+        uniqueIndex.put("snapshotID", 1);
+        uniqueIndex.mergeIn(MongoPersistenceService.getLatestUniqueIndex(model));
+        return uniqueIndex;
+    }
+
+    public static JsonObject getLatestUniqueIndex(AbstractModel model) {
+        JsonObject uniqueIndex = new JsonObject();
+        model.getKeys().stream().forEach(key -> uniqueIndex.put(key, 1));
+        return uniqueIndex;
+    }
+
+    private Future<String> storeIntoHistoryCollection(AbstractModel model, String collection) {
         JsonObject document = new JsonObject().mergeIn(model);
-        LOG.trace("Storing message into {} with body {}", model.getHistoryCollection(), document.encodePrettily());
+        LOG.trace("Storing message into {} with body {}", collection, document.encodePrettily());
         Future<String> result = Future.future();
-        mongo.insert(model.getHistoryCollection(), document, result.completer());
+        mongo.insert(collection, document, result.completer());
         return result;
     }
 
-    private Future<MongoClientUpdateResult> storeIntoLatestCollection(AbstractModel model) {
+    private Future<MongoClientUpdateResult> storeIntoLatestCollection(AbstractModel model, String collection, JsonObject queryParams) {
         JsonObject document = new JsonObject().mergeIn(model);
-        LOG.trace("Storing message into {} with body {}", model.getLatestCollection(), document.encodePrettily());
+        LOG.trace("Storing message into {} with body {}", collection, document.encodePrettily());
         Future<MongoClientUpdateResult> result = Future.future();
-        mongo.replaceDocumentsWithOptions(model.getLatestCollection(),
-                model.getLatestQueryParams(),
+        mongo.replaceDocumentsWithOptions(collection,
+                queryParams,
                 document,
                 new UpdateOptions().setUpsert(true),
                 result.completer());
@@ -121,18 +170,18 @@ public class MongoPersistenceService implements PersistenceService {
             if (res.succeeded()) {
                 List<String> mongoCollections = res.result();
                 List<String> neededCollections = new ArrayList<>(Arrays.asList(
-                        AccountMarginModel.MONGO_HISTORY_COLLECTION,
-                        AccountMarginModel.MONGO_LATEST_COLLECTION,
-                        LiquiGroupMarginModel.MONGO_HISTORY_COLLECTION,
-                        LiquiGroupMarginModel.MONGO_LATEST_COLLECTION,
-                        LiquiGroupSplitMarginModel.MONGO_HISTORY_COLLECTION,
-                        LiquiGroupSplitMarginModel.MONGO_LATEST_COLLECTION,
-                        PoolMarginModel.MONGO_HISTORY_COLLECTION,
-                        PoolMarginModel.MONGO_LATEST_COLLECTION,
-                        PositionReportModel.MONGO_HISTORY_COLLECTION,
-                        PositionReportModel.MONGO_LATEST_COLLECTION,
-                        RiskLimitUtilizationModel.MONGO_HISTORY_COLLECTION,
-                        RiskLimitUtilizationModel.MONGO_LATEST_COLLECTION
+                        ACCOUNT_MARGIN_HISTORY_COLLECTION,
+                        ACCOUNT_MARGIN_LATEST_COLLECTION,
+                        LIQUI_GROUP_MARGIN_HISTORY_COLLECTION,
+                        LIQUI_GROUP_MARGIN_LATEST_COLLECTION,
+                        LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION,
+                        LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION,
+                        POOL_MARGIN_HISTORY_COLLECTION,
+                        POOL_MARGIN_LATEST_COLLECTION,
+                        POSITION_REPORT_HISTORY_COLLECTION,
+                        POSITION_REPORT_LATEST_COLLECTION,
+                        RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION,
+                        RISK_LIMIT_UTILIZATION_LATEST_COLLECTION
                 ));
 
                 List<Future> futs = new ArrayList<>();
@@ -167,26 +216,26 @@ public class MongoPersistenceService implements PersistenceService {
     private Future<Void> createIndexes() {
         Future<Void> createIndexesFuture = Future.future();
 
-        List<AbstractModel> models = new ArrayList<>();
-        models.add(new AccountMarginModel());
-        models.add(new LiquiGroupMarginModel());
-        models.add(new LiquiGroupSplitMarginModel());
-        models.add(new PoolMarginModel());
-        models.add(new PositionReportModel());
-        models.add(new RiskLimitUtilizationModel());
-
         List<Future> futs = new ArrayList<>();
-        models.forEach(model -> {
+        BiConsumer<String, JsonObject> indexCheck = (collectionName, index) -> {
             IndexOptions indexOptions = new IndexOptions().name("unique_idx").unique(true);
-
             Future<Void> historyIndexFuture = Future.future();
-            mongo.createIndexWithOptions(model.getHistoryCollection(), model.getHistoryUniqueIndex(), indexOptions, historyIndexFuture.completer());
+            mongo.createIndexWithOptions(collectionName, index, indexOptions, historyIndexFuture.completer());
             futs.add(historyIndexFuture);
+        };
 
-            Future<Void> latestIndexFuture = Future.future();
-            mongo.createIndexWithOptions(model.getLatestCollection(), model.getLatestUniqueIndex(), indexOptions, latestIndexFuture.completer());
-            futs.add(latestIndexFuture);
-        });
+        indexCheck.accept(MongoPersistenceService.ACCOUNT_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new AccountMarginModel()));
+        indexCheck.accept(MongoPersistenceService.ACCOUNT_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new AccountMarginModel()));
+        indexCheck.accept(MongoPersistenceService.LIQUI_GROUP_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new LiquiGroupMarginModel()));
+        indexCheck.accept(MongoPersistenceService.LIQUI_GROUP_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new LiquiGroupMarginModel()));
+        indexCheck.accept(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new LiquiGroupSplitMarginModel()));
+        indexCheck.accept(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new LiquiGroupSplitMarginModel()));
+        indexCheck.accept(MongoPersistenceService.POOL_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new PoolMarginModel()));
+        indexCheck.accept(MongoPersistenceService.POOL_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new PoolMarginModel()));
+        indexCheck.accept(MongoPersistenceService.POSITION_REPORT_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new PositionReportModel()));
+        indexCheck.accept(MongoPersistenceService.POSITION_REPORT_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new PositionReportModel()));
+        indexCheck.accept(MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new RiskLimitUtilizationModel()));
+        indexCheck.accept(MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new RiskLimitUtilizationModel()));
 
         CompositeFuture.all(futs).setHandler(ar -> {
             if (ar.succeeded()) {

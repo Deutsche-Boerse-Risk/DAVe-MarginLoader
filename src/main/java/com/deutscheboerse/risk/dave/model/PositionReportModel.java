@@ -1,15 +1,15 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
-import io.vertx.core.json.JsonObject;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 public class PositionReportModel extends AbstractModel {
-    public static final String EB_STORE_ADDRESS = "PositionReportStore";
-    public static final String MONGO_HISTORY_COLLECTION = "PositionReport";
-    public static final String MONGO_LATEST_COLLECTION = "PositionReport.latest";
-
     public PositionReportModel() {
         super();
     }
@@ -93,48 +93,21 @@ public class PositionReportModel extends AbstractModel {
     }
 
     @Override
-    public String getHistoryCollection() {
-        return PositionReportModel.MONGO_HISTORY_COLLECTION;
-    }
-
-    @Override
-    public String getLatestCollection() {
-        return PositionReportModel.MONGO_LATEST_COLLECTION;
-    }
-
-    @Override
-    public JsonObject getLatestQueryParams() {
-        return new JsonObject()
-                .put("clearer", getString("clearer"))
-                .put("member", getString("member"))
-                .put("account", getString("account"))
-                .put("liquidationGroup", getString("liquidationGroup"))
-                .put("liquidationGroupSplit", getString("liquidationGroupSplit"))
-                .put("product", getString("product"))
-                .put("callPut", getString("callPut"))
-                .put("contractYear", getInteger("contractYear"))
-                .put("contractMonth", getInteger("contractMonth"))
-                .put("expiryDay", getInteger("expiryDay"))
-                .put("exercisePrice", getDouble("exercisePrice"))
-                .put("version", getString("version"))
-                .put("flexContractSymbol", getString("flexContractSymbol"));
-    }
-
-    @Override
-    public JsonObject getLatestUniqueIndex() {
-        return new JsonObject()
-                .put("clearer", 1)
-                .put("member", 1)
-                .put("account", 1)
-                .put("liquidationGroup", 1)
-                .put("liquidationGroupSplit", 1)
-                .put("product", 1)
-                .put("callPut", 1)
-                .put("contractYear", 1)
-                .put("contractMonth", 1)
-                .put("expiryDay", 1)
-                .put("exercisePrice", 1)
-                .put("version", 1)
-                .put("flexContractSymbol", 1);
+    public Collection<String> getKeys() {
+        List<String> keys = new ArrayList();
+        keys.add("clearer");
+        keys.add("member");
+        keys.add("account");
+        keys.add("liquidationGroup");
+        keys.add("liquidationGroupSplit");
+        keys.add("product");
+        keys.add("callPut");
+        keys.add("contractYear");
+        keys.add("contractMonth");
+        keys.add("expiryDay");
+        keys.add("exercisePrice");
+        keys.add("version");
+        keys.add("flexContractSymbol");
+        return Collections.unmodifiableCollection(keys);
     }
 }

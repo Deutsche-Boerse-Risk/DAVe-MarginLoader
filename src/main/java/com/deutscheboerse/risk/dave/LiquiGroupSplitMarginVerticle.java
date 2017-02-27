@@ -3,8 +3,6 @@ package com.deutscheboerse.risk.dave;
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
 import com.deutscheboerse.risk.dave.model.LiquiGroupSplitMarginModel;
-import com.deutscheboerse.risk.dave.model.ModelType;
-import com.deutscheboerse.risk.dave.model.PoolMarginModel;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -36,7 +34,7 @@ public class LiquiGroupSplitMarginVerticle extends AMQPVerticle {
                 PrismaReports.LiquiGroupSplitMargin liquiGroupSplitMarginData = gpbObject.getExtension(PrismaReports.liquiGroupSplitMargin);
                 try {
                     LiquiGroupSplitMarginModel liquiGroupSplitMarginModel = new LiquiGroupSplitMarginModel(header, liquiGroupSplitMarginData);
-                    this.persistenceService.store(liquiGroupSplitMarginModel, ModelType.LIQUI_GROUP_SPLIT_MARGIN_MODEL, ar -> {
+                    this.persistenceService.storeLiquiGroupSplitMargin(liquiGroupSplitMarginModel, ar -> {
                         if (ar.succeeded()) {
                             LOG.debug("Liqui Group Split Margin message processed");
                         } else {

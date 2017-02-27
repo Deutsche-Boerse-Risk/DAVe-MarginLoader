@@ -2,7 +2,6 @@ package com.deutscheboerse.risk.dave;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
-import com.deutscheboerse.risk.dave.model.ModelType;
 import com.deutscheboerse.risk.dave.model.RiskLimitUtilizationModel;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -35,7 +34,7 @@ public class RiskLimitUtilizationVerticle extends AMQPVerticle {
                 PrismaReports.RiskLimitUtilization data = gpbObject.getExtension(PrismaReports.riskLimitUtilization);
                 try {
                     RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(header, data);
-                    this.persistenceService.store(model, ModelType.RISK_LIMIT_UTILIZATION_MODEL, ar -> {
+                    this.persistenceService.storeRiskLimitUtilization(model, ar -> {
                         if (ar.succeeded()) {
                             LOG.debug("Risk Limit Utilization message processed");
                         } else {

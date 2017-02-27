@@ -1,6 +1,5 @@
 package com.deutscheboerse.risk.dave.persistence;
 
-import com.deutscheboerse.risk.dave.model.ModelType;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -15,7 +14,6 @@ public class CountdownPersistenceService implements PersistenceService {
 
     private final Vertx vertx;
     private Async async;
-    private boolean initialized = false;
     private JsonObject lastMessage;
 
     public CountdownPersistenceService(Vertx vertx, Async async) {
@@ -25,12 +23,40 @@ public class CountdownPersistenceService implements PersistenceService {
 
     @Override
     public void initialize(JsonObject config, Handler<AsyncResult<Void>> resultHandler) {
-        this.initialized = true;
         resultHandler.handle(Future.succeededFuture());
     }
 
     @Override
-    public void store(JsonObject message, ModelType modelType, Handler<AsyncResult<Void>> resultHandler) {
+    public void storeAccountMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(message, resultHandler);
+    }
+
+    @Override
+    public void storeLiquiGroupMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(message, resultHandler);
+    }
+
+    @Override
+    public void storeLiquiGroupSplitMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(message, resultHandler);
+    }
+
+    @Override
+    public void storePoolMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(message, resultHandler);
+    }
+
+    @Override
+    public void storePositionReport(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(message, resultHandler);
+    }
+
+    @Override
+    public void storeRiskLimitUtilization(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(message, resultHandler);
+    }
+
+    private void store(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
 
         // Store the message
         this.lastMessage = message;
@@ -43,9 +69,5 @@ public class CountdownPersistenceService implements PersistenceService {
 
     public JsonObject getLastMessage() {
         return this.lastMessage;
-    }
-
-    public boolean isInitialized() {
-        return this.initialized;
     }
 }

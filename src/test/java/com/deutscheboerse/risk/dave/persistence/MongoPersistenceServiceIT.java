@@ -56,16 +56,18 @@ public class MongoPersistenceServiceIT extends BaseTest {
     @Test
     public void checkCollectionsExist(TestContext context) {
         List<String> requiredCollections = new ArrayList<>();
-        requiredCollections.add(AccountMarginModel.MONGO_HISTORY_COLLECTION);
-        requiredCollections.add(AccountMarginModel.MONGO_LATEST_COLLECTION);
-        requiredCollections.add(LiquiGroupMarginModel.MONGO_HISTORY_COLLECTION);
-        requiredCollections.add(LiquiGroupMarginModel.MONGO_LATEST_COLLECTION);
-        requiredCollections.add(LiquiGroupSplitMarginModel.MONGO_HISTORY_COLLECTION);
-        requiredCollections.add(LiquiGroupSplitMarginModel.MONGO_LATEST_COLLECTION);
-        requiredCollections.add(PoolMarginModel.MONGO_HISTORY_COLLECTION);
-        requiredCollections.add(PoolMarginModel.MONGO_LATEST_COLLECTION);
-        requiredCollections.add(RiskLimitUtilizationModel.MONGO_HISTORY_COLLECTION);
-        requiredCollections.add(RiskLimitUtilizationModel.MONGO_LATEST_COLLECTION);
+        requiredCollections.add(MongoPersistenceService.ACCOUNT_MARGIN_HISTORY_COLLECTION);
+        requiredCollections.add(MongoPersistenceService.ACCOUNT_MARGIN_LATEST_COLLECTION);
+        requiredCollections.add(MongoPersistenceService.LIQUI_GROUP_MARGIN_HISTORY_COLLECTION);
+        requiredCollections.add(MongoPersistenceService.LIQUI_GROUP_MARGIN_LATEST_COLLECTION);
+        requiredCollections.add(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION);
+        requiredCollections.add(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION);
+        requiredCollections.add(MongoPersistenceService.POOL_MARGIN_HISTORY_COLLECTION);
+        requiredCollections.add(MongoPersistenceService.POOL_MARGIN_LATEST_COLLECTION);
+        requiredCollections.add(MongoPersistenceService.POSITION_REPORT_HISTORY_COLLECTION);
+        requiredCollections.add(MongoPersistenceService.POSITION_REPORT_LATEST_COLLECTION);
+        requiredCollections.add(MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION);
+        requiredCollections.add(MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION);
         final Async async = context.async();
         MongoPersistenceServiceIT.mongoClient.getCollections(ar -> {
             if (ar.succeeded()) {
@@ -83,15 +85,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
 
     @Test
     public void checkIndexesExist(TestContext context) {
-        List<MongoModel> requiredModels = new ArrayList<>();
-        requiredModels.add(new AccountMarginModel());
-        requiredModels.add(new LiquiGroupMarginModel());
-        requiredModels.add(new LiquiGroupSplitMarginModel());
-        requiredModels.add(new PoolMarginModel());
-        requiredModels.add(new PositionReportModel());
-        requiredModels.add(new RiskLimitUtilizationModel());
         // one index for history and one for latest collection in each model
-        final Async async = context.async(requiredModels.size() * 2);
+        final Async async = context.async(6 * 2);
         BiConsumer<String, JsonObject> indexCheck = (collectionName, expectedIndex) -> {
             MongoPersistenceServiceIT.mongoClient.listIndexes(collectionName, ar -> {
                 if (ar.succeeded()) {
@@ -111,11 +106,18 @@ public class MongoPersistenceServiceIT extends BaseTest {
                 }
             });
         };
-
-        requiredModels.forEach(model -> {
-            indexCheck.accept(model.getHistoryCollection(), model.getHistoryUniqueIndex());
-            indexCheck.accept(model.getLatestCollection(), model.getLatestUniqueIndex());
-        });
+        indexCheck.accept(MongoPersistenceService.ACCOUNT_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new AccountMarginModel()));
+        indexCheck.accept(MongoPersistenceService.ACCOUNT_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new AccountMarginModel()));
+        indexCheck.accept(MongoPersistenceService.LIQUI_GROUP_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new LiquiGroupMarginModel()));
+        indexCheck.accept(MongoPersistenceService.LIQUI_GROUP_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new LiquiGroupMarginModel()));
+        indexCheck.accept(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new LiquiGroupSplitMarginModel()));
+        indexCheck.accept(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new LiquiGroupSplitMarginModel()));
+        indexCheck.accept(MongoPersistenceService.POOL_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new PoolMarginModel()));
+        indexCheck.accept(MongoPersistenceService.POOL_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new PoolMarginModel()));
+        indexCheck.accept(MongoPersistenceService.POSITION_REPORT_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new PositionReportModel()));
+        indexCheck.accept(MongoPersistenceService.POSITION_REPORT_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new PositionReportModel()));
+        indexCheck.accept(MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new RiskLimitUtilizationModel()));
+        indexCheck.accept(MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new RiskLimitUtilizationModel()));
     }
 
     @Test
@@ -124,7 +126,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         readTTSaveFile("accountMargin", 1, (header, gpbObject) -> {
             PrismaReports.AccountMargin accountMarginData = gpbObject.getExtension(PrismaReports.accountMargin);
             AccountMarginModel accountMarginModel = new AccountMarginModel(header, accountMarginData);
-            persistenceProxy.store(accountMarginModel, ModelType.ACCOUNT_MARGIN_MODEL, ar -> {
+            persistenceProxy.storeAccountMargin(accountMarginModel, ar -> {
                 if (ar.succeeded()) {
                     asyncStore1.countDown();
                 } else {
@@ -138,7 +140,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         readTTSaveFile("accountMargin", 2, (header, gpbObject) -> {
             PrismaReports.AccountMargin accountMarginData = gpbObject.getExtension(PrismaReports.accountMargin);
             AccountMarginModel accountMarginModel = new AccountMarginModel(header, accountMarginData);
-            persistenceProxy.store(accountMarginModel, ModelType.ACCOUNT_MARGIN_MODEL, ar -> {
+            persistenceProxy.storeAccountMargin(accountMarginModel, ar -> {
                 if (ar.succeeded()) {
                     asyncStore2.countDown();
                 } else {
@@ -148,8 +150,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
         });
         asyncStore2.awaitSuccess(30000);
 
-        this.checkCountInCollection(context, AccountMarginModel.MONGO_HISTORY_COLLECTION, 3408);
-        this.checkCountInCollection(context, AccountMarginModel.MONGO_LATEST_COLLECTION, 1704);
+        this.checkCountInCollection(context, MongoPersistenceService.ACCOUNT_MARGIN_HISTORY_COLLECTION, 3408);
+        this.checkCountInCollection(context, MongoPersistenceService.ACCOUNT_MARGIN_LATEST_COLLECTION, 1704);
         this.checkAccountMarginHistoryCollectionQuery(context);
         this.checkAccountMarginLatestCollectionQuery(context);
     }
@@ -160,7 +162,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         readTTSaveFile("liquiGroupMargin", 1, (header, gpbObject) -> {
             PrismaReports.LiquiGroupMargin liquiGroupMarginData = gpbObject.getExtension(PrismaReports.liquiGroupMargin);
             LiquiGroupMarginModel liquiGroupMarginModel = new LiquiGroupMarginModel(header, liquiGroupMarginData);
-            persistenceProxy.store(liquiGroupMarginModel, ModelType.LIQUI_GROUP_MARGIN_MODEL, ar -> {
+            persistenceProxy.storeLiquiGroupMargin(liquiGroupMarginModel, ar -> {
                 if (ar.succeeded()) {
                     asyncStore1.countDown();
                 } else {
@@ -174,7 +176,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         readTTSaveFile("liquiGroupMargin", 2, (header, gpbObject) -> {
             PrismaReports.LiquiGroupMargin liquiGroupMarginData = gpbObject.getExtension(PrismaReports.liquiGroupMargin);
             LiquiGroupMarginModel liquiGroupMarginModel = new LiquiGroupMarginModel(header, liquiGroupMarginData);
-            persistenceProxy.store(liquiGroupMarginModel, ModelType.LIQUI_GROUP_MARGIN_MODEL, ar -> {
+            persistenceProxy.storeLiquiGroupMargin(liquiGroupMarginModel, ar -> {
                 if (ar.succeeded()) {
                     asyncStore2.countDown();
                 } else {
@@ -184,8 +186,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
         });
         asyncStore2.awaitSuccess(30000);
 
-        this.checkCountInCollection(context, LiquiGroupMarginModel.MONGO_HISTORY_COLLECTION, 4342);
-        this.checkCountInCollection(context, LiquiGroupMarginModel.MONGO_LATEST_COLLECTION, 2171);
+        this.checkCountInCollection(context, MongoPersistenceService.LIQUI_GROUP_MARGIN_HISTORY_COLLECTION, 4342);
+        this.checkCountInCollection(context, MongoPersistenceService.LIQUI_GROUP_MARGIN_LATEST_COLLECTION, 2171);
         this.checkLiquiGroupMarginHistoryCollectionQuery(context);
         this.checkLiquiGroupMarginLatestCollectionQuery(context);
     }
@@ -196,7 +198,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         readTTSaveFile("liquiGroupSplitMargin", 1, (header, gpbObject) -> {
             PrismaReports.LiquiGroupSplitMargin liquiGroupSplitMarginData = gpbObject.getExtension(PrismaReports.liquiGroupSplitMargin);
             LiquiGroupSplitMarginModel liquiGroupSplitMarginModel = new LiquiGroupSplitMarginModel(header, liquiGroupSplitMarginData);
-            persistenceProxy.store(liquiGroupSplitMarginModel, ModelType.LIQUI_GROUP_SPLIT_MARGIN_MODEL, ar -> {
+            persistenceProxy.storeLiquiGroupSplitMargin(liquiGroupSplitMarginModel, ar -> {
                 if (ar.succeeded()) {
                     asyncStore1.countDown();
                 } else {
@@ -210,7 +212,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         readTTSaveFile("liquiGroupSplitMargin", 2, (header, gpbObject) -> {
             PrismaReports.LiquiGroupSplitMargin liquiGroupSplitMarginData = gpbObject.getExtension(PrismaReports.liquiGroupSplitMargin);
             LiquiGroupSplitMarginModel liquiGroupSplitMarginModel = new LiquiGroupSplitMarginModel(header, liquiGroupSplitMarginData);
-            persistenceProxy.store(liquiGroupSplitMarginModel, ModelType.LIQUI_GROUP_SPLIT_MARGIN_MODEL, ar -> {
+            persistenceProxy.storeLiquiGroupSplitMargin(liquiGroupSplitMarginModel, ar -> {
                 if (ar.succeeded()) {
                     asyncStore2.countDown();
                 } else {
@@ -220,8 +222,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
         });
         asyncStore2.awaitSuccess(30000);
 
-        this.checkCountInCollection(context, LiquiGroupSplitMarginModel.MONGO_HISTORY_COLLECTION, 4944);
-        this.checkCountInCollection(context, LiquiGroupSplitMarginModel.MONGO_LATEST_COLLECTION, 2472);
+        this.checkCountInCollection(context, MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION, 4944);
+        this.checkCountInCollection(context, MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION, 2472);
         this.checkLiquiGroupSplitMarginHistoryCollectionQuery(context);
         this.checkLiquiGroupSplitMarginLatestCollectionQuery(context);
     }
@@ -232,7 +234,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         readTTSaveFile("poolMargin", 1, (header, gpbObject) -> {
             PrismaReports.PoolMargin poolMarginData = gpbObject.getExtension(PrismaReports.poolMargin);
             PoolMarginModel poolMarginModel = new PoolMarginModel(header, poolMarginData);
-            persistenceProxy.store(poolMarginModel, ModelType.POOL_MARGIN_MODEL, ar -> {
+            persistenceProxy.storePoolMargin(poolMarginModel, ar -> {
                 if (ar.succeeded()) {
                     asyncFirstSnapshotStore.countDown();
                 } else {
@@ -245,7 +247,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         readTTSaveFile("poolMargin", 2, (header, gpbObject) -> {
             PrismaReports.PoolMargin poolMarginData = gpbObject.getExtension(PrismaReports.poolMargin);
             PoolMarginModel poolMarginModel = new PoolMarginModel(header, poolMarginData);
-            persistenceProxy.store(poolMarginModel, ModelType.POOL_MARGIN_MODEL, ar -> {
+            persistenceProxy.storePoolMargin(poolMarginModel, ar -> {
                 if (ar.succeeded()) {
                     asyncSecondSnapshotStore.countDown();
                 } else {
@@ -254,8 +256,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
             });
         });
         asyncSecondSnapshotStore.awaitSuccess(30000);
-        this.checkCountInCollection(context, PoolMarginModel.MONGO_HISTORY_COLLECTION, 540);
-        this.checkCountInCollection(context, PoolMarginModel.MONGO_LATEST_COLLECTION, 270);
+        this.checkCountInCollection(context, MongoPersistenceService.POOL_MARGIN_HISTORY_COLLECTION, 540);
+        this.checkCountInCollection(context, MongoPersistenceService.POOL_MARGIN_LATEST_COLLECTION, 270);
         this.checkPoolMarginHistoryCollectionQuery(context);
         this.checkPoolMarginLatestCollectionQuery(context);
     }
@@ -266,7 +268,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         readTTSaveFile("positionReport", 1, (header, gpbObject) -> {
             PrismaReports.PositionReport positionReportData = gpbObject.getExtension(PrismaReports.positionReport);
             PositionReportModel positionReportModel = new PositionReportModel(header, positionReportData);
-            persistenceProxy.store(positionReportModel, ModelType.POSITION_REPORT_MODEL, ar -> {
+            persistenceProxy.storePositionReport(positionReportModel, ar -> {
                 if (ar.succeeded()) {
                     asyncFirstSnapshotStore.countDown();
                 } else {
@@ -279,7 +281,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         readTTSaveFile("positionReport", 2, (header, gpbObject) -> {
             PrismaReports.PositionReport positionReportData = gpbObject.getExtension(PrismaReports.positionReport);
             PositionReportModel positionReportModel = new PositionReportModel(header, positionReportData);
-            persistenceProxy.store(positionReportModel, ModelType.POSITION_REPORT_MODEL, ar -> {
+            persistenceProxy.storePositionReport(positionReportModel, ar -> {
                 if (ar.succeeded()) {
                     asyncSecondSnapshotStore.countDown();
                 } else {
@@ -288,8 +290,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
             });
         });
         asyncSecondSnapshotStore.awaitSuccess(30000);
-        this.checkCountInCollection(context, PositionReportModel.MONGO_HISTORY_COLLECTION, 7192);
-        this.checkCountInCollection(context, PositionReportModel.MONGO_LATEST_COLLECTION, 3596);
+        this.checkCountInCollection(context, MongoPersistenceService.POSITION_REPORT_HISTORY_COLLECTION, 7192);
+        this.checkCountInCollection(context, MongoPersistenceService.POSITION_REPORT_LATEST_COLLECTION, 3596);
         this.checkPositionReportHistoryCollectionQuery(context);
         this.checkPositionReportLatestCollectionQuery(context);
     }
@@ -300,7 +302,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         readTTSaveFile("riskLimitUtilization", 1, (header, gpbObject) -> {
             PrismaReports.RiskLimitUtilization data = gpbObject.getExtension(PrismaReports.riskLimitUtilization);
             RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(header, data);
-            persistenceProxy.store(model, ModelType.RISK_LIMIT_UTILIZATION_MODEL, ar -> {
+            persistenceProxy.storeRiskLimitUtilization(model, ar -> {
                 if (ar.succeeded()) {
                     asyncFirstSnapshotStore.countDown();
                 } else {
@@ -313,7 +315,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         readTTSaveFile("riskLimitUtilization", 2, (header, gpbObject) -> {
             PrismaReports.RiskLimitUtilization date = gpbObject.getExtension(PrismaReports.riskLimitUtilization);
             RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(header, date);
-            persistenceProxy.store(model, ModelType.RISK_LIMIT_UTILIZATION_MODEL, ar -> {
+            persistenceProxy.storeRiskLimitUtilization(model, ar -> {
                 if (ar.succeeded()) {
                     asyncSecondSnapshotStore.countDown();
                 } else {
@@ -322,8 +324,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
             });
         });
         asyncSecondSnapshotStore.awaitSuccess(30000);
-        this.checkCountInCollection(context, RiskLimitUtilizationModel.MONGO_HISTORY_COLLECTION, 12);
-        this.checkCountInCollection(context, RiskLimitUtilizationModel.MONGO_LATEST_COLLECTION, 6);
+        this.checkCountInCollection(context, MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, 12);
+        this.checkCountInCollection(context, MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, 6);
         this.checkRiskLimitUtilizationHistoryCollectionQuery(context);
         this.checkRiskLimitUtilizationLatestCollectionQuery(context);
     }
@@ -376,7 +378,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         param.put("marginCurrency", "EUR");
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceIT.mongoClient.find(AccountMarginModel.MONGO_HISTORY_COLLECTION, param, ar -> {
+        MongoPersistenceServiceIT.mongoClient.find(MongoPersistenceService.ACCOUNT_MARGIN_HISTORY_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
                 JsonObject result = ar.result().get(0);
@@ -419,7 +421,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         param.put("marginCurrency", "EUR");
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceIT.mongoClient.find(AccountMarginModel.MONGO_LATEST_COLLECTION, param, ar -> {
+        MongoPersistenceServiceIT.mongoClient.find(MongoPersistenceService.ACCOUNT_MARGIN_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
                 JsonObject result = ar.result().get(0);
@@ -467,7 +469,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
                 .setSort(new JsonObject().put("snapshotID", 1));
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceIT.mongoClient.findWithOptions(LiquiGroupMarginModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
+        MongoPersistenceServiceIT.mongoClient.findWithOptions(MongoPersistenceService.LIQUI_GROUP_MARGIN_HISTORY_COLLECTION, param, findOptions, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
                 JsonObject result = ar.result().get(0);
@@ -514,7 +516,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         param.put("marginCurrency", "EUR");
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceIT.mongoClient.find(LiquiGroupMarginModel.MONGO_LATEST_COLLECTION, param, ar -> {
+        MongoPersistenceServiceIT.mongoClient.find(MongoPersistenceService.LIQUI_GROUP_MARGIN_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
                 JsonObject result = ar.result().get(0);
@@ -566,7 +568,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
                 .setSort(new JsonObject().put("snapshotID", 1));
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceIT.mongoClient.findWithOptions(LiquiGroupSplitMarginModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
+        MongoPersistenceServiceIT.mongoClient.findWithOptions(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION, param, findOptions, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
                 JsonObject result = ar.result().get(0);
@@ -615,7 +617,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
 
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceIT.mongoClient.find(LiquiGroupSplitMarginModel.MONGO_LATEST_COLLECTION, param, ar -> {
+        MongoPersistenceServiceIT.mongoClient.find(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
                 JsonObject result = ar.result().get(0);
@@ -659,7 +661,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
                 .setSort(new JsonObject().put("snapshotID", 1));
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceIT.mongoClient.findWithOptions(PoolMarginModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
+        MongoPersistenceServiceIT.mongoClient.findWithOptions(MongoPersistenceService.POOL_MARGIN_HISTORY_COLLECTION, param, findOptions, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
                 JsonObject result1 = ar.result().get(0);
@@ -702,7 +704,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
                 .put("marginCurrency", "CHF");
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceIT.mongoClient.find(PoolMarginModel.MONGO_LATEST_COLLECTION, param, ar -> {
+        MongoPersistenceServiceIT.mongoClient.find(MongoPersistenceService.POOL_MARGIN_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
                 JsonObject result1 = ar.result().get(0);
@@ -768,7 +770,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
                 .setSort(new JsonObject().put("snapshotID", 1));
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceIT.mongoClient.findWithOptions(PositionReportModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
+        MongoPersistenceServiceIT.mongoClient.findWithOptions(MongoPersistenceService.POSITION_REPORT_HISTORY_COLLECTION, param, findOptions, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
                 JsonObject result1 = ar.result().get(0);
@@ -851,7 +853,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
                 .put("flexContractSymbol", "");
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceIT.mongoClient.find(PositionReportModel.MONGO_LATEST_COLLECTION, param, ar -> {
+        MongoPersistenceServiceIT.mongoClient.find(MongoPersistenceService.POSITION_REPORT_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
                 JsonObject result1 = ar.result().get(0);
@@ -919,7 +921,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
                 .setSort(new JsonObject().put("snapshotID", 1));
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceIT.mongoClient.findWithOptions(RiskLimitUtilizationModel.MONGO_HISTORY_COLLECTION, param, findOptions, ar -> {
+        MongoPersistenceServiceIT.mongoClient.findWithOptions(MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, param, findOptions, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
                 JsonObject result1 = ar.result().get(0);
@@ -961,7 +963,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
                 .put("limitType", "TMR");
 
         Async asyncQuery = context.async();
-        MongoPersistenceServiceIT.mongoClient.find(RiskLimitUtilizationModel.MONGO_LATEST_COLLECTION, param, ar -> {
+        MongoPersistenceServiceIT.mongoClient.find(MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
                 JsonObject result1 = ar.result().get(0);

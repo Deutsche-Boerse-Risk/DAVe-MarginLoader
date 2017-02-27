@@ -1,14 +1,15 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
-import io.vertx.core.json.JsonObject;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 public class PoolMarginModel extends AbstractModel {
-    public static final String MONGO_HISTORY_COLLECTION = "PoolMargin";
-    public static final String MONGO_LATEST_COLLECTION = "PoolMargin.latest";
-
     public PoolMarginModel() {
         super();
     }
@@ -52,28 +53,11 @@ public class PoolMarginModel extends AbstractModel {
     }
 
     @Override
-    public String getHistoryCollection() {
-        return PoolMarginModel.MONGO_HISTORY_COLLECTION;
-    }
-
-    @Override
-    public String getLatestCollection() {
-        return PoolMarginModel.MONGO_LATEST_COLLECTION;
-    }
-
-    @Override
-    public JsonObject getLatestQueryParams() {
-        return new JsonObject()
-            .put("clearer", getString("clearer"))
-            .put("pool", getString("pool"))
-            .put("marginCurrency", getString("marginCurrency"));
-    }
-
-    @Override
-    public JsonObject getLatestUniqueIndex() {
-        return new JsonObject()
-                .put("clearer", 1)
-                .put("pool", 1)
-                .put("marginCurrency", 1);
+    public Collection<String> getKeys() {
+        List<String> keys = new ArrayList();
+        keys.add("clearer");
+        keys.add("pool");
+        keys.add("marginCurrency");
+        return Collections.unmodifiableCollection(keys);
     }
 }

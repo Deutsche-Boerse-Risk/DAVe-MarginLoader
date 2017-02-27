@@ -7,10 +7,11 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-public abstract class AbstractModel extends JsonObject implements MongoModel {
+public abstract class AbstractModel extends JsonObject {
 
     public AbstractModel() {
     }
@@ -30,9 +31,5 @@ public abstract class AbstractModel extends JsonObject implements MongoModel {
         checkArgument(header.hasTimestamp(), "Missing timestamp in header in AMQP data");
     }
 
-    @Override
-    public JsonObject getHistoryUniqueIndex() {
-        return new JsonObject().put("snapshotID", 1).mergeIn(getLatestUniqueIndex());
-    }
-
+    public abstract Collection<String> getKeys();
 }
