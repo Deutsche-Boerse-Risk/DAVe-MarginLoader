@@ -22,7 +22,7 @@ public class ErrorPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void initialize(Handler<AsyncResult<Void>> resultHandler) {
+    public void initialize(JsonObject config, Handler<AsyncResult<Void>> resultHandler) {
         resultHandler.handle(Future.succeededFuture());
     }
 

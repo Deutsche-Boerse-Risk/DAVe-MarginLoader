@@ -17,6 +17,7 @@
         <vertx.version>3.4.0-SNAPSHOT</vertx.version>
         <junit.version>4.12</junit.version>
         <guava.version>21.0</guava.version>
+        <vertx.guice.version>2.3.1</vertx.guice.version>
         <protobuf.maven.plugin.version>0.5.0</protobuf.maven.plugin.version>
         <os.maven.plugin.version>1.5.0.Final</os.maven.plugin.version>
         <assembly.maven.plugin.version>2.6</assembly.maven.plugin.version>
@@ -372,6 +373,11 @@
             <groupId>io.vertx</groupId>
             <artifactId>vertx-service-proxy</artifactId>
             <version>${vertx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.englishtown.vertx</groupId>
+            <artifactId>vertx-guice</artifactId>
+            <version>${vertx.guice.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
