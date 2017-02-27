@@ -46,7 +46,7 @@ public class AccountMarginVerticle extends AMQPVerticle {
                     LOG.error("Unable to create Account Margin Model from GPB data", ex);
                 }
             } else {
-                LOG.error("Unknown extension (should be {})", PrismaReports.accountMargin);
+                LOG.error("Unknown extension (should be {})", PrismaReports.accountMargin.getDescriptor().getName());
             }
         });
     }

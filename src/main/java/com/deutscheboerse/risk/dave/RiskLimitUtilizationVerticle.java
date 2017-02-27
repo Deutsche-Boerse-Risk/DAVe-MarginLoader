@@ -46,7 +46,7 @@ public class RiskLimitUtilizationVerticle extends AMQPVerticle {
                     LOG.error("Unable to create Risk Limit Utilization Model from GPB data", ex);
                 }
             } else {
-                LOG.error("Unknown extension (should be {})", PrismaReports.riskLimitUtilization);
+                LOG.error("Unknown extension (should be {})", PrismaReports.riskLimitUtilization.getDescriptor().getName());
             }
         });
     }
