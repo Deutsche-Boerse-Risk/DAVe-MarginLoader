@@ -9,9 +9,21 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import io.vertx.codegen.annotations.DataObject;
+import io.vertx.core.json.JsonObject;
+
+@DataObject
 public class AccountMarginModel extends AbstractModel {
     public AccountMarginModel() {
         super();
+    }
+
+    public AccountMarginModel(JsonObject json) {
+        this.mergeIn(json);
+    }
+
+    public AccountMarginModel(AccountMarginModel other) {
+        this.mergeIn(other);
     }
 
     public AccountMarginModel(PrismaReports.PrismaHeader header, PrismaReports.AccountMargin data) {

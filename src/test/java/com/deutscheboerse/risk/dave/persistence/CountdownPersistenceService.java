@@ -1,5 +1,11 @@
 package com.deutscheboerse.risk.dave.persistence;
 
+import com.deutscheboerse.risk.dave.model.AccountMarginModel;
+import com.deutscheboerse.risk.dave.model.LiquiGroupMarginModel;
+import com.deutscheboerse.risk.dave.model.LiquiGroupSplitMarginModel;
+import com.deutscheboerse.risk.dave.model.PoolMarginModel;
+import com.deutscheboerse.risk.dave.model.PositionReportModel;
+import com.deutscheboerse.risk.dave.model.RiskLimitUtilizationModel;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -13,7 +19,7 @@ public class CountdownPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(CountdownPersistenceService.class);
 
     private final Vertx vertx;
-    private Async async;
+    private final Async async;
     private JsonObject lastMessage;
 
     public CountdownPersistenceService(Vertx vertx, Async async) {
@@ -27,33 +33,33 @@ public class CountdownPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void storeAccountMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
-        this.store(message, resultHandler);
+    public void storeAccountMargin(AccountMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(model, resultHandler);
     }
 
     @Override
-    public void storeLiquiGroupMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
-        this.store(message, resultHandler);
+    public void storeLiquiGroupMargin(LiquiGroupMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(model, resultHandler);
     }
 
     @Override
-    public void storeLiquiGroupSplitMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
-        this.store(message, resultHandler);
+    public void storeLiquiGroupSplitMargin(LiquiGroupSplitMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(model, resultHandler);
     }
 
     @Override
-    public void storePoolMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
-        this.store(message, resultHandler);
+    public void storePoolMargin(PoolMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(model, resultHandler);
     }
 
     @Override
-    public void storePositionReport(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
-        this.store(message, resultHandler);
+    public void storePositionReport(PositionReportModel model, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(model, resultHandler);
     }
 
     @Override
-    public void storeRiskLimitUtilization(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
-        this.store(message, resultHandler);
+    public void storeRiskLimitUtilization(RiskLimitUtilizationModel model, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(model, resultHandler);
     }
 
     private void store(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {

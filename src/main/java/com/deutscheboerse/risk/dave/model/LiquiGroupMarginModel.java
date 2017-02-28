@@ -9,9 +9,21 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import io.vertx.codegen.annotations.DataObject;
+import io.vertx.core.json.JsonObject;
+
+@DataObject
 public class LiquiGroupMarginModel extends AbstractModel {
     public LiquiGroupMarginModel() {
         super();
+    }
+
+    public LiquiGroupMarginModel(JsonObject json) {
+        this.mergeIn(json);
+    }
+
+    public LiquiGroupMarginModel(LiquiGroupMarginModel other) {
+        this.mergeIn(other);
     }
 
     public LiquiGroupMarginModel(PrismaReports.PrismaHeader header, PrismaReports.LiquiGroupMargin data) {

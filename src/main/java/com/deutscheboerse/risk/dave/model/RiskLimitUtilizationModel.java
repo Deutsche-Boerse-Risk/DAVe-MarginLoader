@@ -9,9 +9,21 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import io.vertx.codegen.annotations.DataObject;
+import io.vertx.core.json.JsonObject;
+
+@DataObject
 public class RiskLimitUtilizationModel extends AbstractModel {
     public RiskLimitUtilizationModel() {
         super();
+    }
+
+    public RiskLimitUtilizationModel(JsonObject json) {
+        this.mergeIn(json);
+    }
+
+    public RiskLimitUtilizationModel(RiskLimitUtilizationModel other) {
+        this.mergeIn(other);
     }
 
     public RiskLimitUtilizationModel(PrismaReports.PrismaHeader header, PrismaReports.RiskLimitUtilization data) {

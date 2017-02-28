@@ -16,11 +16,14 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.serviceproxy.ProxyHelper;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
+
+import com.deutscheboerse.risk.dave.model.RiskLimitUtilizationModel;
 
 @RunWith(VertxUnitRunner.class)
 public class RiskLimitUtilizationVerticleIT extends BaseTest {
@@ -57,10 +60,10 @@ public class RiskLimitUtilizationVerticleIT extends BaseTest {
         vertx.deployVerticle(RiskLimitUtilizationVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         async.awaitSuccess(30000);
 
-        JsonObject expected = new JsonObject()
+        RiskLimitUtilizationModel expected = new RiskLimitUtilizationModel(new JsonObject()
                 .put("snapshotID", 15)
                 .put("businessDate", 20091215)
-                .put("timestamp", new JsonObject().put("$date", "2017-02-21T11:43:34.791Z"))
+                .put("timestamp", 1487677414791L)
                 .put("clearer", "FULCC")
                 .put("member", "MALFR")
                 .put("maintainer", "FULCC")
@@ -68,7 +71,7 @@ public class RiskLimitUtilizationVerticleIT extends BaseTest {
                 .put("utilization", 8.630965788947277E9)
                 .put("warningLevel", 0.0)
                 .put("throttleLevel", 0.0)
-                .put("rejectLevel", 1010000.0);
+                .put("rejectLevel", 1010000.0));
 
         context.assertEquals(expected, persistenceService.getLastMessage());
 

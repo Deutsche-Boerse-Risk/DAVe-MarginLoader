@@ -9,9 +9,21 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import io.vertx.codegen.annotations.DataObject;
+import io.vertx.core.json.JsonObject;
+
+@DataObject
 public class PositionReportModel extends AbstractModel {
     public PositionReportModel() {
         super();
+    }
+
+    public PositionReportModel(JsonObject json) {
+        this.mergeIn(json);
+    }
+
+    public PositionReportModel(PositionReportModel other) {
+        this.mergeIn(other);
     }
 
     public PositionReportModel(PrismaReports.PrismaHeader header, PrismaReports.PositionReport data) {

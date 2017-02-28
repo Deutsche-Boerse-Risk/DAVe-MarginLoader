@@ -16,11 +16,14 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.serviceproxy.ProxyHelper;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
+
+import com.deutscheboerse.risk.dave.model.LiquiGroupSplitMarginModel;
 
 @RunWith(VertxUnitRunner.class)
 public class LiquiGroupSplitMarginVerticleIT  extends BaseTest {
@@ -57,10 +60,10 @@ public class LiquiGroupSplitMarginVerticleIT  extends BaseTest {
         vertx.deployVerticle(LiquiGroupSplitMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         async.awaitSuccess(30000);
 
-        JsonObject expected = new JsonObject()
+        LiquiGroupSplitMarginModel expected = new LiquiGroupSplitMarginModel(new JsonObject()
                 .put("snapshotID", 15)
                 .put("businessDate", 20091215)
-                .put("timestamp", new JsonObject().put("$date", "2017-02-21T11:43:34.791Z"))
+                .put("timestamp", 1487677414791L)
                 .put("clearer", "USJPM")
                 .put("member", "USJPM")
                 .put("account", "PP")
@@ -71,7 +74,7 @@ public class LiquiGroupSplitMarginVerticleIT  extends BaseTest {
                 .put("marketRisk", 2.7548216040760565E8)
                 .put("liquRisk", 3.690967426538666E7)
                 .put("longOptionCredit", 0.0)
-                .put("variationPremiumPayment", 4.86621581017E8);
+                .put("variationPremiumPayment", 4.86621581017E8));
         context.assertEquals(expected, persistenceService.getLastMessage());
 
         ProxyHelper.unregisterService(serviceMessageConsumer);

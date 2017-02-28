@@ -1,5 +1,11 @@
 package com.deutscheboerse.risk.dave.persistence;
 
+import com.deutscheboerse.risk.dave.model.AccountMarginModel;
+import com.deutscheboerse.risk.dave.model.LiquiGroupMarginModel;
+import com.deutscheboerse.risk.dave.model.LiquiGroupSplitMarginModel;
+import com.deutscheboerse.risk.dave.model.PoolMarginModel;
+import com.deutscheboerse.risk.dave.model.PositionReportModel;
+import com.deutscheboerse.risk.dave.model.RiskLimitUtilizationModel;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -14,10 +20,10 @@ public interface PersistenceService {
 
     void initialize(JsonObject config, Handler<AsyncResult<Void>> resultHandler);
 
-    void storeAccountMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler);
-    void storeLiquiGroupMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler);
-    void storeLiquiGroupSplitMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler);
-    void storePoolMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler);
-    void storePositionReport(JsonObject message, Handler<AsyncResult<Void>> resultHandler);
-    void storeRiskLimitUtilization(JsonObject message, Handler<AsyncResult<Void>> resultHandler);
+    void storeAccountMargin(AccountMarginModel model, Handler<AsyncResult<Void>> resultHandler);
+    void storeLiquiGroupMargin(LiquiGroupMarginModel model, Handler<AsyncResult<Void>> resultHandler);
+    void storeLiquiGroupSplitMargin(LiquiGroupSplitMarginModel model, Handler<AsyncResult<Void>> resultHandler);
+    void storePoolMargin(PoolMarginModel model, Handler<AsyncResult<Void>> resultHandler);
+    void storePositionReport(PositionReportModel model, Handler<AsyncResult<Void>> resultHandler);
+    void storeRiskLimitUtilization(RiskLimitUtilizationModel model, Handler<AsyncResult<Void>> resultHandler);
 }

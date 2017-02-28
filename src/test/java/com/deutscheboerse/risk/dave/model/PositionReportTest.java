@@ -56,7 +56,7 @@ public class PositionReportTest {
         JsonObject expected = new JsonObject()
                 .put("snapshotID", 16)
                 .put("businessDate", 20091215)
-                .put("timestamp", new JsonObject().put("$date", "2017-02-21T11:44:56.396Z"))
+                .put("timestamp", 1487677496396L)
                 .put("clearer", "BERFR")
                 .put("member", "BERFR")
                 .put("account", "PP")
@@ -89,6 +89,6 @@ public class PositionReportTest {
                 .put("normalizedTheta", 0.0004722838437817084)
                 .put("underlying", "ALV");
 
-        Assert.assertEquals(expected, new JsonObject(positionReport.getMap()));
+        Assert.assertEquals(expected, positionReport.toJson());
     }
 }

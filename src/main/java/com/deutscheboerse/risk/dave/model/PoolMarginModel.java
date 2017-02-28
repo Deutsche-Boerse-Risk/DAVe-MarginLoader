@@ -9,9 +9,21 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import io.vertx.codegen.annotations.DataObject;
+import io.vertx.core.json.JsonObject;
+
+@DataObject
 public class PoolMarginModel extends AbstractModel {
     public PoolMarginModel() {
         super();
+    }
+
+    public PoolMarginModel(JsonObject json) {
+        this.mergeIn(json);
+    }
+
+    public PoolMarginModel(PoolMarginModel other) {
+        this.mergeIn(other);
     }
 
     public PoolMarginModel(PrismaReports.PrismaHeader header, PrismaReports.PoolMargin data) {

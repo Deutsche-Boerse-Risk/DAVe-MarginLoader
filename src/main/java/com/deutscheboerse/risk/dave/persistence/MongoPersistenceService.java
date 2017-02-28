@@ -1,5 +1,10 @@
 package com.deutscheboerse.risk.dave.persistence;
 
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
 import com.deutscheboerse.risk.dave.model.*;
 import io.vertx.core.*;
 import io.vertx.core.json.JsonObject;
@@ -12,6 +17,7 @@ import io.vertx.ext.mongo.UpdateOptions;
 import io.vertx.serviceproxy.ServiceException;
 
 import javax.inject.Inject;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -59,44 +65,32 @@ public class MongoPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void storeAccountMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
-        AbstractModel model = new AccountMarginModel();
-        model.mergeIn(message);
+    public void storeAccountMargin(AccountMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
         this.store(model, ACCOUNT_MARGIN_HISTORY_COLLECTION, ACCOUNT_MARGIN_LATEST_COLLECTION, resultHandler);
     }
 
     @Override
-    public void storeLiquiGroupMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
-        AbstractModel model = new LiquiGroupMarginModel();
-        model.mergeIn(message);
+    public void storeLiquiGroupMargin(LiquiGroupMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
         this.store(model, LIQUI_GROUP_MARGIN_HISTORY_COLLECTION, LIQUI_GROUP_MARGIN_LATEST_COLLECTION, resultHandler);
     }
 
     @Override
-    public void storeLiquiGroupSplitMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
-        AbstractModel model = new LiquiGroupSplitMarginModel();
-        model.mergeIn(message);
+    public void storeLiquiGroupSplitMargin(LiquiGroupSplitMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
         this.store(model, LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION, LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION, resultHandler);
     }
 
     @Override
-    public void storePoolMargin(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
-        AbstractModel model = new PoolMarginModel();
-        model.mergeIn(message);
+    public void storePoolMargin(PoolMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
         this.store(model, POOL_MARGIN_HISTORY_COLLECTION, POOL_MARGIN_LATEST_COLLECTION, resultHandler);
     }
 
     @Override
-    public void storePositionReport(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
-        AbstractModel model = new PositionReportModel();
-        model.mergeIn(message);
+    public void storePositionReport(PositionReportModel model, Handler<AsyncResult<Void>> resultHandler) {
         this.store(model, POSITION_REPORT_HISTORY_COLLECTION, POSITION_REPORT_LATEST_COLLECTION, resultHandler);
     }
 
     @Override
-    public void storeRiskLimitUtilization(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
-        AbstractModel model = new RiskLimitUtilizationModel();
-        model.mergeIn(message);
+    public void storeRiskLimitUtilization(RiskLimitUtilizationModel model, Handler<AsyncResult<Void>> resultHandler) {
         this.store(model, RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, resultHandler);
     }
 
@@ -133,8 +127,15 @@ public class MongoPersistenceService implements PersistenceService {
         return uniqueIndex;
     }
 
-    private Future<String> storeIntoHistoryCollection(AbstractModel model, String collection) {
+    public static JsonObject getStoreDocument(AbstractModel model) {
         JsonObject document = new JsonObject().mergeIn(model);
+        Instant instant = Instant.ofEpochMilli(document.getLong("timestamp"));
+        document.put("timestamp", new JsonObject().put("$date", ZonedDateTime.ofInstant(instant, ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+        return document;
+    }
+
+    private Future<String> storeIntoHistoryCollection(AbstractModel model, String collection) {
+        JsonObject document = MongoPersistenceService.getStoreDocument(model);
         LOG.trace("Storing message into {} with body {}", collection, document.encodePrettily());
         Future<String> result = Future.future();
         mongo.insert(collection, document, result.completer());
@@ -142,7 +143,7 @@ public class MongoPersistenceService implements PersistenceService {
     }
 
     private Future<MongoClientUpdateResult> storeIntoLatestCollection(AbstractModel model, String collection, JsonObject queryParams) {
-        JsonObject document = new JsonObject().mergeIn(model);
+        JsonObject document = MongoPersistenceService.getStoreDocument(model);
         LOG.trace("Storing message into {} with body {}", collection, document.encodePrettily());
         Future<MongoClientUpdateResult> result = Future.future();
         mongo.replaceDocumentsWithOptions(collection,
