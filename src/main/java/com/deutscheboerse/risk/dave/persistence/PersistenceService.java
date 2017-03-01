@@ -6,6 +6,7 @@ import com.deutscheboerse.risk.dave.model.LiquiGroupSplitMarginModel;
 import com.deutscheboerse.risk.dave.model.PoolMarginModel;
 import com.deutscheboerse.risk.dave.model.PositionReportModel;
 import com.deutscheboerse.risk.dave.model.RiskLimitUtilizationModel;
+import io.vertx.codegen.annotations.ProxyClose;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -26,4 +27,7 @@ public interface PersistenceService {
     void storePoolMargin(PoolMarginModel model, Handler<AsyncResult<Void>> resultHandler);
     void storePositionReport(PositionReportModel model, Handler<AsyncResult<Void>> resultHandler);
     void storeRiskLimitUtilization(RiskLimitUtilizationModel model, Handler<AsyncResult<Void>> resultHandler);
+
+    @ProxyClose
+    void close();
 }

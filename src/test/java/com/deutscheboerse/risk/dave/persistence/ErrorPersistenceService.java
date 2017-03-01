@@ -1,11 +1,6 @@
 package com.deutscheboerse.risk.dave.persistence;
 
-import com.deutscheboerse.risk.dave.model.AccountMarginModel;
-import com.deutscheboerse.risk.dave.model.LiquiGroupMarginModel;
-import com.deutscheboerse.risk.dave.model.LiquiGroupSplitMarginModel;
-import com.deutscheboerse.risk.dave.model.PoolMarginModel;
-import com.deutscheboerse.risk.dave.model.PositionReportModel;
-import com.deutscheboerse.risk.dave.model.RiskLimitUtilizationModel;
+import com.deutscheboerse.risk.dave.model.*;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -59,5 +54,9 @@ public class ErrorPersistenceService implements PersistenceService {
     @Override
     public void storeRiskLimitUtilization(RiskLimitUtilizationModel model, Handler<AsyncResult<Void>> resultHandler) {
         resultHandler.handle(ServiceException.fail(STORE_ERROR, "Unable to store message"));
+    }
+
+    @Override
+    public void close() {
     }
 }

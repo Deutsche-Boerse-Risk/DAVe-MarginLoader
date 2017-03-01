@@ -94,6 +94,11 @@ public class MongoPersistenceService implements PersistenceService {
         this.store(model, RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, resultHandler);
     }
 
+    @Override
+    public void close() {
+        this.mongo.close();
+    }
+
     private void store(AbstractModel model, String historyCollection, String latestCollection, Handler<AsyncResult<Void>> resultHandler) {
         JsonObject latestQueryParams = MongoPersistenceService.getLatestQueryParams(model);
         List<Future> tasks = new ArrayList<>();
@@ -218,25 +223,25 @@ public class MongoPersistenceService implements PersistenceService {
         Future<Void> createIndexesFuture = Future.future();
 
         List<Future> futs = new ArrayList<>();
-        BiConsumer<String, JsonObject> indexCheck = (collectionName, index) -> {
+        BiConsumer<String, JsonObject> indexCreate = (collectionName, index) -> {
             IndexOptions indexOptions = new IndexOptions().name("unique_idx").unique(true);
-            Future<Void> historyIndexFuture = Future.future();
-            mongo.createIndexWithOptions(collectionName, index, indexOptions, historyIndexFuture.completer());
-            futs.add(historyIndexFuture);
+            Future<Void> indexFuture = Future.future();
+            mongo.createIndexWithOptions(collectionName, index, indexOptions, indexFuture.completer());
+            futs.add(indexFuture);
         };
 
-        indexCheck.accept(MongoPersistenceService.ACCOUNT_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new AccountMarginModel()));
-        indexCheck.accept(MongoPersistenceService.ACCOUNT_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new AccountMarginModel()));
-        indexCheck.accept(MongoPersistenceService.LIQUI_GROUP_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new LiquiGroupMarginModel()));
-        indexCheck.accept(MongoPersistenceService.LIQUI_GROUP_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new LiquiGroupMarginModel()));
-        indexCheck.accept(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new LiquiGroupSplitMarginModel()));
-        indexCheck.accept(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new LiquiGroupSplitMarginModel()));
-        indexCheck.accept(MongoPersistenceService.POOL_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new PoolMarginModel()));
-        indexCheck.accept(MongoPersistenceService.POOL_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new PoolMarginModel()));
-        indexCheck.accept(MongoPersistenceService.POSITION_REPORT_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new PositionReportModel()));
-        indexCheck.accept(MongoPersistenceService.POSITION_REPORT_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new PositionReportModel()));
-        indexCheck.accept(MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new RiskLimitUtilizationModel()));
-        indexCheck.accept(MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new RiskLimitUtilizationModel()));
+        indexCreate.accept(MongoPersistenceService.ACCOUNT_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new AccountMarginModel()));
+        indexCreate.accept(MongoPersistenceService.ACCOUNT_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new AccountMarginModel()));
+        indexCreate.accept(MongoPersistenceService.LIQUI_GROUP_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new LiquiGroupMarginModel()));
+        indexCreate.accept(MongoPersistenceService.LIQUI_GROUP_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new LiquiGroupMarginModel()));
+        indexCreate.accept(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new LiquiGroupSplitMarginModel()));
+        indexCreate.accept(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new LiquiGroupSplitMarginModel()));
+        indexCreate.accept(MongoPersistenceService.POOL_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new PoolMarginModel()));
+        indexCreate.accept(MongoPersistenceService.POOL_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new PoolMarginModel()));
+        indexCreate.accept(MongoPersistenceService.POSITION_REPORT_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new PositionReportModel()));
+        indexCreate.accept(MongoPersistenceService.POSITION_REPORT_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new PositionReportModel()));
+        indexCreate.accept(MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new RiskLimitUtilizationModel()));
+        indexCreate.accept(MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new RiskLimitUtilizationModel()));
 
         CompositeFuture.all(futs).setHandler(ar -> {
             if (ar.succeeded()) {
