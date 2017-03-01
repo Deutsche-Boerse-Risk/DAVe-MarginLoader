@@ -1,6 +1,8 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
+import io.vertx.codegen.annotations.DataObject;
+import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -8,9 +10,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
-
-import io.vertx.codegen.annotations.DataObject;
-import io.vertx.core.json.JsonObject;
 
 @DataObject
 public class PositionReportModel extends AbstractModel {
@@ -20,10 +19,6 @@ public class PositionReportModel extends AbstractModel {
 
     public PositionReportModel(JsonObject json) {
         this.mergeIn(json);
-    }
-
-    public PositionReportModel(PositionReportModel other) {
-        this.mergeIn(other);
     }
 
     public PositionReportModel(PrismaReports.PrismaHeader header, PrismaReports.PositionReport data) {
