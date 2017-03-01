@@ -7,7 +7,6 @@ import com.deutscheboerse.risk.dave.MainVerticleIT;
 import com.deutscheboerse.risk.dave.model.*;
 import com.google.protobuf.ExtensionRegistry;
 import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.FindOptions;
@@ -35,7 +34,6 @@ public class MongoPersistenceServiceIT extends BaseTest {
     private static MongoClient mongoClient;
     private static PersistenceService persistenceProxy;
     private static final double DOUBLE_DELTA = 1e-12;
-    private static MessageConsumer<JsonObject> persistenceServiceConsumer;
 
     @BeforeClass
     public static void setUp(TestContext context) {
@@ -45,12 +43,9 @@ public class MongoPersistenceServiceIT extends BaseTest {
 
         MongoPersistenceServiceIT.mongoClient = MongoClient.createShared(MongoPersistenceServiceIT.vertx, mongoConfig);
 
-        PersistenceService mongoPersistenceService = new MongoPersistenceService(vertx);
-
-        MongoPersistenceServiceIT.persistenceServiceConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, mongoPersistenceService, PersistenceService.SERVICE_ADDRESS);
+        ProxyHelper.registerService(PersistenceService.class, vertx, new MongoPersistenceService(vertx), PersistenceService.SERVICE_ADDRESS);
         MongoPersistenceServiceIT.persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
-
-        mongoPersistenceService.initialize(config, context.asyncAssertSuccess());
+        MongoPersistenceServiceIT.persistenceProxy.initialize(config, context.asyncAssertSuccess());
     }
 
     @Test
@@ -990,7 +985,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
 
     @AfterClass
     public static void tearDown(TestContext context) {
-        ProxyHelper.unregisterService(MongoPersistenceServiceIT.persistenceServiceConsumer);
+        MongoPersistenceServiceIT.persistenceProxy.close();
         MongoPersistenceServiceIT.vertx.close(context.asyncAssertSuccess());
     }
 
