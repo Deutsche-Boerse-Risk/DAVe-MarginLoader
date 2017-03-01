@@ -26,10 +26,12 @@ public class RiskLimitUtilizationModel extends AbstractModel {
 
         verify(data);
 
-        put("clearer", data.getClearer());
-        put("member", data.getMember());
-        put("maintainer", data.getMaintainer());
-        put("limitType", data.getLimitType());
+        PrismaReports.RiskLimitUtilizationKey key = data.getKey();
+        put("clearer", key.getClearer());
+        put("member", key.getMember());
+        put("maintainer", key.getMaintainer());
+        put("limitType", key.getLimitType());
+
         put("utilization", data.getUtilization());
         put("warningLevel", data.getWarningLevel());
         put("throttleLevel", data.getThrottleLevel());
@@ -37,10 +39,11 @@ public class RiskLimitUtilizationModel extends AbstractModel {
     }
 
     private void verify(PrismaReports.RiskLimitUtilization data) {
-        checkArgument(data.hasClearer(), "Missing clearer in AMQP data");
-        checkArgument(data.hasMember(), "Missing member in AMQP data");
-        checkArgument(data.hasMaintainer(), "Missing maintainer in AMQP data");
-        checkArgument(data.hasLimitType(), "Missing limit type in AMQP data");
+        checkArgument(data.hasKey(), "Missing risk limit utilization key in AMQP data");
+        checkArgument(data.getKey().hasClearer(), "Missing clearer in AMQP data");
+        checkArgument(data.getKey().hasMember(), "Missing member in AMQP data");
+        checkArgument(data.getKey().hasMaintainer(), "Missing maintainer in AMQP data");
+        checkArgument(data.getKey().hasLimitType(), "Missing limit type in AMQP data");
         checkArgument(data.hasUtilization(), "Missing utilization in AMQP data");
         checkArgument(data.hasWarningLevel() ||
                       data.hasThrottleLevel() ||

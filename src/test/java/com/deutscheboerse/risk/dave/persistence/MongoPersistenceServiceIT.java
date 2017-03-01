@@ -293,7 +293,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
 
     @Test
     public void testRiskLimitUtilizationStore(TestContext context) throws IOException {
-        Async asyncFirstSnapshotStore = context.async(6);
+        Async asyncFirstSnapshotStore = context.async(2);
         readTTSaveFile("riskLimitUtilization", 1, (header, gpbObject) -> {
             PrismaReports.RiskLimitUtilization data = gpbObject.getExtension(PrismaReports.riskLimitUtilization);
             RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(header, data);
@@ -306,7 +306,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
             });
         });
         asyncFirstSnapshotStore.awaitSuccess(30000);
-        Async asyncSecondSnapshotStore = context.async(6);
+        Async asyncSecondSnapshotStore = context.async(2);
         readTTSaveFile("riskLimitUtilization", 2, (header, gpbObject) -> {
             PrismaReports.RiskLimitUtilization date = gpbObject.getExtension(PrismaReports.riskLimitUtilization);
             RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(header, date);
@@ -319,8 +319,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
             });
         });
         asyncSecondSnapshotStore.awaitSuccess(30000);
-        this.checkCountInCollection(context, MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, 12);
-        this.checkCountInCollection(context, MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, 6);
+        this.checkCountInCollection(context, MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, 4);
+        this.checkCountInCollection(context, MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, 2);
         this.checkRiskLimitUtilizationHistoryCollectionQuery(context);
         this.checkRiskLimitUtilizationLatestCollectionQuery(context);
     }
@@ -902,15 +902,15 @@ public class MongoPersistenceServiceIT extends BaseTest {
            db.RiskLimitUtilization.find({
                 clearer : "FULCC",
                 member : "MALFR",
-                maintainer : "MALFR",
-                limitType : "TMR",
+                maintainer : "FULCC",
+                limitType : "CULI",
            }).sort({snapshotID: 1}).pretty()
         */
         JsonObject param = new JsonObject()
                 .put("clearer", "FULCC")
                 .put("member", "MALFR")
-                .put("maintainer", "MALFR")
-                .put("limitType", "TMR");
+                .put("maintainer", "FULCC")
+                .put("limitType", "CULI");
 
         FindOptions findOptions = new FindOptions()
                 .setSort(new JsonObject().put("snapshotID", 1));
@@ -921,17 +921,17 @@ public class MongoPersistenceServiceIT extends BaseTest {
                 context.assertEquals(2, ar.result().size());
                 JsonObject result1 = ar.result().get(0);
 
-                context.assertEquals(15, result1.getInteger("snapshotID"));
+                context.assertEquals(21, result1.getInteger("snapshotID"));
                 context.assertEquals(20091215, result1.getInteger("businessDate"));
-                context.assertEquals(new JsonObject().put("$date", "2017-02-21T11:43:34.791Z"), result1.getJsonObject("timestamp"));
+                context.assertEquals(new JsonObject().put("$date", "2017-03-01T14:00:38.036Z"), result1.getJsonObject("timestamp"));
                 context.assertEquals("FULCC", result1.getString("clearer"));
                 context.assertEquals("MALFR", result1.getString("member"));
-                context.assertEquals("MALFR", result1.getString("maintainer"));
-                context.assertEquals("TMR", result1.getString("limitType"));
-                context.assertEquals(8862049569.447277, result1.getDouble("utilization"));
-                context.assertEquals(1010020.0, result1.getDouble("warningLevel"));
+                context.assertEquals("FULCC", result1.getString("maintainer"));
+                context.assertEquals("CULI", result1.getString("limitType"));
+                context.assertEquals(1.109382109046E9, result1.getDouble("utilization"));
+                context.assertEquals(0.0, result1.getDouble("warningLevel"));
                 context.assertEquals(0.0, result1.getDouble("throttleLevel"));
-                context.assertEquals(1010020.0, result1.getDouble("rejectLevel"));
+                context.assertEquals(2.0E7, result1.getDouble("rejectLevel"));
 
                 asyncQuery.complete();
             } else {
@@ -947,15 +947,15 @@ public class MongoPersistenceServiceIT extends BaseTest {
            db.RiskLimitUtilization.find({
                 clearer : "FULCC",
                 member : "MALFR",
-                maintainer : "MALFR",
+                maintainer : "FULCC",
                 limitType : "TMR",
            }).sort({snapshotID: 1}).pretty()
         */
         JsonObject param = new JsonObject()
                 .put("clearer", "FULCC")
                 .put("member", "MALFR")
-                .put("maintainer", "MALFR")
-                .put("limitType", "TMR");
+                .put("maintainer", "FULCC")
+                .put("limitType", "CULI");
 
         Async asyncQuery = context.async();
         MongoPersistenceServiceIT.mongoClient.find(MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, param, ar -> {
@@ -963,17 +963,17 @@ public class MongoPersistenceServiceIT extends BaseTest {
                 context.assertEquals(1, ar.result().size());
                 JsonObject result1 = ar.result().get(0);
 
-                context.assertEquals(16, result1.getInteger("snapshotID"));
+                context.assertEquals(22, result1.getInteger("snapshotID"));
                 context.assertEquals(20091215, result1.getInteger("businessDate"));
-                context.assertEquals(new JsonObject().put("$date", "2017-02-21T11:44:56.396Z"), result1.getJsonObject("timestamp"));
+                context.assertEquals(new JsonObject().put("$date", "2017-03-01T14:00:49.484Z"), result1.getJsonObject("timestamp"));
                 context.assertEquals("FULCC", result1.getString("clearer"));
                 context.assertEquals("MALFR", result1.getString("member"));
-                context.assertEquals("MALFR", result1.getString("maintainer"));
-                context.assertEquals("TMR", result1.getString("limitType"));
-                context.assertEquals(8862049569.447277, result1.getDouble("utilization"));
-                context.assertEquals(1010020.0, result1.getDouble("warningLevel"));
+                context.assertEquals("FULCC", result1.getString("maintainer"));
+                context.assertEquals("CULI", result1.getString("limitType"));
+                context.assertEquals(1.109382109046E9, result1.getDouble("utilization"));
+                context.assertEquals(0.0, result1.getDouble("warningLevel"));
                 context.assertEquals(0.0, result1.getDouble("throttleLevel"));
-                context.assertEquals(1010020.0, result1.getDouble("rejectLevel"));
+                context.assertEquals(2.0E7, result1.getDouble("rejectLevel"));
 
                 asyncQuery.complete();
             } else {

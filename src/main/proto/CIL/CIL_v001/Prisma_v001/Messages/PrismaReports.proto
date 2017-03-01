@@ -231,15 +231,19 @@ message LiquiGroupSplitMargin {
 
 // risk limit utilization
 
-message RiskLimitUtilization {
+message RiskLimitUtilizationKey {
     optional                           string clearer                        = 1;
     optional                           string member                         = 2;
     optional                           string maintainer                     = 3;
     optional                           string limit_type                     = 4;
-    optional                           double utilization                    = 5;
-    optional                           double warning_level                  = 6;
-    optional                           double throttle_level                 = 7;
-    optional                           double reject_level                   = 8;
+}
+
+message RiskLimitUtilization {
+    optional          RiskLimitUtilizationKey key                            = 1;
+    optional                           double utilization                    = 2;
+    optional                           double warning_level                  = 3;
+    optional                           double throttle_level                 = 4;
+    optional                           double reject_level                   = 5;
 }
 
 // define GPBObject extensions

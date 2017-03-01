@@ -61,8 +61,8 @@ public class MainVerticleIT extends BaseTest {
         this.testCountInCollection(context, mongoClient, MongoPersistenceService.POOL_MARGIN_LATEST_COLLECTION, 270);
         this.testCountInCollection(context, mongoClient, MongoPersistenceService.POSITION_REPORT_HISTORY_COLLECTION, 3596);
         this.testCountInCollection(context, mongoClient, MongoPersistenceService.POSITION_REPORT_LATEST_COLLECTION, 3596);
-        this.testCountInCollection(context, mongoClient, MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, 6);
-        this.testCountInCollection(context, mongoClient, MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, 6);
+        this.testCountInCollection(context, mongoClient, MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, 2);
+        this.testCountInCollection(context, mongoClient, MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, 2);
     }
 
     @Test
