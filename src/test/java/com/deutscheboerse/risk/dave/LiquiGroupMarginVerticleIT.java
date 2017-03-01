@@ -16,11 +16,14 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.serviceproxy.ProxyHelper;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
+
+import com.deutscheboerse.risk.dave.model.LiquiGroupMarginModel;
 
 @RunWith(VertxUnitRunner.class)
 public class LiquiGroupMarginVerticleIT {
@@ -58,10 +61,10 @@ public class LiquiGroupMarginVerticleIT {
         async.awaitSuccess(30000);
 
         // verify the content of the last message
-        JsonObject expected = new JsonObject()
+        LiquiGroupMarginModel expected = new LiquiGroupMarginModel(new JsonObject()
                 .put("snapshotID", 10)
                 .put("businessDate", 20091215)
-                .put("timestamp", new JsonObject().put("$date", "2017-02-15T15:27:02.43Z"))
+                .put("timestamp", 1487172422430L)
                 .put("clearer", "ABCFR")
                 .put("member", "ABCFR")
                 .put("account", "PP")
@@ -74,7 +77,7 @@ public class LiquiGroupMarginVerticleIT {
                 .put("futuresSpreadMargin", 0.0)
                 .put("additionalMargin", 14914.841270178167)
                 .put("unadjustedMarginRequirement", 149915.34127017818)
-                .put("variationPremiumPayment", 0.0);
+                .put("variationPremiumPayment", 0.0));
         context.assertEquals(expected, persistenceService.getLastMessage());
 
         ProxyHelper.unregisterService(serviceMessageConsumer);

@@ -1,6 +1,6 @@
 package com.deutscheboerse.risk.dave.persistence;
 
-import com.deutscheboerse.risk.dave.model.ModelType;
+import com.deutscheboerse.risk.dave.model.*;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -11,8 +11,6 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.serviceproxy.ServiceException;
 
 public class InitPersistenceService implements PersistenceService {
-    private static final Logger LOG = LoggerFactory.getLogger(InitPersistenceService.class);
-
     private final Vertx vertx;
     private final boolean succeeds;
     private boolean initialized = false;
@@ -34,8 +32,37 @@ public class InitPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void store(JsonObject message, ModelType modelType, Handler<AsyncResult<Void>> resultHandler) {
+    public void storeAccountMargin(AccountMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
         resultHandler.handle(ServiceException.fail(STORE_ERROR, "Store not implemented"));
+    }
+
+    @Override
+    public void storeLiquiGroupMargin(LiquiGroupMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(STORE_ERROR, "Store not implemented"));
+    }
+
+    @Override
+    public void storeLiquiGroupSplitMargin(LiquiGroupSplitMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(STORE_ERROR, "Store not implemented"));
+    }
+
+    @Override
+    public void storePoolMargin(PoolMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(STORE_ERROR, "Store not implemented"));
+    }
+
+    @Override
+    public void storePositionReport(PositionReportModel model, Handler<AsyncResult<Void>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(STORE_ERROR, "Store not implemented"));
+    }
+
+    @Override
+    public void storeRiskLimitUtilization(RiskLimitUtilizationModel model, Handler<AsyncResult<Void>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(STORE_ERROR, "Store not implemented"));
+    }
+
+    @Override
+    public void close() {
     }
 
     public boolean isInitialized() {

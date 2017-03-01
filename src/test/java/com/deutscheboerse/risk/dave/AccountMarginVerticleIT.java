@@ -16,11 +16,14 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.serviceproxy.ProxyHelper;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
+
+import com.deutscheboerse.risk.dave.model.AccountMarginModel;
 
 @RunWith(VertxUnitRunner.class)
 public class AccountMarginVerticleIT extends BaseTest {
@@ -58,10 +61,10 @@ public class AccountMarginVerticleIT extends BaseTest {
         async.awaitSuccess(30000);
 
         // verify the content of the last message
-        JsonObject expected = new JsonObject()
+        AccountMarginModel expected = new AccountMarginModel(new JsonObject()
                 .put("snapshotID", 10)
                 .put("businessDate", 20091215)
-                .put("timestamp", new JsonObject().put("$date", "2017-02-15T15:27:02.43Z"))
+                .put("timestamp", 1487172422430L)
                 .put("clearer", "SFUCC")
                 .put("member", "SFUFR")
                 .put("account", "A5")
@@ -71,7 +74,7 @@ public class AccountMarginVerticleIT extends BaseTest {
                 .put("marginReqInMarginCurr", 5.035485884371926E7)
                 .put("marginReqInCrlCurr", 5.035485884371926E7)
                 .put("unadjustedMarginRequirement", 5.035485884371926E7)
-                .put("variationPremiumPayment", 0.0);
+                .put("variationPremiumPayment", 0.0));
         context.assertEquals(expected, persistenceService.getLastMessage());
 
         ProxyHelper.unregisterService(serviceMessageConsumer);

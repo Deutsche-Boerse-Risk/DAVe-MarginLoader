@@ -31,7 +31,7 @@ public class RiskLimitUtilizationTest {
         JsonObject expected = new JsonObject()
                 .put("snapshotID", 16)
                 .put("businessDate", 20091215)
-                .put("timestamp", new JsonObject().put("$date", "2017-02-21T11:44:56.396Z"))
+                .put("timestamp", 1487677496396L)
                 .put("clearer", "FULCC")
                 .put("member", "MALFR")
                 .put("maintainer", "MALFR")
@@ -41,6 +41,6 @@ public class RiskLimitUtilizationTest {
                 .put("throttleLevel", 0.0)
                 .put("rejectLevel", 1010020.0);
 
-        Assert.assertEquals(expected, new JsonObject(riskLimitUtilization.getMap()));
+        Assert.assertEquals(expected, riskLimitUtilization.toJson());
     }
 }

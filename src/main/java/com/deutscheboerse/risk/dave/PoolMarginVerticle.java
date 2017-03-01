@@ -2,7 +2,6 @@ package com.deutscheboerse.risk.dave;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
-import com.deutscheboerse.risk.dave.model.ModelType;
 import com.deutscheboerse.risk.dave.model.PoolMarginModel;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -35,7 +34,7 @@ public class PoolMarginVerticle extends AMQPVerticle {
                 PrismaReports.PoolMargin poolMarginData = gpbObject.getExtension(PrismaReports.poolMargin);
                 try {
                     PoolMarginModel poolMarginModel = new PoolMarginModel(header, poolMarginData);
-                    this.persistenceService.store(poolMarginModel, ModelType.POOL_MARGIN_MODEL, ar -> {
+                    this.persistenceService.storePoolMargin(poolMarginModel, ar -> {
                         if (ar.succeeded()) {
                             LOG.debug("Pool Margin message processed");
                         } else {

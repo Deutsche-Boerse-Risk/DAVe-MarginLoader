@@ -1,6 +1,6 @@
 package com.deutscheboerse.risk.dave.persistence;
 
-import com.deutscheboerse.risk.dave.model.ModelType;
+import com.deutscheboerse.risk.dave.model.*;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -14,8 +14,7 @@ public class CountdownPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(CountdownPersistenceService.class);
 
     private final Vertx vertx;
-    private Async async;
-    private boolean initialized = false;
+    private final Async async;
     private JsonObject lastMessage;
 
     public CountdownPersistenceService(Vertx vertx, Async async) {
@@ -25,12 +24,44 @@ public class CountdownPersistenceService implements PersistenceService {
 
     @Override
     public void initialize(JsonObject config, Handler<AsyncResult<Void>> resultHandler) {
-        this.initialized = true;
         resultHandler.handle(Future.succeededFuture());
     }
 
     @Override
-    public void store(JsonObject message, ModelType modelType, Handler<AsyncResult<Void>> resultHandler) {
+    public void storeAccountMargin(AccountMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(model, resultHandler);
+    }
+
+    @Override
+    public void storeLiquiGroupMargin(LiquiGroupMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(model, resultHandler);
+    }
+
+    @Override
+    public void storeLiquiGroupSplitMargin(LiquiGroupSplitMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(model, resultHandler);
+    }
+
+    @Override
+    public void storePoolMargin(PoolMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(model, resultHandler);
+    }
+
+    @Override
+    public void storePositionReport(PositionReportModel model, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(model, resultHandler);
+    }
+
+    @Override
+    public void storeRiskLimitUtilization(RiskLimitUtilizationModel model, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(model, resultHandler);
+    }
+
+    @Override
+    public void close() {
+    }
+
+    private void store(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
 
         // Store the message
         this.lastMessage = message;
@@ -43,9 +74,5 @@ public class CountdownPersistenceService implements PersistenceService {
 
     public JsonObject getLastMessage() {
         return this.lastMessage;
-    }
-
-    public boolean isInitialized() {
-        return this.initialized;
     }
 }

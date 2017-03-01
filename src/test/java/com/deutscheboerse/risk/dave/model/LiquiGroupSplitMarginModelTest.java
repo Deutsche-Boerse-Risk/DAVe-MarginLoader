@@ -35,7 +35,7 @@ public class LiquiGroupSplitMarginModelTest {
         JsonObject expected = new JsonObject()
                 .put("snapshotID", 15)
                 .put("businessDate", 20091215)
-                .put("timestamp", new JsonObject().put("$date", "2017-02-15T15:27:02.43Z"))
+                .put("timestamp", 1487172422430L)
                 .put("clearer", "USJPM")
                 .put("member", "USJPM")
                 .put("account", "PP")
@@ -48,6 +48,6 @@ public class LiquiGroupSplitMarginModelTest {
                 .put("longOptionCredit", 0.0)
                 .put("variationPremiumPayment", 4.86621581017E8);
 
-        Assert.assertEquals(expected, new JsonObject(liquiGroupSplitMarginModel.getMap()));
+        Assert.assertEquals(expected, liquiGroupSplitMarginModel.toJson());
     }
 }

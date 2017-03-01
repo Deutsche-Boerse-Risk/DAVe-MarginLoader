@@ -1,16 +1,24 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
+import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+@DataObject
 public class RiskLimitUtilizationModel extends AbstractModel {
-    public static final String MONGO_HISTORY_COLLECTION = "RiskLimitUtilization";
-    public static final String MONGO_LATEST_COLLECTION = "RiskLimitUtilization.latest";
-
     public RiskLimitUtilizationModel() {
         super();
+    }
+
+    public RiskLimitUtilizationModel(JsonObject json) {
+        this.mergeIn(json);
     }
 
     public RiskLimitUtilizationModel(PrismaReports.PrismaHeader header, PrismaReports.RiskLimitUtilization data) {
@@ -41,32 +49,12 @@ public class RiskLimitUtilizationModel extends AbstractModel {
     }
 
     @Override
-    public String getHistoryCollection() {
-        return RiskLimitUtilizationModel.MONGO_HISTORY_COLLECTION;
+    public Collection<String> getKeys() {
+        List<String> keys = new ArrayList<>();
+        keys.add("clearer");
+        keys.add("member");
+        keys.add("maintainer");
+        keys.add("limitType");
+        return Collections.unmodifiableCollection(keys);
     }
-
-    @Override
-    public String getLatestCollection() {
-        return RiskLimitUtilizationModel.MONGO_LATEST_COLLECTION;
-    }
-
-    @Override
-    public JsonObject getLatestQueryParams() {
-        JsonObject queryParams = new JsonObject()
-                .put("clearer", getString("clearer"))
-                .put("member", getString("member"))
-                .put("maintainer", getString("maintainer"))
-                .put("limitType", getString("limitType"));
-        return queryParams;
-    }
-
-    @Override
-    public JsonObject getLatestUniqueIndex() {
-        return new JsonObject()
-                .put("clearer", 1)
-                .put("member", 1)
-                .put("maintainer", 1)
-                .put("limitType", 1);
-    }
-
 }

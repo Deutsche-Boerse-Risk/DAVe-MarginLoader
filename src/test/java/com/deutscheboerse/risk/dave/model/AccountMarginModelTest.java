@@ -33,7 +33,7 @@ public class AccountMarginModelTest {
         JsonObject expected = new JsonObject()
                 .put("snapshotID", 5)
                 .put("businessDate", 20091215)
-                .put("timestamp", new JsonObject().put("$date", "2017-02-07T11:08:41.933Z"))
+                .put("timestamp", 1486465721933L)
                 .put("clearer", "SFUCC")
                 .put("member", "SFUFR")
                 .put("account", "A5")
@@ -45,6 +45,6 @@ public class AccountMarginModelTest {
                 .put("unadjustedMarginRequirement", 5.035485884371926E7)
                 .put("variationPremiumPayment", 0.0);
 
-        Assert.assertEquals(expected, new JsonObject(accountMarginModel.getMap()));
+        Assert.assertEquals(expected, accountMarginModel.toJson());
     }
 }

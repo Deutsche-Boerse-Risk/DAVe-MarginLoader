@@ -16,11 +16,14 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.serviceproxy.ProxyHelper;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
+
+import com.deutscheboerse.risk.dave.model.PoolMarginModel;
 
 @RunWith(VertxUnitRunner.class)
 public class PoolMarginVerticleIT  extends BaseTest {
@@ -57,10 +60,10 @@ public class PoolMarginVerticleIT  extends BaseTest {
         vertx.deployVerticle(PoolMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         async.awaitSuccess(30000);
 
-        JsonObject expected = new JsonObject()
+        PoolMarginModel expected = new PoolMarginModel(new JsonObject()
                 .put("snapshotID", 10)
                 .put("businessDate", 20091215)
-                .put("timestamp", new JsonObject().put("$date", "2017-02-15T15:27:02.43Z"))
+                .put("timestamp", 1487172422430L)
                 .put("clearer", "CBKFR")
                 .put("pool", "default")
                 .put("marginCurrency", "CHF")
@@ -73,7 +76,7 @@ public class PoolMarginVerticleIT  extends BaseTest {
                 .put("overUnderInClrRptCurr", 688690802.130428)
                 .put("variPremInMarginCurr", 920294764.124)
                 .put("adjustedExchangeRate", 0.748337194753)
-                .put("poolOwner", "CBKFR");
+                .put("poolOwner", "CBKFR"));
         context.assertEquals(expected, persistenceService.getLastMessage());
 
         ProxyHelper.unregisterService(serviceMessageConsumer);

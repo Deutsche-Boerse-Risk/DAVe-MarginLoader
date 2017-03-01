@@ -37,7 +37,7 @@ public class PoolMarginModelTest {
         JsonObject expected = new JsonObject()
                 .put("snapshotID", 10)
                 .put("businessDate", 20091215)
-                .put("timestamp", new JsonObject().put("$date", "2017-02-15T15:27:02.43Z"))
+                .put("timestamp", 1487172422430L)
                 .put("clearer", "USWFC")
                 .put("pool", "default")
                 .put("marginCurrency", "JPY")
@@ -52,6 +52,6 @@ public class PoolMarginModelTest {
                 .put("adjustedExchangeRate", 1.2389)
                 .put("poolOwner", "FULCC");
 
-        Assert.assertEquals(expected, new JsonObject(poolMargin.getMap()));
+        Assert.assertEquals(expected, poolMargin.toJson());
     }
 }

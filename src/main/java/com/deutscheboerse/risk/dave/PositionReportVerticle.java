@@ -2,7 +2,6 @@ package com.deutscheboerse.risk.dave;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
-import com.deutscheboerse.risk.dave.model.ModelType;
 import com.deutscheboerse.risk.dave.model.PositionReportModel;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -35,7 +34,7 @@ public class PositionReportVerticle extends AMQPVerticle {
                 PrismaReports.PositionReport positionReportData = gpbObject.getExtension(PrismaReports.positionReport);
                 try {
                     PositionReportModel positionReportModel = new PositionReportModel(header, positionReportData);
-                    this.persistenceService.store(positionReportModel, ModelType.POSITION_REPORT_MODEL, ar -> {
+                    this.persistenceService.storePositionReport(positionReportModel, ar -> {
                         if (ar.succeeded()) {
                             LOG.debug("Position Report message processed");
                         } else {

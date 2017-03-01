@@ -1,16 +1,24 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
+import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+@DataObject
 public class LiquiGroupSplitMarginModel extends AbstractModel {
-    public static final String MONGO_HISTORY_COLLECTION = "LiquiGroupSplitMargin";
-    public static final String MONGO_LATEST_COLLECTION = "LiquiGroupSplitMargin.latest";
-
     public LiquiGroupSplitMarginModel() {
         super();
+    }
+
+    public LiquiGroupSplitMarginModel(JsonObject json) {
+        this.mergeIn(json);
     }
 
     public LiquiGroupSplitMarginModel(PrismaReports.PrismaHeader header, PrismaReports.LiquiGroupSplitMargin data) {
@@ -50,34 +58,14 @@ public class LiquiGroupSplitMarginModel extends AbstractModel {
     }
 
     @Override
-    public String getHistoryCollection() {
-        return LiquiGroupSplitMarginModel.MONGO_HISTORY_COLLECTION;
-    }
-
-    @Override
-    public String getLatestCollection() {
-        return LiquiGroupSplitMarginModel.MONGO_LATEST_COLLECTION;
-    }
-
-    @Override
-    public JsonObject getLatestQueryParams() {
-        return new JsonObject()
-            .put("clearer", getString("clearer"))
-            .put("member", getString("member"))
-            .put("account", getString("account"))
-            .put("liquidationGroup", getString("liquidationGroup"))
-            .put("liquidationGroupSplit", getString("liquidationGroupSplit"))
-            .put("marginCurrency", getString("marginCurrency"));
-    }
-
-    @Override
-    public JsonObject getLatestUniqueIndex() {
-        return new JsonObject()
-                .put("clearer", 1)
-                .put("member", 1)
-                .put("account", 1)
-                .put("liquidationGroup", 1)
-                .put("liquidationGroupSplit", 1)
-                .put("marginCurrency", 1);
+    public Collection<String> getKeys() {
+        List<String> keys = new ArrayList<>();
+        keys.add("clearer");
+        keys.add("member");
+        keys.add("account");
+        keys.add("liquidationGroup");
+        keys.add("liquidationGroupSplit");
+        keys.add("marginCurrency");
+        return Collections.unmodifiableCollection(keys);
     }
 }

@@ -1,16 +1,24 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
+import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+@DataObject
 public class AccountMarginModel extends AbstractModel {
-    public static final String MONGO_HISTORY_COLLECTION = "AccountMargin";
-    public static final String MONGO_LATEST_COLLECTION = "AccountMargin.latest";
-
     public AccountMarginModel() {
         super();
+    }
+
+    public AccountMarginModel(JsonObject json) {
+        this.mergeIn(json);
     }
 
     public AccountMarginModel(PrismaReports.PrismaHeader header, PrismaReports.AccountMargin data) {
@@ -46,32 +54,12 @@ public class AccountMarginModel extends AbstractModel {
     }
 
     @Override
-    public String getHistoryCollection() {
-        return AccountMarginModel.MONGO_HISTORY_COLLECTION;
+    public Collection<String> getKeys() {
+        List<String> keys = new ArrayList();
+        keys.add("clearer");
+        keys.add("member");
+        keys.add("account");
+        keys.add("marginCurrency");
+        return Collections.unmodifiableCollection(keys);
     }
-
-    @Override
-    public String getLatestCollection() {
-        return AccountMarginModel.MONGO_LATEST_COLLECTION;
-    }
-
-    @Override
-    public JsonObject getLatestQueryParams() {
-        JsonObject queryParams = new JsonObject();
-        queryParams.put("clearer", getString("clearer"));
-        queryParams.put("member", getString("member"));
-        queryParams.put("account", getString("account"));
-        queryParams.put("marginCurrency", getString("marginCurrency"));
-        return queryParams;
-    }
-
-    @Override
-    public JsonObject getLatestUniqueIndex() {
-        return new JsonObject()
-                .put("clearer", 1)
-                .put("member", 1)
-                .put("account", 1)
-                .put("marginCurrency", 1);
-    }
-
 }

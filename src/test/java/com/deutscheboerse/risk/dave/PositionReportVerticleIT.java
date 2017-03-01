@@ -16,11 +16,14 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.serviceproxy.ProxyHelper;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
+
+import com.deutscheboerse.risk.dave.model.PositionReportModel;
 
 @RunWith(VertxUnitRunner.class)
 public class PositionReportVerticleIT extends BaseTest {
@@ -57,10 +60,10 @@ public class PositionReportVerticleIT extends BaseTest {
         vertx.deployVerticle(PositionReportVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         async.awaitSuccess(30000);
 
-        JsonObject expected = new JsonObject()
+        PositionReportModel expected = new PositionReportModel(new JsonObject()
                 .put("snapshotID", 15)
                 .put("businessDate", 20091215)
-                .put("timestamp", new JsonObject().put("$date", "2017-02-21T11:43:34.791Z"))
+                .put("timestamp", 1487677414791L)
                 .put("clearer", "ECAXX")
                 .put("member", "ECAXX")
                 .put("account", "A1")
@@ -91,7 +94,7 @@ public class PositionReportVerticleIT extends BaseTest {
                 .put("normalizedVega", 0)
                 .put("normalizedRho", 0)
                 .put("normalizedTheta", 0)
-                .put("underlying", "OTC Portfolio");
+                .put("underlying", "OTC Portfolio"));
 
         context.assertEquals(expected, persistenceService.getLastMessage());
 
