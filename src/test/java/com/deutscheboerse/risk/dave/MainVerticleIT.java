@@ -1,11 +1,12 @@
 package com.deutscheboerse.risk.dave;
 
-import com.deutscheboerse.risk.dave.model.*;
+import com.deutscheboerse.risk.dave.persistence.InitPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.MongoPersistenceService;
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import com.google.inject.AbstractModule;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.spi.VerticleFactory;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -16,12 +17,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 @RunWith(VertxUnitRunner.class)
 public class MainVerticleIT extends BaseTest {
     private Vertx vertx;
+    private static PersistenceService persistenceService;
 
     @Before
     public void setUp() {
@@ -68,7 +69,8 @@ public class MainVerticleIT extends BaseTest {
     @Test
     public void testFailedDeployment(TestContext context) {
         DeploymentOptions options = createDeploymentOptions();
-        options.getConfig().getJsonObject("broker").put("hostname", "nonexisting");
+        persistenceService = new InitPersistenceService(this.vertx, false);
+        options.getConfig().put("guice_binder", TestBinder.class.getName());
         this.vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertFailure());
     }
 
@@ -100,5 +102,13 @@ public class MainVerticleIT extends BaseTest {
     @After
     public void cleanup(TestContext context) {
         vertx.close(context.asyncAssertSuccess());
+    }
+
+    public static class TestBinder extends AbstractModule {
+
+        @Override
+        protected void configure() {
+            bind(PersistenceService.class).toInstance(persistenceService);
+        }
     }
 }

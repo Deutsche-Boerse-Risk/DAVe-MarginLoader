@@ -16,9 +16,9 @@ import java.util.Map;
 
 public class MainVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(MainVerticle.class);
-    private static final String MONGO_CONF = "mongo";
-    private static final String BROKER_CONF = "broker";
-    private static final String HEALTHCHECK_CONF = "healthCheck";
+    private static final String MONGO_CONF_KEY = "mongo";
+    private static final String BROKER_CONF_KEY = "broker";
+    private static final String HEALTHCHECK_CONF_KEY = "healthCheck";
     private Map<String, String> verticleDeployments = new HashMap<>();
 
     @Override
@@ -51,42 +51,42 @@ public class MainVerticle extends AbstractVerticle {
     }
 
     private Future<Void> deployPersistenceVerticle() {
-        return this.deployVerticle(PersistenceVerticle.class, config().getJsonObject(MONGO_CONF, new JsonObject()));
+        return this.deployVerticle(PersistenceVerticle.class, config().getJsonObject(MONGO_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployAccountMarginVerticle() {
-        return this.deployVerticle(AccountMarginVerticle.class, config().getJsonObject(BROKER_CONF, new JsonObject()));
+        return this.deployVerticle(AccountMarginVerticle.class, config().getJsonObject(BROKER_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployLiquiGroupMarginVerticle() {
-        return this.deployVerticle(LiquiGroupMarginVerticle.class, config().getJsonObject(BROKER_CONF, new JsonObject()));
+        return this.deployVerticle(LiquiGroupMarginVerticle.class, config().getJsonObject(BROKER_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployLiquiGroupSplitMarginVerticle() {
-        return this.deployVerticle(LiquiGroupSplitMarginVerticle.class, config().getJsonObject(BROKER_CONF, new JsonObject()));
+        return this.deployVerticle(LiquiGroupSplitMarginVerticle.class, config().getJsonObject(BROKER_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployPoolMarginVerticle() {
-        return this.deployVerticle(PoolMarginVerticle.class, config().getJsonObject(BROKER_CONF, new JsonObject()));
+        return this.deployVerticle(PoolMarginVerticle.class, config().getJsonObject(BROKER_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployPositionReportVerticle() {
-        return this.deployVerticle(PositionReportVerticle.class, config().getJsonObject(BROKER_CONF, new JsonObject()));
+        return this.deployVerticle(PositionReportVerticle.class, config().getJsonObject(BROKER_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployRiskLimitUtilizationVerticle() {
-        return this.deployVerticle(RiskLimitUtilizationVerticle.class, config().getJsonObject(BROKER_CONF, new JsonObject()));
+        return this.deployVerticle(RiskLimitUtilizationVerticle.class, config().getJsonObject(BROKER_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployHealthCheckVerticle() {
-        return this.deployVerticle(HealthCheckVerticle.class, config().getJsonObject(HEALTHCHECK_CONF, new JsonObject()));
+        return this.deployVerticle(HealthCheckVerticle.class, config().getJsonObject(HEALTHCHECK_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployVerticle(Class clazz, JsonObject config) {
         Future<Void> verticleFuture = Future.future();
-        config.put("guice_binder", Binder.class.getName());
+        config.put("guice_binder", config().getString("guice_binder", Binder.class.getName()));
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
-        vertx.deployVerticle("java-guice:" +  clazz.getName(), options, ar -> {
+        vertx.deployVerticle("java-guice:" + clazz.getName(), options, ar -> {
             if (ar.succeeded()) {
                 LOG.info("Deployed {} with ID {}", clazz.getName(), ar.result());
                 verticleDeployments.put(clazz.getSimpleName(), ar.result());

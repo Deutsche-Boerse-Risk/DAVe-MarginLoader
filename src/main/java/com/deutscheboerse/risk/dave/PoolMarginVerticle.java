@@ -27,6 +27,16 @@ public class PoolMarginVerticle extends AMQPVerticle {
     }
 
     @Override
+    protected void onConnect() {
+        healthCheck.setPoolMarginState(true);
+    }
+
+    @Override
+    protected void onDisconnect() {
+        healthCheck.setPoolMarginState(false);
+    }
+
+    @Override
     protected void processObjectList(ObjectList.GPBObjectList gpbObjectList) {
         PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
         gpbObjectList.getItemList().forEach(gpbObject -> {

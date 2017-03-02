@@ -2,14 +2,17 @@ package com.deutscheboerse.risk.dave;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
+import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.proton.ProtonClient;
+import io.vertx.proton.ProtonClientOptions;
 import io.vertx.proton.ProtonConnection;
 import io.vertx.proton.ProtonReceiver;
 import io.vertx.serviceproxy.ProxyHelper;
@@ -21,67 +24,111 @@ public abstract class AMQPVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(AMQPVerticle.class);
     private static final String DEFAULT_BROKER_HOST = "localhost";
     private static final int DEFAULT_BROKER_PORT = 5672;
-    private static final String DEFAULT_BROKER_USER = "admin";
-    private static final String DEFAULT_BROKER_PASSWORD = "admin";
 
-    protected ExtensionRegistry registry = ExtensionRegistry.newInstance();
-    protected ProtonConnection protonBrokerConnection;
-    protected ProtonReceiver protonBrokerReceiver;
+    private static final int DEFAULT_RECONNECT_ATTEMPTS = -1;
+    private static final int DEFAULT_RECONNECT_TIMEOUT = 60000;
+
+    private ExtensionRegistry registry = ExtensionRegistry.newInstance();
+    private String verticleName;
+    private ProtonClient protonClient;
+    private ProtonConnection protonBrokerConnection;
+    private ProtonReceiver protonBrokerReceiver;
     protected PersistenceService persistenceService;
+    protected HealthCheck healthCheck;
 
     public void start(Future<Void> fut, String verticleName) {
         LOG.info("Starting {} with configuration: {}", verticleName, config().encodePrettily());
         this.registerExtensions();
-        this.persistenceService = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
 
-        createBrokerConnection()
-                .compose(i -> createAmqpReceiver())
-                .setHandler(ar -> {
-                    if (ar.succeeded()) {
-                        LOG.info("{} started", verticleName);
-                        fut.complete();
-                    } else {
-                        LOG.error("{} verticle failed to deploy", verticleName, fut.cause());
-                        fut.fail(ar.cause());
-                    }
-                });
+        this.verticleName = verticleName;
+        this.persistenceService = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
+        this.healthCheck = new HealthCheck(this.vertx);
+        this.protonClient = ProtonClient.create(vertx);
+
+        // This is asynchronous call, verticle will try to connect to the broker on background.
+        connect();
+
+        LOG.info("{} deployed", this.verticleName);
+        fut.complete();
     }
 
     protected abstract String getAmqpContainerName();
     protected abstract String getAmqpQueueName();
+    protected abstract void onConnect();
+    protected abstract void onDisconnect();
     protected abstract void processObjectList(ObjectList.GPBObjectList objectList);
 
-    protected void registerExtensions() {
+    private void registerExtensions() {
         PrismaReports.registerAllExtensions(this.registry);
+    }
+
+    private Future<Void> connect() {
+        Future<Void> connectedFuture = Future.future();
+
+        createBrokerConnection()
+                .compose(i -> setupDisconnectHandler())
+                .compose(i -> createAmqpReceiver())
+                .setHandler(ar -> {
+                    if (ar.succeeded()) {
+                        LOG.info("{} connected to the broker", this.verticleName);
+                        onConnect();
+                        connectedFuture.complete();
+                    } else {
+                        LOG.error("{} failed to connect", this.verticleName);
+                        connectedFuture.fail(ar.cause());
+                    }
+                });
+        return connectedFuture;
+    }
+
+    private ProtonClientOptions getClientOptions() {
+        return new ProtonClientOptions()
+                .setReconnectAttempts(config().getInteger("reconnectAttempts", DEFAULT_RECONNECT_ATTEMPTS))
+                .setReconnectInterval(config().getInteger("reconnectTimeout", DEFAULT_RECONNECT_TIMEOUT));
     }
 
     private Future<Void> createBrokerConnection() {
         Future<Void> createBrokerConnectionFuture = Future.future();
-        Future<ProtonConnection> protonConnectionFuture = Future.future();
-        protonConnectionFuture.setHandler(connectResult -> {
-            if (connectResult.succeeded()) {
-                connectResult.result().setContainer(this.getAmqpContainerName()).openHandler(openResult -> {
-                    if (openResult.succeeded()) {
-                        this.protonBrokerConnection = openResult.result();
-                        createBrokerConnectionFuture.complete();
+
+        JsonObject amqpConfig = config();
+        protonClient.connect(getClientOptions(),
+                amqpConfig.getString("hostname", AMQPVerticle.DEFAULT_BROKER_HOST),
+                amqpConfig.getInteger("port", AMQPVerticle.DEFAULT_BROKER_PORT),
+                amqpConfig.getString("username"),
+                amqpConfig.getString("password"),
+                connectResult -> {
+                    if (connectResult.succeeded()) {
+                        connectResult.result().setContainer(this.getAmqpContainerName()).openHandler(openResult -> {
+                            if (openResult.succeeded()) {
+                                this.protonBrokerConnection = openResult.result();
+                                createBrokerConnectionFuture.complete();
+                            } else {
+                                createBrokerConnectionFuture.fail(openResult.cause());
+                            }
+                        }).open();
                     } else {
-                        createBrokerConnectionFuture.fail(openResult.cause());
+                        createBrokerConnectionFuture.fail(connectResult.cause());
                     }
-                }).open();
-            } else {
-                createBrokerConnectionFuture.fail(connectResult.cause());
-            }
-        });
-        ProtonClient protonClient = ProtonClient.create(vertx);
-        protonClient.connect(config().getString("hostname", AMQPVerticle.DEFAULT_BROKER_HOST),
-                config().getInteger("port", AMQPVerticle.DEFAULT_BROKER_PORT),
-                config().getString("username", AMQPVerticle.DEFAULT_BROKER_USER),
-                config().getString("password", AMQPVerticle.DEFAULT_BROKER_PASSWORD),
-                protonConnectionFuture.completer());
+                });
         return createBrokerConnectionFuture;
     }
 
-    protected Future<Void> createAmqpReceiver() {
+    private Future<Void> setupDisconnectHandler() {
+        this.protonBrokerConnection.disconnectHandler(connection -> {
+            LOG.info("{} disconnected ", this.verticleName);
+            if (this.protonBrokerReceiver != null) {
+                this.protonBrokerReceiver.close();
+            }
+            // Notify subclasses that we were disconnected
+            onDisconnect();
+            // Try to reconnect in a few seconds
+            int timeout = config().getInteger("reconnectTimeout", DEFAULT_RECONNECT_ATTEMPTS);
+            vertx.setTimer(timeout, id -> connect());
+        });
+        return Future.succeededFuture();
+    }
+
+    private Future<Void> createAmqpReceiver() {
         Future<Void> receiverOpenFuture = Future.future();
         this.protonBrokerReceiver = this.protonBrokerConnection.createReceiver(this.getAmqpQueueName());
         this.protonBrokerReceiver.setPrefetch(1000);
@@ -123,7 +170,9 @@ public abstract class AMQPVerticle extends AbstractVerticle {
 
     @Override
     public void stop() throws Exception {
-        this.protonBrokerConnection.disconnect();
+        if (this.protonBrokerConnection != null) {
+            this.protonBrokerConnection.disconnect();
+        }
         super.stop();
     }
 }

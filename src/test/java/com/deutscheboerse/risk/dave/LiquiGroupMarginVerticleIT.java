@@ -85,11 +85,7 @@ public class LiquiGroupMarginVerticleIT {
 
     @Test
     public void testMessageStoreError(TestContext context) throws InterruptedException {
-        final int tcpPort = Integer.getInteger("cil.tcpport", 5672);
-        JsonObject config = new JsonObject()
-                .put("port", tcpPort)
-                .put("listeners", new JsonObject()
-                        .put("liquiGroupMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupMargin"));
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
 
         // Setup persistence persistence
         ErrorPersistenceService persistenceService = new ErrorPersistenceService(vertx);
@@ -103,7 +99,7 @@ public class LiquiGroupMarginVerticleIT {
         Appender<ILoggingEvent> stdout = rootLogger.getAppender("STDOUT");
         rootLogger.detachAppender(stdout);
         testAppender.start();
-        vertx.deployVerticle(LiquiGroupMarginVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
+        vertx.deployVerticle(LiquiGroupMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         ILoggingEvent logMessage = testAppender.getLastMessage();
         testAppender.waitForMessageCount(2171);
         testAppender.stop();

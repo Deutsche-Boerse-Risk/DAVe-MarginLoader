@@ -27,6 +27,16 @@ public class PositionReportVerticle extends AMQPVerticle {
     }
 
     @Override
+    protected void onConnect() {
+        healthCheck.setPositionReportState(true);
+    }
+
+    @Override
+    protected void onDisconnect() {
+        healthCheck.setPositionReportState(false);
+    }
+
+    @Override
     protected void processObjectList(ObjectList.GPBObjectList gpbObjectList) {
         PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
         gpbObjectList.getItemList().forEach(gpbObject -> {

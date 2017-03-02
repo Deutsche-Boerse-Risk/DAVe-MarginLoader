@@ -27,6 +27,16 @@ public class AccountMarginVerticle extends AMQPVerticle {
     }
 
     @Override
+    protected void onConnect() {
+        healthCheck.setAccountMarginState(true);
+    }
+
+    @Override
+    protected void onDisconnect() {
+        healthCheck.setAccountMarginState(false);
+    }
+
+    @Override
     protected void processObjectList(ObjectList.GPBObjectList gpbObjectList) {
         PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
         gpbObjectList.getItemList().forEach(gpbObject -> {
