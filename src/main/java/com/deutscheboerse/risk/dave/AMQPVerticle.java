@@ -62,23 +62,19 @@ public abstract class AMQPVerticle extends AbstractVerticle {
         PrismaReports.registerAllExtensions(this.registry);
     }
 
-    private Future<Void> connect() {
-        Future<Void> connectedFuture = Future.future();
-
+    private void connect() {
         createBrokerConnection()
                 .compose(i -> setupDisconnectHandler())
                 .compose(i -> createAmqpReceiver())
                 .setHandler(ar -> {
                     if (ar.succeeded()) {
                         LOG.info("{} connected to the broker", this.verticleName);
+                        // Notify subclasses that we are connected
                         onConnect();
-                        connectedFuture.complete();
                     } else {
                         LOG.error("{} failed to connect", this.verticleName);
-                        connectedFuture.fail(ar.cause());
                     }
                 });
-        return connectedFuture;
     }
 
     private ProtonClientOptions getClientOptions() {

@@ -1,6 +1,5 @@
 package com.deutscheboerse.risk.dave;
 
-import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
@@ -23,8 +22,6 @@ public class MainVerticle extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> startFuture) {
-        HealthCheck healthCheck = new HealthCheck(this.vertx);
-
         Future<Void> chainFuture = Future.future();
         this.deployPersistenceVerticle()
                 .compose(i -> deployAccountMarginVerticle())
@@ -39,11 +36,9 @@ public class MainVerticle extends AbstractVerticle {
         chainFuture.setHandler(ar -> {
             if (ar.succeeded()) {
                 LOG.info("All verticles deployed");
-                healthCheck.setMainState(true);
                 startFuture.complete();
             } else {
                 LOG.error("Fail to deploy some verticle");
-                healthCheck.setMainState(false);
                 closeAllDeployments();
                 startFuture.fail(chainFuture.cause());
             }
