@@ -47,7 +47,7 @@ public class RiskLimitUtilizationVerticleIT extends BaseTest {
     public void testRiskLimitUtilizationVerticle(TestContext context) throws InterruptedException {
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
         // we expect 6 messages to be received
-        Async async = context.async(6);
+        Async async = context.async(2);
 
         // Setup persistence persistence
         CountdownPersistenceService persistenceService = new CountdownPersistenceService(vertx, async);
@@ -61,17 +61,17 @@ public class RiskLimitUtilizationVerticleIT extends BaseTest {
         async.awaitSuccess(30000);
 
         RiskLimitUtilizationModel expected = new RiskLimitUtilizationModel(new JsonObject()
-                .put("snapshotID", 15)
+                .put("snapshotID", 21)
                 .put("businessDate", 20091215)
-                .put("timestamp", 1487677414791L)
+                .put("timestamp", 1488376838036L)
                 .put("clearer", "FULCC")
                 .put("member", "MALFR")
                 .put("maintainer", "FULCC")
-                .put("limitType", "NDM")
-                .put("utilization", 8.630965788947277E9)
+                .put("limitType", "CULI")
+                .put("utilization", 1.109382109046E9)
                 .put("warningLevel", 0.0)
                 .put("throttleLevel", 0.0)
-                .put("rejectLevel", 1010000.0));
+                .put("rejectLevel", 2.0E7));
 
         context.assertEquals(expected, persistenceService.getLastMessage());
 
@@ -95,7 +95,7 @@ public class RiskLimitUtilizationVerticleIT extends BaseTest {
         testAppender.start();
         vertx.deployVerticle(RiskLimitUtilizationVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         ILoggingEvent logMessage = testAppender.getLastMessage();
-        testAppender.waitForMessageCount(6);
+        testAppender.waitForMessageCount(2);
         testAppender.stop();
         rootLogger.addAppender(stdout);
 

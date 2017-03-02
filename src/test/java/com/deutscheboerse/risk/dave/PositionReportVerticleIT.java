@@ -143,7 +143,7 @@ public class PositionReportVerticleIT extends BaseTest {
         rootLogger.detachAppender(stdout);
         testAppender.start();
         vertx.deployVerticle(PositionReportVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageCount(6);
+        testAppender.waitForMessageCount(2);
         ILoggingEvent logMessage = testAppender.getLastMessage();
         testAppender.stop();
         rootLogger.addAppender(stdout);
