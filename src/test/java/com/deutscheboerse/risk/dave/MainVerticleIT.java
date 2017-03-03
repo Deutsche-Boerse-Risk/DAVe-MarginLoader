@@ -1,11 +1,9 @@
 package com.deutscheboerse.risk.dave;
 
-import com.deutscheboerse.risk.dave.model.*;
 import com.deutscheboerse.risk.dave.persistence.MongoPersistenceService;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.spi.VerticleFactory;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -16,7 +14,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 @RunWith(VertxUnitRunner.class)
@@ -68,7 +65,7 @@ public class MainVerticleIT extends BaseTest {
     @Test
     public void testFailedDeployment(TestContext context) {
         DeploymentOptions options = createDeploymentOptions();
-        options.getConfig().getJsonObject("broker").put("hostname", "nonexisting");
+        options.getConfig().getJsonObject("healthCheck", new JsonObject()).put("port", -1);
         this.vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertFailure());
     }
 

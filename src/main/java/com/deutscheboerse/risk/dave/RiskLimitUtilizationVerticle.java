@@ -27,6 +27,16 @@ public class RiskLimitUtilizationVerticle extends AMQPVerticle {
     }
 
     @Override
+    protected void onConnect() {
+        healthCheck.setRiskLimitUtilizationState(true);
+    }
+
+    @Override
+    protected void onDisconnect() {
+        healthCheck.setRiskLimitUtilizationState(false);
+    }
+
+    @Override
     protected void processObjectList(ObjectList.GPBObjectList gpbObjectList) {
         PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
         gpbObjectList.getItemList().forEach(gpbObject -> {

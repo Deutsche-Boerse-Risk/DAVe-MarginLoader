@@ -49,6 +49,14 @@ public class TestAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
         }
     }
 
+    public void waitForMessageContains(String message) throws InterruptedException {
+        synchronized(this) {
+            while (!this.getLastMessage().getFormattedMessage().contains(message)) {
+                this.wait(5000);
+            }
+        }
+    }
+
     @Override
     public void stop() {
         lastLogMessage = null;

@@ -27,6 +27,16 @@ public class LiquiGroupMarginVerticle extends AMQPVerticle {
     }
 
     @Override
+    protected void onConnect() {
+        healthCheck.setLiquiGroupMarginState(true);
+    }
+
+    @Override
+    protected void onDisconnect() {
+        healthCheck.setLiquiGroupMarginState(false);
+    }
+
+    @Override
     protected void processObjectList(ObjectList.GPBObjectList gpbObjectList) {
         PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
         gpbObjectList.getItemList().forEach(gpbObject -> {

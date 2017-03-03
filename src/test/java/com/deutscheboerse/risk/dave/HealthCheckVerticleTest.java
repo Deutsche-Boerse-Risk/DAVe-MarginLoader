@@ -19,7 +19,7 @@ public class HealthCheckVerticleTest {
     @BeforeClass
     public static void setUp(TestContext context) throws IOException {
         vertx = Vertx.vertx();
-        DeploymentOptions options = new DeploymentOptions().setConfig(BaseTest.getHealtCheckConfig());
+        DeploymentOptions options = new DeploymentOptions().setConfig(BaseTest.getHealthCheckConfig());
         vertx.deployVerticle(HealthCheckVerticle.class.getName(), options, context.asyncAssertSuccess());
     }
 

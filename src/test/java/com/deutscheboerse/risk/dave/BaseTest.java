@@ -14,13 +14,17 @@ public class BaseTest {
         JsonObject globalConfig = new JsonObject()
                 .put("broker", BaseTest.getBrokerConfig())
                 .put("mongo", BaseTest.getMongoConfig())
-                .put("healthCheck", BaseTest.getHealtCheckConfig());
+                .put("healthCheck", BaseTest.getHealthCheckConfig());
         return globalConfig;
     }
 
     protected static JsonObject getBrokerConfig() {
         JsonObject brokerConfig = new JsonObject()
                 .put("port", BROKER_PORT)
+                .put("username", "admin")
+                .put("password", "admin")
+                .put("reconnectAttempts", -1)
+                .put("reconnectTimeout", 5000)
                 .put("listeners", new JsonObject()
                         .put("accountMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEAccountMargin")
                         .put("liquiGroupMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupMargin")
@@ -39,7 +43,7 @@ public class BaseTest {
         return mongoConfig;
     }
 
-    protected static JsonObject getHealtCheckConfig() {
+    protected static JsonObject getHealthCheckConfig() {
         JsonObject healthCheckConfig = new JsonObject()
                 .put("port", HTTP_PORT);
         return healthCheckConfig;
