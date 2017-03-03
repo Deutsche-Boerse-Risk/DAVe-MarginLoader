@@ -2,6 +2,7 @@ package com.deutscheboerse.risk.dave;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
+import com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component;
 import com.deutscheboerse.risk.dave.model.RiskLimitUtilizationModel;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -28,12 +29,12 @@ public class RiskLimitUtilizationVerticle extends AMQPVerticle {
 
     @Override
     protected void onConnect() {
-        healthCheck.setRiskLimitUtilizationState(true);
+        healthCheck.setComponentReady(Component.RISK_LIMIT_UTILIZATION);
     }
 
     @Override
     protected void onDisconnect() {
-        healthCheck.setRiskLimitUtilizationState(false);
+        healthCheck.setComponentFailed(Component.RISK_LIMIT_UTILIZATION);
     }
 
     @Override

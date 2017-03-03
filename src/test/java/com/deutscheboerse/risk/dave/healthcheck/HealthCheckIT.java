@@ -58,7 +58,7 @@ public class HealthCheckIT extends BaseTest {
     @Test
     public void testReadinessNok(TestContext context) throws InterruptedException {
         HealthCheck healthCheck = new HealthCheck(vertx);
-        healthCheck.setAccountMarginState(false);
+        healthCheck.setComponentFailed(HealthCheck.Component.ACCOUNT_MARGIN);
 
         vertx.createHttpClient().getNow(HTTP_PORT, "localhost", HealthCheckVerticle.REST_READINESS,
                 assertEqualsHttpHandler(503, "nok", context));

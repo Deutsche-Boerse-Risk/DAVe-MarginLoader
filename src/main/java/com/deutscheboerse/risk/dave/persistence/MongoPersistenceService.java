@@ -1,10 +1,7 @@
 package com.deutscheboerse.risk.dave.persistence;
 
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-
+import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
+import com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component;
 import com.deutscheboerse.risk.dave.model.*;
 import io.vertx.core.*;
 import io.vertx.core.json.JsonObject;
@@ -17,7 +14,10 @@ import io.vertx.ext.mongo.UpdateOptions;
 import io.vertx.serviceproxy.ServiceException;
 
 import javax.inject.Inject;
-
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,12 +42,17 @@ public class MongoPersistenceService implements PersistenceService {
     public static final String RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION = "RiskLimitUtilization";
     public static final String RISK_LIMIT_UTILIZATION_LATEST_COLLECTION = "RiskLimitUtilization.latest";
 
+    private int CONNECTION_STATUS_TIMER = 5000;
+
     private final Vertx vertx;
     private MongoClient mongo;
+    private HealthCheck healthCheck;
+    private boolean scheduledConnectionStatus = false;
 
     @Inject
     public MongoPersistenceService(Vertx vertx) {
         this.vertx = vertx;
+        this.healthCheck = new HealthCheck(this.vertx);
     }
 
     @Override
@@ -57,6 +62,7 @@ public class MongoPersistenceService implements PersistenceService {
                 .compose(i -> createIndexes())
                 .setHandler(ar -> {
             if (ar.succeeded()) {
+                healthCheck.setComponentReady(Component.PERSISTENCE_SERVICE);
                 resultHandler.handle(Future.succeededFuture());
             } else {
                 resultHandler.handle(ServiceException.fail(INIT_ERROR, ar.cause().getMessage()));
@@ -108,7 +114,32 @@ public class MongoPersistenceService implements PersistenceService {
             if (ar.succeeded()) {
                 resultHandler.handle(Future.succeededFuture());
             } else {
+                // Inform other components that we have failed
+                healthCheck.setComponentFailed(Component.PERSISTENCE_SERVICE);
                 resultHandler.handle(ServiceException.fail(STORE_ERROR, ar.cause().getMessage()));
+
+                // Retry the connection station in a few seconds
+                scheduleConnectionStatus();;
+            }
+        });
+    }
+
+    private void scheduleConnectionStatus() {
+        if (!scheduledConnectionStatus) {
+            scheduledConnectionStatus = true;
+            vertx.setTimer(CONNECTION_STATUS_TIMER, id -> checkConnectionStatus());
+        }
+    }
+
+    private void checkConnectionStatus() {
+        this.mongo.runCommand("dbstats", new JsonObject().put("dbstats", 1), res -> {
+            scheduledConnectionStatus = false;
+            if (res.succeeded()) {
+                // We are back online
+                healthCheck.setComponentReady(Component.PERSISTENCE_SERVICE);
+            } else {
+                // Still disconnected, reschedule timer
+                scheduleConnectionStatus();
             }
         });
     }

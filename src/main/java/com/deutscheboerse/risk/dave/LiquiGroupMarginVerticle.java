@@ -2,6 +2,7 @@ package com.deutscheboerse.risk.dave;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
+import com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component;
 import com.deutscheboerse.risk.dave.model.LiquiGroupMarginModel;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -28,12 +29,12 @@ public class LiquiGroupMarginVerticle extends AMQPVerticle {
 
     @Override
     protected void onConnect() {
-        healthCheck.setLiquiGroupMarginState(true);
+        healthCheck.setComponentReady(Component.LIQUI_GROUP_MARGIN);
     }
 
     @Override
     protected void onDisconnect() {
-        healthCheck.setLiquiGroupMarginState(false);
+        healthCheck.setComponentFailed(Component.LIQUI_GROUP_MARGIN);
     }
 
     @Override

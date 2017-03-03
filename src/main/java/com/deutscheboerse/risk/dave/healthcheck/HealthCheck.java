@@ -16,12 +16,16 @@ public class HealthCheck {
     private static final Logger LOG = LoggerFactory.getLogger(HealthCheck.class);
 
     private static final String MAP_NAME = "healthCheck";
-    private static final String ACCOUNT_MARGIN_KEY = "accountMarginReady";
-    private static final String LIQUI_GROUP_MARGIN_KEY = "liquiGroupMarginReady";
-    private static final String LIQUI_GROUP_SPLIT_MARGIN_KEY = "liquiGroupSplitMarginReady";
-    private static final String POOL_MARGIN_KEY = "pooMarginReady";
-    private static final String POSITION_REPORT_KEY = "positionReportReady";
-    private static final String RISK_LIMIT_UTILIZATION_KEY = "riskLimitUtilizationReady";
+
+    public enum Component {
+        ACCOUNT_MARGIN,
+        LIQUI_GROUP_MARGIN,
+        LIQUI_GROUP_SPLIT_MARGIN,
+        POOL_MARGIN,
+        POSITION_REPORT,
+        RISK_LIMIT_UTILIZATION,
+        PERSISTENCE_SERVICE
+    }
 
     private LocalMap<String, Boolean> localMap;
 
@@ -34,12 +38,9 @@ public class HealthCheck {
     public HealthCheck(Vertx vertx) {
         LOG.trace("Constructing {} object", HealthCheck.class.getCanonicalName());
         localMap = vertx.sharedData().getLocalMap(MAP_NAME);
-        localMap.putIfAbsent(ACCOUNT_MARGIN_KEY, false);
-        localMap.putIfAbsent(LIQUI_GROUP_MARGIN_KEY, false);
-        localMap.putIfAbsent(LIQUI_GROUP_SPLIT_MARGIN_KEY, false);
-        localMap.putIfAbsent(POOL_MARGIN_KEY, false);
-        localMap.putIfAbsent(POSITION_REPORT_KEY, false);
-        localMap.putIfAbsent(RISK_LIMIT_UTILIZATION_KEY, false);
+        for (Component component: Component.values()) {
+            localMap.putIfAbsent(component.name(), false);
+        }
     }
 
     /**
@@ -54,39 +55,19 @@ public class HealthCheck {
         return !localMap.values().contains(false);
     }
 
-    public HealthCheck setAccountMarginState(boolean state) {
-        LOG.info("Setting {} readiness to {}", ACCOUNT_MARGIN_KEY, state);
-        localMap.put(ACCOUNT_MARGIN_KEY, state);
+    public HealthCheck setComponentReady(Component component) {
+        LOG.info("Setting {} readiness to {}", component.name(), true);
+        localMap.put(component.name(), true);
         return this;
     }
 
-    public HealthCheck setLiquiGroupMarginState(boolean state) {
-        LOG.info("Setting {} readiness to {}", LIQUI_GROUP_MARGIN_KEY, state);
-        localMap.put(LIQUI_GROUP_MARGIN_KEY, state);
+    public HealthCheck setComponentFailed(Component component) {
+        LOG.info("Setting {} readiness to {}", component.name(), false);
+        localMap.put(component.name(), false);
         return this;
     }
 
-    public HealthCheck setLiquiGroupSplitMarginState(boolean state) {
-        LOG.info("Setting {} readiness to {}", LIQUI_GROUP_SPLIT_MARGIN_KEY, state);
-        localMap.put(LIQUI_GROUP_SPLIT_MARGIN_KEY, state);
-        return this;
-    }
-
-    public HealthCheck setPoolMarginState(boolean state) {
-        LOG.info("Setting {} readiness to {}", POOL_MARGIN_KEY, state);
-        localMap.put(POOL_MARGIN_KEY, state);
-        return this;
-    }
-
-    public HealthCheck setPositionReportState(boolean state) {
-        LOG.info("Setting {} readiness to {}", POSITION_REPORT_KEY, state);
-        localMap.put(POSITION_REPORT_KEY, state);
-        return this;
-    }
-
-    public HealthCheck setRiskLimitUtilizationState(boolean state) {
-        LOG.info("Setting {} readiness to {}", RISK_LIMIT_UTILIZATION_KEY, state);
-        localMap.put(RISK_LIMIT_UTILIZATION_KEY, state);
-        return this;
+    public boolean isComponentReady(Component component) {
+        return localMap.get(component.name());
     }
 }
