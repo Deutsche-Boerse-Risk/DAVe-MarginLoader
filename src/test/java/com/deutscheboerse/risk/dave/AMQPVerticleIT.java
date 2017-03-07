@@ -55,6 +55,23 @@ public class AMQPVerticleIT extends BaseTest {
     @Test
     public void testConnectionFailure(TestContext context) throws InterruptedException {
         JsonObject config = BaseTest.getBrokerConfig();
+        config.put("listeners", new JsonObject()
+                .put("accountMargin", "nonexisting"));
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(config);
+
+        testAppender.start();
+        vertx.deployVerticle(AccountMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
+        testAppender.waitForMessageContains(Level.ERROR, "failed");
+        ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
+        testAppender.stop();
+
+        context.assertEquals(Level.ERROR, logMessage.getLevel());
+        context.assertTrue(logMessage.getFormattedMessage().contains("AccountMarginVerticle failed to connect"));
+    }
+
+    @Test
+    public void testCreateReceiverFailure(TestContext context) throws InterruptedException {
+        JsonObject config = BaseTest.getBrokerConfig();
         config.put("hostname", "nonexisting")
                 .put("reconnectAttempts", 0);
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(config);
