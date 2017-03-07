@@ -49,7 +49,8 @@ public class PoolMarginVerticleIT  extends BaseTest {
     public void testPoolMarginVerticle(TestContext context) throws InterruptedException {
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
         // we expect 270 messages to be received
-        Async async = context.async(270);
+        int msgCount = DataHelper.getJsonObjectCount("poolMargin", 1);
+        Async async = context.async(msgCount);
 
         // Setup persistence persistence
         CountdownPersistenceService persistenceService = new CountdownPersistenceService(vertx, async);
@@ -85,7 +86,8 @@ public class PoolMarginVerticleIT  extends BaseTest {
         rootLogger.detachAppender(stdout);
         testAppender.start();
         vertx.deployVerticle(PoolMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageCount(Level.ERROR, 270);
+        int msgCount = DataHelper.getJsonObjectCount("poolMargin", 1);
+        testAppender.waitForMessageCount(Level.ERROR, msgCount);
         ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
         testAppender.stop();
         rootLogger.addAppender(stdout);
@@ -112,7 +114,8 @@ public class PoolMarginVerticleIT  extends BaseTest {
         testAppender.start();
         vertx.deployVerticle(PoolMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
-        testAppender.waitForMessageCount(Level.ERROR, 3596);
+        int msgCount = DataHelper.getJsonObjectCount("positionReport", 1);
+        testAppender.waitForMessageCount(Level.ERROR, msgCount);
         testAppender.stop();
         rootLogger.addAppender(stdout);
 
@@ -131,7 +134,8 @@ public class PoolMarginVerticleIT  extends BaseTest {
         rootLogger.detachAppender(stdout);
         testAppender.start();
         vertx.deployVerticle(PoolMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageCount(Level.ERROR, 270);
+        int msgCount = DataHelper.getJsonObjectCount("poolMargin", 1);
+        testAppender.waitForMessageCount(Level.ERROR, msgCount);
         ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
         testAppender.stop();
         rootLogger.addAppender(stdout);

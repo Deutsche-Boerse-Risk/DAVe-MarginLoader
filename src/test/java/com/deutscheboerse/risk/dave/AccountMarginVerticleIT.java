@@ -46,7 +46,8 @@ public class AccountMarginVerticleIT extends BaseTest {
     public void testAccountMarginVerticle(TestContext context) throws InterruptedException {
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
         // we expect 1704 messages to be received
-        Async async = context.async(1704);
+        int msgCount = DataHelper.getJsonObjectCount("accountMargin", 1);
+        Async async = context.async(msgCount);
 
         // Setup persistence persistence
         CountdownPersistenceService persistenceService = new CountdownPersistenceService(vertx, async);
@@ -83,7 +84,8 @@ public class AccountMarginVerticleIT extends BaseTest {
         rootLogger.detachAppender(stdout);
         testAppender.start();
         vertx.deployVerticle(AccountMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageCount(Level.ERROR, 1704);
+        int msgCount = DataHelper.getJsonObjectCount("accountMargin", 1);
+        testAppender.waitForMessageCount(Level.ERROR, msgCount);
         ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
         testAppender.stop();
         rootLogger.addAppender(stdout);
@@ -109,7 +111,8 @@ public class AccountMarginVerticleIT extends BaseTest {
         rootLogger.detachAppender(stdout);
         testAppender.start();
         vertx.deployVerticle(AccountMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageCount(Level.ERROR, 2171);
+        int msgCount = DataHelper.getJsonObjectCount("liquiGroupMargin", 1);
+        testAppender.waitForMessageCount(Level.ERROR, msgCount);
         ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
         testAppender.stop();
         rootLogger.addAppender(stdout);
@@ -129,7 +132,8 @@ public class AccountMarginVerticleIT extends BaseTest {
         rootLogger.detachAppender(stdout);
         testAppender.start();
         vertx.deployVerticle(AccountMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageCount(Level.ERROR, 1704);
+        int msgCount = DataHelper.getJsonObjectCount("accountMargin", 1);
+        testAppender.waitForMessageCount(Level.ERROR, msgCount);
         ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
         testAppender.stop();
         rootLogger.addAppender(stdout);

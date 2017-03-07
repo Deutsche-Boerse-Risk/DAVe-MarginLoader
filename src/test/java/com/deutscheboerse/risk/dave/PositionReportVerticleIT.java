@@ -49,7 +49,8 @@ public class PositionReportVerticleIT extends BaseTest {
     public void testPositionReportVerticle(TestContext context) throws InterruptedException {
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
         // we expect 3596 messages to be received
-        Async async = context.async(3596);
+        int msgCount = DataHelper.getJsonObjectCount("positionReport", 1);
+        Async async = context.async(msgCount);
 
         // Setup persistence persistence
         CountdownPersistenceService persistenceService = new CountdownPersistenceService(vertx, async);
@@ -85,7 +86,8 @@ public class PositionReportVerticleIT extends BaseTest {
         rootLogger.detachAppender(stdout);
         testAppender.start();
         vertx.deployVerticle(PositionReportVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageCount(Level.ERROR, 3596);
+        int msgCount = DataHelper.getJsonObjectCount("positionReport", 1);
+        testAppender.waitForMessageCount(Level.ERROR, msgCount);
         ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
         testAppender.stop();
         rootLogger.addAppender(stdout);
@@ -111,7 +113,8 @@ public class PositionReportVerticleIT extends BaseTest {
         rootLogger.detachAppender(stdout);
         testAppender.start();
         vertx.deployVerticle(PositionReportVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageCount(Level.ERROR, 2);
+        int msgCount = DataHelper.getJsonObjectCount("riskLimitUtilization", 1);
+        testAppender.waitForMessageCount(Level.ERROR, msgCount);
         ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
         testAppender.stop();
         rootLogger.addAppender(stdout);
@@ -131,7 +134,8 @@ public class PositionReportVerticleIT extends BaseTest {
         rootLogger.detachAppender(stdout);
         testAppender.start();
         vertx.deployVerticle(PositionReportVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageCount(Level.ERROR, 3596);
+        int msgCount = DataHelper.getJsonObjectCount("positionReport", 1);
+        testAppender.waitForMessageCount(Level.ERROR, msgCount);
         ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
         testAppender.stop();
         rootLogger.addAppender(stdout);

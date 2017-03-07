@@ -12,7 +12,6 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -20,52 +19,45 @@ import java.util.stream.Collectors;
 public class DataHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DataHelper.class);
 
-    public static void readTTSaveFile(String folderName, int ttsaveNo, Consumer<JsonObject> consumer) {
+    private static Optional<JsonArray> getJsonArrayFromTTSaveFile(String folderName, int ttsaveNo) {
         String jsonPath = String.format("%s/snapshot-%03d.json", MainVerticleIT.class.getResource(folderName).getPath(), ttsaveNo);
         try {
             byte[] jsonArrayBytes = Files.readAllBytes(Paths.get(jsonPath));
             JsonArray jsonArray = new JsonArray(new String(jsonArrayBytes, Charset.defaultCharset()));
-            jsonArray.stream().forEach(json -> consumer.accept((JsonObject) json));
+            return Optional.of(jsonArray);
         } catch (IOException e) {
             LOG.error("Unable to read data from {}", jsonPath, e);
+            return Optional.empty();
         }
+    }
+
+    public static void readTTSaveFile(String folderName, int ttsaveNo, Consumer<JsonObject> consumer) {
+        getJsonArrayFromTTSaveFile(folderName, ttsaveNo)
+                .orElse(new JsonArray())
+                .stream()
+                .forEach(json -> consumer.accept((JsonObject) json));
     }
 
     public static Collection<JsonObject> readTTSaveFile(String folderName, int ttsaveNo) {
-        String jsonPath = String.format("%s/snapshot-%03d.json", MainVerticleIT.class.getResource(folderName).getPath(), ttsaveNo);
-        try {
-            byte[] jsonArrayBytes = Files.readAllBytes(Paths.get(jsonPath));
-            JsonArray jsonArray = new JsonArray(new String(jsonArrayBytes, Charset.defaultCharset()));
-            return jsonArray.stream().map(json -> (JsonObject) json).collect(Collectors.toList());
-        } catch (IOException e) {
-            LOG.error("Unable to read data from {}", jsonPath, e);
-            return Collections.emptyList();
-        }
+        return getJsonArrayFromTTSaveFile(folderName, ttsaveNo)
+                .orElse(new JsonArray())
+                .stream()
+                .map(json -> (JsonObject) json)
+                .collect(Collectors.toList());
     }
 
     public static Optional<JsonObject> getLastJsonFromFile(String folderName, int ttsaveNo) {
-        String jsonPath = String.format("%s/snapshot-%03d.json", MainVerticleIT.class.getResource(folderName).getPath(), ttsaveNo);
-        try {
-            byte[] jsonArrayBytes = Files.readAllBytes(Paths.get(jsonPath));
-            JsonArray jsonArray = new JsonArray(new String(jsonArrayBytes, Charset.defaultCharset()));
-            int itemsCount = jsonArray.size();
-            return Optional.of(jsonArray.getJsonObject(itemsCount - 1));
-        } catch (IOException e) {
-            LOG.error("Unable to read data from {}", jsonPath, e);
-            return Optional.empty();
-        }
+        return getJsonArrayFromTTSaveFile(folderName, ttsaveNo)
+                .orElse(new JsonArray())
+                .stream()
+                .map(json -> (JsonObject) json)
+                .reduce((a, b) -> b);
     }
 
-    public static Optional<JsonObject> getJsonFromFile(String folderName, int ttsaveNo, int position) {
-        String jsonPath = String.format("%s/snapshot-%03d.json", MainVerticleIT.class.getResource(folderName).getPath(), ttsaveNo);
-        try {
-            byte[] jsonArrayBytes = Files.readAllBytes(Paths.get(jsonPath));
-            JsonArray jsonArray = new JsonArray(new String(jsonArrayBytes, Charset.defaultCharset()));
-            return Optional.of(jsonArray.getJsonObject(position));
-        } catch (IOException e) {
-            LOG.error("Unable to read data from {}", jsonPath, e);
-            return Optional.empty();
-        }
+    public static int getJsonObjectCount(String folderName, int ttsaveNo) {
+        return getJsonArrayFromTTSaveFile(folderName, ttsaveNo)
+                .orElse(new JsonArray())
+                .size();
     }
 
     public static PrismaReports.AccountMargin createAccountMarginGPBFromJson(JsonObject json) {

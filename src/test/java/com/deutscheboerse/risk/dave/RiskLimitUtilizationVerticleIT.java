@@ -48,8 +48,9 @@ public class RiskLimitUtilizationVerticleIT extends BaseTest {
     @Test
     public void testRiskLimitUtilizationVerticle(TestContext context) throws InterruptedException {
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
-        // we expect 6 messages to be received
-        Async async = context.async(2);
+        // we expect 2 messages to be received
+        int msgCount = DataHelper.getJsonObjectCount("riskLimitUtilization", 1);
+        Async async = context.async(msgCount);
 
         // Setup persistence persistence
         CountdownPersistenceService persistenceService = new CountdownPersistenceService(vertx, async);
@@ -85,7 +86,8 @@ public class RiskLimitUtilizationVerticleIT extends BaseTest {
         rootLogger.detachAppender(stdout);
         testAppender.start();
         vertx.deployVerticle(RiskLimitUtilizationVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageCount(Level.ERROR, 2);
+        int msgCount = DataHelper.getJsonObjectCount("riskLimitUtilization", 1);
+        testAppender.waitForMessageCount(Level.ERROR, msgCount);
         ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
         testAppender.stop();
         rootLogger.addAppender(stdout);
@@ -111,7 +113,8 @@ public class RiskLimitUtilizationVerticleIT extends BaseTest {
         rootLogger.detachAppender(stdout);
         testAppender.start();
         vertx.deployVerticle(RiskLimitUtilizationVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageCount(Level.ERROR, 1704);
+        int msgCount = DataHelper.getJsonObjectCount("accountMargin", 1);
+        testAppender.waitForMessageCount(Level.ERROR, msgCount);
         ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
         testAppender.stop();
         rootLogger.addAppender(stdout);
@@ -131,7 +134,8 @@ public class RiskLimitUtilizationVerticleIT extends BaseTest {
         rootLogger.detachAppender(stdout);
         testAppender.start();
         vertx.deployVerticle(RiskLimitUtilizationVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageCount(Level.ERROR, 2);
+        int msgCount = DataHelper.getJsonObjectCount("riskLimitUtilization", 1);
+        testAppender.waitForMessageCount(Level.ERROR, msgCount);
         ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
         testAppender.stop();
         rootLogger.addAppender(stdout);

@@ -49,7 +49,8 @@ public class LiquiGroupSplitMarginVerticleIT extends BaseTest {
     public void testLiquiGroupSplitMarginVerticle(TestContext context) throws InterruptedException {
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
         // we expect 2472 messages to be received
-        Async async = context.async(2472);
+        int msgCount = DataHelper.getJsonObjectCount("liquiGroupSplitMargin", 1);
+        Async async = context.async(msgCount);
 
         // Setup persistence persistence
         CountdownPersistenceService persistenceService = new CountdownPersistenceService(vertx, async);
@@ -85,7 +86,8 @@ public class LiquiGroupSplitMarginVerticleIT extends BaseTest {
         rootLogger.detachAppender(stdout);
         testAppender.start();
         vertx.deployVerticle(LiquiGroupSplitMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageCount(Level.ERROR, 2472);
+        int msgCount = DataHelper.getJsonObjectCount("liquiGroupSplitMargin", 1);
+        testAppender.waitForMessageCount(Level.ERROR, msgCount);
         ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
         testAppender.stop();
         rootLogger.addAppender(stdout);
@@ -111,7 +113,8 @@ public class LiquiGroupSplitMarginVerticleIT extends BaseTest {
         rootLogger.detachAppender(stdout);
         testAppender.start();
         vertx.deployVerticle(LiquiGroupSplitMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageCount(Level.ERROR, 270);
+        int msgCount = DataHelper.getJsonObjectCount("poolMargin", 1);
+        testAppender.waitForMessageCount(Level.ERROR, msgCount);
         ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
         testAppender.stop();
         rootLogger.addAppender(stdout);
@@ -131,7 +134,8 @@ public class LiquiGroupSplitMarginVerticleIT extends BaseTest {
         rootLogger.detachAppender(stdout);
         testAppender.start();
         vertx.deployVerticle(LiquiGroupSplitMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageCount(Level.ERROR, 2472);
+        int msgCount = DataHelper.getJsonObjectCount("liquiGroupSplitMargin", 1);
+        testAppender.waitForMessageCount(Level.ERROR, msgCount);
         ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
         testAppender.stop();
         rootLogger.addAppender(stdout);
