@@ -57,7 +57,6 @@ public class DataAnonymizer {
     private String generateRandomString(int length) {
         return this.random.ints(65, 91)
                 .mapToObj(i -> (char) i)
-                .filter(i -> (i >= 65 && i <= 90))
                 .limit(length)
                 .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
                 .toString();
