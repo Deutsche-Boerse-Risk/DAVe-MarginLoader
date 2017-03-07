@@ -1,6 +1,7 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
+import com.deutscheboerse.risk.dave.utils.DataHelper;
 import io.vertx.core.json.JsonObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -8,40 +9,15 @@ import org.junit.Test;
 public class RiskLimitUtilizationTest {
 
     @Test
-    public void testGetAndSetValues() {
+    public void testGetAndSetValues() throws Exception {
+        JsonObject json = DataHelper.getLastJsonFromFile("riskLimitUtilization", 1).orElseThrow(Exception::new);
+        PrismaReports.PrismaHeader header = DataHelper.createPrismaHeaderFromJson(json);
+        PrismaReports.RiskLimitUtilization data = DataHelper.createRiskLimitUtilizationGPBFromJson(json);
 
-        PrismaReports.PrismaHeader header = PrismaReports.PrismaHeader.newBuilder()
-                .setId(16)
-                .setBusinessDate(20091215)
-                .setTimestamp(1487677496396L)
-                .build();
-        PrismaReports.RiskLimitUtilization data = PrismaReports.RiskLimitUtilization.newBuilder()
-                .setKey(PrismaReports.RiskLimitUtilizationKey.newBuilder()
-                    .setClearer("FULCC")
-                    .setMember("MALFR")
-                    .setMaintainer("MALFR")
-                    .setLimitType("TMR"))
-                .setUtilization(8862049569.447277)
-                .setWarningLevel(1010020.0)
-                .setThrottleLevel(0.0)
-                .setRejectLevel(1010020.0)
-                .build();
+        RiskLimitUtilizationModel modelFromGPB = new RiskLimitUtilizationModel(header, data);
+        RiskLimitUtilizationModel modelFromJson = new RiskLimitUtilizationModel(json);
 
-        RiskLimitUtilizationModel riskLimitUtilization = new RiskLimitUtilizationModel(header, data);
-
-        JsonObject expected = new JsonObject()
-                .put("snapshotID", 16)
-                .put("businessDate", 20091215)
-                .put("timestamp", 1487677496396L)
-                .put("clearer", "FULCC")
-                .put("member", "MALFR")
-                .put("maintainer", "MALFR")
-                .put("limitType", "TMR")
-                .put("utilization", 8862049569.447277)
-                .put("warningLevel", 1010020.0)
-                .put("throttleLevel", 0.0)
-                .put("rejectLevel", 1010020.0);
-
-        Assert.assertEquals(expected, riskLimitUtilization.toJson());
+        Assert.assertEquals(json, modelFromGPB.toJson());
+        Assert.assertEquals(json, modelFromJson.toJson());
     }
 }

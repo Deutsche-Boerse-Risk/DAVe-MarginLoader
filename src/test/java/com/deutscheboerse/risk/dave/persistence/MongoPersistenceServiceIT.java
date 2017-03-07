@@ -1,11 +1,8 @@
 package com.deutscheboerse.risk.dave.persistence;
 
-import CIL.CIL_v001.Prisma_v001.PrismaReports;
-import CIL.ObjectList;
 import com.deutscheboerse.risk.dave.BaseTest;
-import com.deutscheboerse.risk.dave.MainVerticleIT;
 import com.deutscheboerse.risk.dave.model.*;
-import com.google.protobuf.ExtensionRegistry;
+import com.deutscheboerse.risk.dave.utils.DataHelper;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -21,8 +18,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +32,6 @@ public class MongoPersistenceServiceIT extends BaseTest {
     private static Vertx vertx;
     private static MongoClient mongoClient;
     private static PersistenceService persistenceProxy;
-    private static final double DOUBLE_DELTA = 1e-12;
 
     @BeforeClass
     public static void setUp(TestContext context) {
@@ -118,9 +116,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
     @Test
     public void testAccountMarginStore(TestContext context) throws IOException {
         Async asyncStore1 = context.async(1704);
-        readTTSaveFile("accountMargin", 1, (header, gpbObject) -> {
-            PrismaReports.AccountMargin accountMarginData = gpbObject.getExtension(PrismaReports.accountMargin);
-            AccountMarginModel accountMarginModel = new AccountMarginModel(header, accountMarginData);
+        DataHelper.readTTSaveFile("accountMargin", 1, (json) -> {
+            AccountMarginModel accountMarginModel = new AccountMarginModel(json);
             persistenceProxy.storeAccountMargin(accountMarginModel, ar -> {
                 if (ar.succeeded()) {
                     asyncStore1.countDown();
@@ -132,9 +129,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
         asyncStore1.awaitSuccess(30000);
 
         Async asyncStore2 = context.async(1704);
-        readTTSaveFile("accountMargin", 2, (header, gpbObject) -> {
-            PrismaReports.AccountMargin accountMarginData = gpbObject.getExtension(PrismaReports.accountMargin);
-            AccountMarginModel accountMarginModel = new AccountMarginModel(header, accountMarginData);
+        DataHelper.readTTSaveFile("accountMargin", 2, (json) -> {
+            AccountMarginModel accountMarginModel = new AccountMarginModel(json);
             persistenceProxy.storeAccountMargin(accountMarginModel, ar -> {
                 if (ar.succeeded()) {
                     asyncStore2.countDown();
@@ -154,9 +150,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
     @Test
     public void testLiquiGroupMarginStore(TestContext context) throws IOException {
         Async asyncStore1 = context.async(2171);
-        readTTSaveFile("liquiGroupMargin", 1, (header, gpbObject) -> {
-            PrismaReports.LiquiGroupMargin liquiGroupMarginData = gpbObject.getExtension(PrismaReports.liquiGroupMargin);
-            LiquiGroupMarginModel liquiGroupMarginModel = new LiquiGroupMarginModel(header, liquiGroupMarginData);
+        DataHelper.readTTSaveFile("liquiGroupMargin", 1, (json) -> {
+            LiquiGroupMarginModel liquiGroupMarginModel = new LiquiGroupMarginModel(json);
             persistenceProxy.storeLiquiGroupMargin(liquiGroupMarginModel, ar -> {
                 if (ar.succeeded()) {
                     asyncStore1.countDown();
@@ -168,9 +163,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
         asyncStore1.awaitSuccess(30000);
 
         Async asyncStore2 = context.async(2171);
-        readTTSaveFile("liquiGroupMargin", 2, (header, gpbObject) -> {
-            PrismaReports.LiquiGroupMargin liquiGroupMarginData = gpbObject.getExtension(PrismaReports.liquiGroupMargin);
-            LiquiGroupMarginModel liquiGroupMarginModel = new LiquiGroupMarginModel(header, liquiGroupMarginData);
+        DataHelper.readTTSaveFile("liquiGroupMargin", 2, (json) -> {
+            LiquiGroupMarginModel liquiGroupMarginModel = new LiquiGroupMarginModel(json);
             persistenceProxy.storeLiquiGroupMargin(liquiGroupMarginModel, ar -> {
                 if (ar.succeeded()) {
                     asyncStore2.countDown();
@@ -190,9 +184,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
     @Test
     public void testLiquiGroupSplitMarginStore(TestContext context) throws IOException {
         Async asyncStore1 = context.async(2472);
-        readTTSaveFile("liquiGroupSplitMargin", 1, (header, gpbObject) -> {
-            PrismaReports.LiquiGroupSplitMargin liquiGroupSplitMarginData = gpbObject.getExtension(PrismaReports.liquiGroupSplitMargin);
-            LiquiGroupSplitMarginModel liquiGroupSplitMarginModel = new LiquiGroupSplitMarginModel(header, liquiGroupSplitMarginData);
+        DataHelper.readTTSaveFile("liquiGroupSplitMargin", 1, (json) -> {
+            LiquiGroupSplitMarginModel liquiGroupSplitMarginModel = new LiquiGroupSplitMarginModel(json);
             persistenceProxy.storeLiquiGroupSplitMargin(liquiGroupSplitMarginModel, ar -> {
                 if (ar.succeeded()) {
                     asyncStore1.countDown();
@@ -204,9 +197,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
         asyncStore1.awaitSuccess(30000);
 
         Async asyncStore2 = context.async(2472);
-        readTTSaveFile("liquiGroupSplitMargin", 2, (header, gpbObject) -> {
-            PrismaReports.LiquiGroupSplitMargin liquiGroupSplitMarginData = gpbObject.getExtension(PrismaReports.liquiGroupSplitMargin);
-            LiquiGroupSplitMarginModel liquiGroupSplitMarginModel = new LiquiGroupSplitMarginModel(header, liquiGroupSplitMarginData);
+        DataHelper.readTTSaveFile("liquiGroupSplitMargin", 2, (json) -> {
+            LiquiGroupSplitMarginModel liquiGroupSplitMarginModel = new LiquiGroupSplitMarginModel(json);
             persistenceProxy.storeLiquiGroupSplitMargin(liquiGroupSplitMarginModel, ar -> {
                 if (ar.succeeded()) {
                     asyncStore2.countDown();
@@ -226,9 +218,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
     @Test
     public void testPoolMarginStore(TestContext context) throws IOException {
         Async asyncFirstSnapshotStore = context.async(270);
-        readTTSaveFile("poolMargin", 1, (header, gpbObject) -> {
-            PrismaReports.PoolMargin poolMarginData = gpbObject.getExtension(PrismaReports.poolMargin);
-            PoolMarginModel poolMarginModel = new PoolMarginModel(header, poolMarginData);
+        DataHelper.readTTSaveFile("poolMargin", 1, (json) -> {
+            PoolMarginModel poolMarginModel = new PoolMarginModel(json);
             persistenceProxy.storePoolMargin(poolMarginModel, ar -> {
                 if (ar.succeeded()) {
                     asyncFirstSnapshotStore.countDown();
@@ -239,9 +230,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
         });
         asyncFirstSnapshotStore.awaitSuccess(30000);
         Async asyncSecondSnapshotStore = context.async(270);
-        readTTSaveFile("poolMargin", 2, (header, gpbObject) -> {
-            PrismaReports.PoolMargin poolMarginData = gpbObject.getExtension(PrismaReports.poolMargin);
-            PoolMarginModel poolMarginModel = new PoolMarginModel(header, poolMarginData);
+        DataHelper.readTTSaveFile("poolMargin", 2, (json) -> {
+            PoolMarginModel poolMarginModel = new PoolMarginModel(json);
             persistenceProxy.storePoolMargin(poolMarginModel, ar -> {
                 if (ar.succeeded()) {
                     asyncSecondSnapshotStore.countDown();
@@ -260,9 +250,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
     @Test
     public void testPositionReportStore(TestContext context) throws IOException {
         Async asyncFirstSnapshotStore = context.async(3596);
-        readTTSaveFile("positionReport", 1, (header, gpbObject) -> {
-            PrismaReports.PositionReport positionReportData = gpbObject.getExtension(PrismaReports.positionReport);
-            PositionReportModel positionReportModel = new PositionReportModel(header, positionReportData);
+        DataHelper.readTTSaveFile("positionReport", 1, (json) -> {
+            PositionReportModel positionReportModel = new PositionReportModel(json);
             persistenceProxy.storePositionReport(positionReportModel, ar -> {
                 if (ar.succeeded()) {
                     asyncFirstSnapshotStore.countDown();
@@ -273,9 +262,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
         });
         asyncFirstSnapshotStore.awaitSuccess(30000);
         Async asyncSecondSnapshotStore = context.async(3596);
-        readTTSaveFile("positionReport", 2, (header, gpbObject) -> {
-            PrismaReports.PositionReport positionReportData = gpbObject.getExtension(PrismaReports.positionReport);
-            PositionReportModel positionReportModel = new PositionReportModel(header, positionReportData);
+        DataHelper.readTTSaveFile("positionReport", 2, (json) -> {
+            PositionReportModel positionReportModel = new PositionReportModel(json);
             persistenceProxy.storePositionReport(positionReportModel, ar -> {
                 if (ar.succeeded()) {
                     asyncSecondSnapshotStore.countDown();
@@ -294,9 +282,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
     @Test
     public void testRiskLimitUtilizationStore(TestContext context) throws IOException {
         Async asyncFirstSnapshotStore = context.async(2);
-        readTTSaveFile("riskLimitUtilization", 1, (header, gpbObject) -> {
-            PrismaReports.RiskLimitUtilization data = gpbObject.getExtension(PrismaReports.riskLimitUtilization);
-            RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(header, data);
+        DataHelper.readTTSaveFile("riskLimitUtilization", 1, (json) -> {
+            RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(json);
             persistenceProxy.storeRiskLimitUtilization(model, ar -> {
                 if (ar.succeeded()) {
                     asyncFirstSnapshotStore.countDown();
@@ -307,9 +294,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
         });
         asyncFirstSnapshotStore.awaitSuccess(30000);
         Async asyncSecondSnapshotStore = context.async(2);
-        readTTSaveFile("riskLimitUtilization", 2, (header, gpbObject) -> {
-            PrismaReports.RiskLimitUtilization date = gpbObject.getExtension(PrismaReports.riskLimitUtilization);
-            RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(header, date);
+        DataHelper.readTTSaveFile("riskLimitUtilization", 2, (json) -> {
+            RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(json);
             persistenceProxy.storeRiskLimitUtilization(model, ar -> {
                 if (ar.succeeded()) {
                     asyncSecondSnapshotStore.countDown();
@@ -323,24 +309,6 @@ public class MongoPersistenceServiceIT extends BaseTest {
         this.checkCountInCollection(context, MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, 2);
         this.checkRiskLimitUtilizationHistoryCollectionQuery(context);
         this.checkRiskLimitUtilizationLatestCollectionQuery(context);
-    }
-
-    /**
-     * @param folderName "accountMargin", "liquiGroupMargin" or "poolMargin"
-     * @param ttsaveNo 1 for the first snapshot, etc.
-     */
-    private void readTTSaveFile(String folderName, int ttsaveNo, BiConsumer<? super PrismaReports.PrismaHeader, ? super ObjectList.GPBObject> consumer) {
-        ExtensionRegistry registry = ExtensionRegistry.newInstance();
-        PrismaReports.registerAllExtensions(registry);
-        String path = String.format("%s/%03d.bin", MainVerticleIT.class.getResource(folderName).getPath(), ttsaveNo);
-        try {
-            byte[] gpbBytes = Files.readAllBytes(Paths.get(path));
-            ObjectList.GPBObjectList gpbObjectList = ObjectList.GPBObjectList.parseFrom(gpbBytes, registry);
-            PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
-            gpbObjectList.getItemList().forEach(gpbObject -> consumer.accept(header, gpbObject));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private void checkCountInCollection(TestContext context, String collection, long count) {
@@ -357,40 +325,16 @@ public class MongoPersistenceServiceIT extends BaseTest {
     }
 
     private void checkAccountMarginHistoryCollectionQuery(TestContext context) {
-        /* You can use this query to paste it directly into MongoDB shell, this is
-           what this test case expects:
-           db.AccountMargin.find({
-               clearer: "BERFR",
-               member: "BERFR",
-               account: "A5",
-               marginCurrency: "EUR"
-           }).sort({snapshotID: 1}).pretty()
-        */
-        JsonObject param = new JsonObject();
-        param.put("clearer", "BERFR");
-        param.put("member", "BERFR");
-        param.put("account", "A5");
-        param.put("marginCurrency", "EUR");
-
+        JsonObject jsonData = DataHelper.getLastJsonFromFile("accountMargin", 1).get();
+        AccountMarginModel model = new AccountMarginModel(jsonData);
+        JsonObject param = MongoPersistenceServiceIT.getQueryParams(model);
         Async asyncQuery = context.async();
-        MongoPersistenceServiceIT.mongoClient.find(MongoPersistenceService.ACCOUNT_MARGIN_HISTORY_COLLECTION, param, ar -> {
+        FindOptions findOptions = new FindOptions()
+                .setSort(new JsonObject().put("snapshotID", 1));
+        MongoPersistenceServiceIT.mongoClient.findWithOptions(MongoPersistenceService.ACCOUNT_MARGIN_HISTORY_COLLECTION, param, findOptions, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
-                JsonObject result = ar.result().get(0);
-
-                context.assertEquals(10, result.getInteger("snapshotID"));
-                context.assertEquals(20091215, result.getInteger("businessDate"));
-                context.assertEquals(new JsonObject().put("$date", "2017-02-15T15:27:02.43Z"), result.getJsonObject("timestamp"));
-                context.assertEquals("BERFR", result.getString("clearer"));
-                context.assertEquals("BERFR", result.getString("member"));
-                context.assertEquals("A5", result.getString("account"));
-                context.assertEquals("EUR", result.getString("marginCurrency"));
-                context.assertEquals("EUR", result.getString("clearingCurrency"));
-                context.assertEquals("default", result.getString("pool"));
-                context.assertEquals(6.378857805534203E8, result.getDouble("marginReqInMarginCurr"));
-                context.assertEquals(6.378857805534203E8, result.getDouble("marginReqInCrlCurr"));
-                context.assertEquals(6.378857805534203E8, result.getDouble("unadjustedMarginRequirement"));
-                context.assertEquals(0.0, result.getDouble("variationPremiumPayment"));
+                MongoPersistenceServiceIT.assertModelEqualsResult(context, model, ar.result().get(0));
                 asyncQuery.complete();
             } else {
                 context.fail(ar.cause());
@@ -400,40 +344,14 @@ public class MongoPersistenceServiceIT extends BaseTest {
     }
 
     private void checkAccountMarginLatestCollectionQuery(TestContext context) {
-        /* You can use this query to paste it directly into MongoDB shell, this is
-           what this test case expects:
-           db.AccountMargin.latest.find({
-               clearer: "BERFR",
-               member: "BERFR",
-               account: "A5",
-               marginCurrency: "EUR"
-           }).pretty()
-        */
-        JsonObject param = new JsonObject();
-        param.put("clearer", "BERFR");
-        param.put("member", "BERFR");
-        param.put("account", "A5");
-        param.put("marginCurrency", "EUR");
-
+        JsonObject jsonData = DataHelper.getLastJsonFromFile("accountMargin", 2).get();
+        AccountMarginModel model = new AccountMarginModel(jsonData);
+        JsonObject param = MongoPersistenceServiceIT.getQueryParams(model);
         Async asyncQuery = context.async();
         MongoPersistenceServiceIT.mongoClient.find(MongoPersistenceService.ACCOUNT_MARGIN_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
-                JsonObject result = ar.result().get(0);
-
-                context.assertEquals(11, result.getInteger("snapshotID"));
-                context.assertEquals(20091215, result.getInteger("businessDate"));
-                context.assertEquals(new JsonObject().put("$date", "2017-02-15T15:28:50.03Z"), result.getJsonObject("timestamp"));
-                context.assertEquals("BERFR", result.getString("clearer"));
-                context.assertEquals("BERFR", result.getString("member"));
-                context.assertEquals("A5", result.getString("account"));
-                context.assertEquals("EUR", result.getString("marginCurrency"));
-                context.assertEquals("EUR", result.getString("clearingCurrency"));
-                context.assertEquals("default", result.getString("pool"));
-                context.assertEquals(6.378857805534203E8, result.getDouble("marginReqInMarginCurr"));
-                context.assertEquals(6.378857805534203E8, result.getDouble("marginReqInCrlCurr"));
-                context.assertEquals(6.378857805534203E8, result.getDouble("unadjustedMarginRequirement"));
-                context.assertEquals(0.0, result.getDouble("variationPremiumPayment"));
+                MongoPersistenceServiceIT.assertModelEqualsResult(context, model, ar.result().get(0));
                 asyncQuery.complete();
             } else {
                 context.fail(ar.cause());
@@ -443,47 +361,16 @@ public class MongoPersistenceServiceIT extends BaseTest {
     }
 
     private void checkLiquiGroupMarginHistoryCollectionQuery(TestContext context) {
-        /* You can use this query to paste it directly into MongoDB shell, this is
-           what this test case expects:
-           db.LiquiGroupMargin.find({
-               clearer: "ABCFR",
-               member: "ABCFR",
-               account: "PP",
-               marginClass: "ECC01",
-               marginCurrency: "EUR"
-           }).sort({snapshotID: 1}).pretty()
-        */
-        JsonObject param = new JsonObject();
-        param.put("clearer", "ABCFR");
-        param.put("member", "ABCFR");
-        param.put("account", "PP");
-        param.put("marginClass", "ECC01");
-        param.put("marginCurrency", "EUR");
-
+        JsonObject jsonData = DataHelper.getLastJsonFromFile("liquiGroupMargin", 1).get();
+        LiquiGroupMarginModel model = new LiquiGroupMarginModel(jsonData);
+        JsonObject param = MongoPersistenceServiceIT.getQueryParams(model);
+        Async asyncQuery = context.async();
         FindOptions findOptions = new FindOptions()
                 .setSort(new JsonObject().put("snapshotID", 1));
-
-        Async asyncQuery = context.async();
         MongoPersistenceServiceIT.mongoClient.findWithOptions(MongoPersistenceService.LIQUI_GROUP_MARGIN_HISTORY_COLLECTION, param, findOptions, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
-                JsonObject result = ar.result().get(0);
-
-                context.assertEquals(10, result.getInteger("snapshotID"));
-                context.assertEquals(20091215, result.getInteger("businessDate"));
-                context.assertEquals(new JsonObject().put("$date", "2017-02-15T15:27:02.43Z"), result.getJsonObject("timestamp"));
-                context.assertEquals("ABCFR", result.getString("clearer"));
-                context.assertEquals("ABCFR", result.getString("member"));
-                context.assertEquals("PP", result.getString("account"));
-                context.assertEquals("ECC01", result.getString("marginClass"));
-                context.assertEquals("EUR", result.getString("marginCurrency"));
-                context.assertEquals("", result.getString("marginGroup"));
-                context.assertEquals(135000.5, result.getDouble("premiumMargin"));
-                context.assertEquals(0.0, result.getDouble("currentLiquidatingMargin"));
-                context.assertEquals(0.0, result.getDouble("futuresSpreadMargin"));
-                context.assertEquals(14914.841270178167, result.getDouble("additionalMargin"));
-                context.assertEquals(149915.34127017818, result.getDouble("unadjustedMarginRequirement"));
-                context.assertEquals(0.0, result.getDouble("variationPremiumPayment"));
+                MongoPersistenceServiceIT.assertModelEqualsResult(context, model, ar.result().get(0));
                 asyncQuery.complete();
             } else {
                 context.fail(ar.cause());
@@ -493,44 +380,14 @@ public class MongoPersistenceServiceIT extends BaseTest {
     }
 
     private void checkLiquiGroupMarginLatestCollectionQuery(TestContext context) {
-        /* You can use this query to paste it directly into MongoDB shell, this is
-           what this test case expects:
-           db.LiquiGroupMargin.latest.find({
-               clearer: "ABCFR",
-               member: "ABCFR",
-               account: "PP",
-               marginClass: "ECC01",
-               marginCurrency: "EUR"
-           }).pretty()
-        */
-        JsonObject param = new JsonObject();
-        param.put("clearer", "ABCFR");
-        param.put("member", "ABCFR");
-        param.put("account", "PP");
-        param.put("marginClass", "ECC01");
-        param.put("marginCurrency", "EUR");
-
+        JsonObject jsonData = DataHelper.getLastJsonFromFile("liquiGroupMargin", 2).get();
+        LiquiGroupMarginModel model = new LiquiGroupMarginModel(jsonData);
+        JsonObject param = MongoPersistenceServiceIT.getQueryParams(model);
         Async asyncQuery = context.async();
         MongoPersistenceServiceIT.mongoClient.find(MongoPersistenceService.LIQUI_GROUP_MARGIN_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
-                JsonObject result = ar.result().get(0);
-
-                context.assertEquals(11, result.getInteger("snapshotID"));
-                context.assertEquals(20091215, result.getInteger("businessDate"));
-                context.assertEquals(new JsonObject().put("$date", "2017-02-15T15:28:50.03Z"), result.getJsonObject("timestamp"));
-                context.assertEquals("ABCFR", result.getString("clearer"));
-                context.assertEquals("ABCFR", result.getString("member"));
-                context.assertEquals("PP", result.getString("account"));
-                context.assertEquals("ECC01", result.getString("marginClass"));
-                context.assertEquals("EUR", result.getString("marginCurrency"));
-                context.assertEquals("", result.getString("marginGroup"));
-                context.assertEquals(135000.5, result.getDouble("premiumMargin"));
-                context.assertEquals(0.0, result.getDouble("currentLiquidatingMargin"));
-                context.assertEquals(0.0, result.getDouble("futuresSpreadMargin"));
-                context.assertEquals(14914.841270178167, result.getDouble("additionalMargin"));
-                context.assertEquals(149915.34127017818, result.getDouble("unadjustedMarginRequirement"));
-                context.assertEquals(0.0, result.getDouble("variationPremiumPayment"));
+                MongoPersistenceServiceIT.assertModelEqualsResult(context, model, ar.result().get(0));
                 asyncQuery.complete();
             } else {
                 context.fail(ar.cause());
@@ -540,25 +397,9 @@ public class MongoPersistenceServiceIT extends BaseTest {
     }
 
     private void checkLiquiGroupSplitMarginHistoryCollectionQuery(TestContext context) {
-        /* You can use this query to paste it directly into MongoDB shell, this is
-           what this test case expects:
-           db.LiquiGroupSplitMargin.find({
-               clearer: "USJPM",
-               member: "USJPM",
-               account: "PP",
-               liquidationGroup: "PFI02",
-               liquidationGroupSplit: "PFI02_HP2_T3-99999",
-               marginCurrency: "EUR"
-           }).sort({snapshotID: 1}).pretty()
-        */
-        JsonObject param = new JsonObject();
-        param.put("clearer", "USJPM");
-        param.put("member", "USJPM");
-        param.put("account", "PP");
-        param.put("liquidationGroup", "PFI02");
-        param.put("liquidationGroupSplit", "PFI02_HP2_T3-99999");
-        param.put("marginCurrency", "EUR");
-
+        JsonObject jsonData = DataHelper.getLastJsonFromFile("liquiGroupSplitMargin", 1).get();
+        LiquiGroupSplitMarginModel model = new LiquiGroupSplitMarginModel(jsonData);
+        JsonObject param = MongoPersistenceServiceIT.getQueryParams(model);
         FindOptions findOptions = new FindOptions()
                 .setSort(new JsonObject().put("snapshotID", 1));
 
@@ -566,22 +407,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         MongoPersistenceServiceIT.mongoClient.findWithOptions(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION, param, findOptions, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
-                JsonObject result = ar.result().get(0);
-
-                context.assertEquals(15, result.getInteger("snapshotID"));
-                context.assertEquals(20091215, result.getInteger("businessDate"));
-                context.assertEquals(new JsonObject().put("$date", "2017-02-21T11:43:34.791Z"), result.getJsonObject("timestamp"));
-                context.assertEquals("USJPM", result.getString("clearer"));
-                context.assertEquals("USJPM", result.getString("member"));
-                context.assertEquals("PP", result.getString("account"));
-                context.assertEquals("PFI02", result.getString("liquidationGroup"));
-                context.assertEquals("PFI02_HP2_T3-99999", result.getString("liquidationGroupSplit"));
-                context.assertEquals("EUR", result.getString("marginCurrency"));
-                context.assertEquals(0.0, result.getDouble("premiumMargin"));
-                context.assertEquals(2.7548216040760565E8, result.getDouble("marketRisk"));
-                context.assertEquals(3.690967426538666E7, result.getDouble("liquRisk"));
-                context.assertEquals(0.0, result.getDouble("longOptionCredit"));
-                context.assertEquals(4.86621581017E8, result.getDouble("variationPremiumPayment"));
+                MongoPersistenceServiceIT.assertModelEqualsResult(context, model, ar.result().get(0));
                 asyncQuery.complete();
             } else {
                 context.fail(ar.cause());
@@ -591,46 +417,14 @@ public class MongoPersistenceServiceIT extends BaseTest {
     }
 
     private void checkLiquiGroupSplitMarginLatestCollectionQuery(TestContext context) {
-        /* You can use this query to paste it directly into MongoDB shell, this is
-           what this test case expects:
-           db.LiquiGroupSplitMargin.latest.find({
-               clearer: "USJPM",
-               member: "USJPM",
-               account: "PP",
-               liquidationGroup: "PFI02",
-               liquidationGroupSplit: "PFI02_HP2_T3-99999",
-               marginCurrency: "EUR"
-           }).pretty()
-        */
-        JsonObject param = new JsonObject();
-        param.put("clearer", "USJPM");
-        param.put("member", "USJPM");
-        param.put("account", "PP");
-        param.put("liquidationGroup", "PFI02");
-        param.put("liquidationGroupSplit", "PFI02_HP2_T3-99999");
-        param.put("marginCurrency", "EUR");
-
-
+        JsonObject jsonData = DataHelper.getLastJsonFromFile("liquiGroupSplitMargin", 2).get();
+        LiquiGroupSplitMarginModel model = new LiquiGroupSplitMarginModel(jsonData);
+        JsonObject param = MongoPersistenceServiceIT.getQueryParams(model);
         Async asyncQuery = context.async();
         MongoPersistenceServiceIT.mongoClient.find(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
-                JsonObject result = ar.result().get(0);
-
-                context.assertEquals(16, result.getInteger("snapshotID"));
-                context.assertEquals(20091215, result.getInteger("businessDate"));
-                context.assertEquals(new JsonObject().put("$date", "2017-02-21T11:44:56.396Z"), result.getJsonObject("timestamp"));
-                context.assertEquals("USJPM", result.getString("clearer"));
-                context.assertEquals("USJPM", result.getString("member"));
-                context.assertEquals("PP", result.getString("account"));
-                context.assertEquals("PFI02", result.getString("liquidationGroup"));
-                context.assertEquals("PFI02_HP2_T3-99999", result.getString("liquidationGroupSplit"));
-                context.assertEquals("EUR", result.getString("marginCurrency"));
-                context.assertEquals(0.0, result.getDouble("premiumMargin"));
-                context.assertEquals(2.7548216040760565E8, result.getDouble("marketRisk"));
-                context.assertEquals(3.690967426538666E7, result.getDouble("liquRisk"));
-                context.assertEquals(0.0, result.getDouble("longOptionCredit"));
-                context.assertEquals(4.86621581017E8, result.getDouble("variationPremiumPayment"));
+                MongoPersistenceServiceIT.assertModelEqualsResult(context, model, ar.result().get(0));
                 asyncQuery.complete();
             } else {
                 context.fail(ar.cause());
@@ -640,18 +434,9 @@ public class MongoPersistenceServiceIT extends BaseTest {
     }
 
     private void checkPoolMarginHistoryCollectionQuery(TestContext context) {
-        /* You can use this query to paste it directly into MongoDB shell, this is
-           what this test case expects:
-           db.PoolMargin.find({
-               clearer: "USWFC",
-               pool: "default",
-               marginCurrency: "CHF"
-           }).sort({snapshotID: 1}).pretty()
-        */
-        JsonObject param = new JsonObject()
-                .put("clearer", "USWFC")
-                .put("pool", "default")
-                .put("marginCurrency", "CHF");
+        JsonObject jsonData = DataHelper.getLastJsonFromFile("poolMargin", 1).get();
+        PoolMarginModel model = new PoolMarginModel(jsonData);
+        JsonObject param = MongoPersistenceServiceIT.getQueryParams(model);
         FindOptions findOptions = new FindOptions()
                 .setSort(new JsonObject().put("snapshotID", 1));
 
@@ -659,23 +444,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         MongoPersistenceServiceIT.mongoClient.findWithOptions(MongoPersistenceService.POOL_MARGIN_HISTORY_COLLECTION, param, findOptions, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
-                JsonObject result1 = ar.result().get(0);
-
-                context.assertEquals(10, result1.getInteger("snapshotID"));
-                context.assertEquals(20091215, result1.getInteger("businessDate"));
-                context.assertEquals(new JsonObject().put("$date", "2017-02-15T15:27:02.43Z"), result1.getJsonObject("timestamp"));
-                context.assertEquals("USWFC", result1.getString("clearer"));
-                context.assertEquals("default", result1.getString("pool"));
-                context.assertEquals("CHF", result1.getString("marginCurrency"));
-                context.assertEquals(0.0, result1.getDouble("requiredMargin"));
-                context.assertEquals(116938762.025, result1.getDouble("cashCollateralAmount"));
-                context.assertEquals(0.0, result1.getDouble("adjustedSecurities"));
-                context.assertEquals(0.0, result1.getDouble("adjustedGuarantee"));
-                context.assertEquals(116938762.025, result1.getDouble("overUnderInMarginCurr"));
-                context.assertEquals(87509625.13167715, result1.getDouble("overUnderInClrRptCurr"));
-                context.assertEquals(116938762.025, result1.getDouble("variPremInMarginCurr"));
-                context.assertEquals(0.748337194753, result1.getDouble("adjustedExchangeRate"));
-                context.assertEquals("USWFC", result1.getString("poolOwner"));
+                MongoPersistenceServiceIT.assertModelEqualsResult(context, model, ar.result().get(0));
                 asyncQuery.complete();
             } else {
                 context.fail(ar.cause());
@@ -685,40 +454,14 @@ public class MongoPersistenceServiceIT extends BaseTest {
     }
 
     private void checkPoolMarginLatestCollectionQuery(TestContext context) {
-        /* You can use this query to paste it directly into MongoDB shell, this is
-           what this test case expects:
-           db.PoolMargin.latest.find({
-               clearer: "USWFC",
-               pool: "default",
-               marginCurrency: "CHF"
-           }).pretty()
-        */
-        JsonObject param = new JsonObject()
-                .put("clearer", "USWFC")
-                .put("pool", "default")
-                .put("marginCurrency", "CHF");
-
+        JsonObject jsonData = DataHelper.getLastJsonFromFile("poolMargin", 2).get();
+        PoolMarginModel model = new PoolMarginModel(jsonData);
+        JsonObject param = MongoPersistenceServiceIT.getQueryParams(model);
         Async asyncQuery = context.async();
         MongoPersistenceServiceIT.mongoClient.find(MongoPersistenceService.POOL_MARGIN_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
-                JsonObject result1 = ar.result().get(0);
-
-                context.assertEquals(11, result1.getInteger("snapshotID"));
-                context.assertEquals(20091215, result1.getInteger("businessDate"));
-                context.assertEquals(new JsonObject().put("$date", "2017-02-15T15:28:50.03Z"), result1.getJsonObject("timestamp"));
-                context.assertEquals("USWFC", result1.getString("clearer"));
-                context.assertEquals("default", result1.getString("pool"));
-                context.assertEquals("CHF", result1.getString("marginCurrency"));
-                context.assertEquals(0.0, result1.getDouble("requiredMargin"));
-                context.assertEquals(116938762.025, result1.getDouble("cashCollateralAmount"));
-                context.assertEquals(0.0, result1.getDouble("adjustedSecurities"));
-                context.assertEquals(0.0, result1.getDouble("adjustedGuarantee"));
-                context.assertEquals(116938762.025, result1.getDouble("overUnderInMarginCurr"));
-                context.assertEquals(87509625.13167715, result1.getDouble("overUnderInClrRptCurr"));
-                context.assertEquals(116938762.025, result1.getDouble("variPremInMarginCurr"));
-                context.assertEquals(0.748337194753, result1.getDouble("adjustedExchangeRate"));
-                context.assertEquals("USWFC", result1.getString("poolOwner"));
+                MongoPersistenceServiceIT.assertModelEqualsResult(context, model, ar.result().get(0));
                 asyncQuery.complete();
             } else {
                 context.fail(ar.cause());
@@ -728,39 +471,9 @@ public class MongoPersistenceServiceIT extends BaseTest {
     }
 
     private void checkPositionReportHistoryCollectionQuery(TestContext context) {
-        /* You can use this query to paste it directly into MongoDB shell, this is
-           what this test case expects:
-           db.PositionReport.find({
-                clearer: "BERFR",
-                member: "BERFR",
-                account: "PP",
-                liquidationGroup: "PEQ01",
-                liquidationGroupSplit: "PEQ01_Basic",
-                product: "ALV",
-                callPut: "P",
-                contractYear: 2010,
-                contractMonth: 2,
-                expiryDay: 0,
-                exercisePrice: 170,
-                version: "0",
-                flexContractSymbol: ""
-           }).sort({snapshotID: 1}).pretty()
-        */
-        JsonObject param = new JsonObject()
-                .put("clearer", "BERFR")
-                .put("member", "BERFR")
-                .put("account", "PP")
-                .put("liquidationGroup", "PEQ01")
-                .put("liquidationGroupSplit", "PEQ01_Basic")
-                .put("product", "ALV")
-                .put("callPut", "P")
-                .put("contractYear", 2010)
-                .put("contractMonth", 2)
-                .put("expiryDay", 0)
-                .put("exercisePrice", 170)
-                .put("version", "0")
-                .put("flexContractSymbol", "");
-
+        JsonObject jsonData = DataHelper.getLastJsonFromFile("positionReport", 1).get();
+        PositionReportModel model = new PositionReportModel(jsonData);
+        JsonObject param = MongoPersistenceServiceIT.getQueryParams(model);
         FindOptions findOptions = new FindOptions()
                 .setSort(new JsonObject().put("snapshotID", 1));
 
@@ -768,43 +481,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         MongoPersistenceServiceIT.mongoClient.findWithOptions(MongoPersistenceService.POSITION_REPORT_HISTORY_COLLECTION, param, findOptions, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
-                JsonObject result1 = ar.result().get(0);
-
-                context.assertEquals(15, result1.getInteger("snapshotID"));
-                context.assertEquals(20091215, result1.getInteger("businessDate"));
-                context.assertEquals(new JsonObject().put("$date", "2017-02-21T11:43:34.791Z"), result1.getJsonObject("timestamp"));
-                context.assertEquals("BERFR", result1.getString("clearer"));
-                context.assertEquals("BERFR", result1.getString("member"));
-                context.assertEquals("PP", result1.getString("account"));
-                context.assertEquals("PEQ01", result1.getString("liquidationGroup"));
-                context.assertEquals("PEQ01_Basic", result1.getString("liquidationGroupSplit"));
-                context.assertEquals("ALV", result1.getString("product"));
-                context.assertEquals("P", result1.getString("callPut"));
-                context.assertEquals(2010, result1.getInteger("contractYear"));
-                context.assertEquals(2, result1.getInteger("contractMonth"));
-                context.assertEquals(0, result1.getInteger("expiryDay"));
-                context.assertEquals(170.0, result1.getDouble("exercisePrice"));
-                context.assertEquals("0", result1.getString("version"));
-                context.assertEquals("", result1.getString("flexContractSymbol"));
-                context.assertEquals(-1943.0, result1.getDouble("netQuantityLs"));
-                context.assertEquals(0.0, result1.getDouble("netQuantityEa"));
-                context.assertEquals("EUR", result1.getString("clearingCurrency"));
-                context.assertEquals(22.539110869169235, result1.getDouble("mVar"));
-                context.assertEquals(21.725328222930674, result1.getDouble("compVar"));
-                context.assertEquals(0.813782657069325, result1.getDouble("compCorrelationBreak"));
-                context.assertEquals(0.0060874443941714195, result1.getDouble("compCompressionError"));
-                context.assertEquals(6.287057332082233, result1.getDouble("compLiquidityAddOn"));
-                context.assertEquals(-28.832255656476406, result1.getDouble("compLongOptionCredit"));
-                context.assertEquals("EUR", result1.getString("productCurrency"));
-                context.assertInRange(0.0, result1.getDouble("variationPremiumPayment"), DOUBLE_DELTA);
-                context.assertInRange(0.0, result1.getDouble("premiumMargin"), DOUBLE_DELTA);
-                context.assertEquals(0.04391331213559379, result1.getDouble("normalizedDelta"));
-                context.assertEquals(-0.0021834196488993104, result1.getDouble("normalizedGamma"));
-                context.assertEquals(-0.002614335157912494, result1.getDouble("normalizedVega"));
-                context.assertEquals(0.00008193269784691068, result1.getDouble("normalizedRho"));
-                context.assertEquals(0.0004722838437817084, result1.getDouble("normalizedTheta"));
-                context.assertEquals("ALV", result1.getString("underlying"));
-
+                MongoPersistenceServiceIT.assertModelEqualsResult(context, model, ar.result().get(0));
                 asyncQuery.complete();
             } else {
                 context.fail(ar.cause());
@@ -814,80 +491,14 @@ public class MongoPersistenceServiceIT extends BaseTest {
     }
 
     private void checkPositionReportLatestCollectionQuery(TestContext context) {
-        /* You can use this query to paste it directly into MongoDB shell, this is
-           what this test case expects:
-           db.PositionReport.latest.find({
-                clearer: "BERFR",
-                member: "BERFR",
-                account: "PP",
-                liquidationGroup: "PEQ01",
-                liquidationGroupSplit: "PEQ01_Basic",
-                product: "ALV",
-                callPut: "P",
-                contractYear: 2010,
-                contractMonth: 2,
-                expiryDay: 0,
-                exercisePrice: 170,
-                version: "0",
-                flexContractSymbol: ""
-           }).pretty()
-        */
-        JsonObject param = new JsonObject()
-                .put("clearer", "BERFR")
-                .put("member", "BERFR")
-                .put("account", "PP")
-                .put("liquidationGroup", "PEQ01")
-                .put("liquidationGroupSplit", "PEQ01_Basic")
-                .put("product", "ALV")
-                .put("callPut", "P")
-                .put("contractYear", 2010)
-                .put("contractMonth", 2)
-                .put("expiryDay", 0)
-                .put("exercisePrice", 170)
-                .put("version", "0")
-                .put("flexContractSymbol", "");
-
+        JsonObject jsonData = DataHelper.getLastJsonFromFile("positionReport", 2).get();
+        PositionReportModel model = new PositionReportModel(jsonData);
+        JsonObject param = MongoPersistenceServiceIT.getQueryParams(model);
         Async asyncQuery = context.async();
         MongoPersistenceServiceIT.mongoClient.find(MongoPersistenceService.POSITION_REPORT_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
-                JsonObject result1 = ar.result().get(0);
-
-                context.assertEquals(16, result1.getInteger("snapshotID"));
-                context.assertEquals(20091215, result1.getInteger("businessDate"));
-                context.assertEquals(new JsonObject().put("$date", "2017-02-21T11:44:56.396Z"), result1.getJsonObject("timestamp"));
-                context.assertEquals("BERFR", result1.getString("clearer"));
-                context.assertEquals("BERFR", result1.getString("member"));
-                context.assertEquals("PP", result1.getString("account"));
-                context.assertEquals("PEQ01", result1.getString("liquidationGroup"));
-                context.assertEquals("PEQ01_Basic", result1.getString("liquidationGroupSplit"));
-                context.assertEquals("ALV", result1.getString("product"));
-                context.assertEquals("P", result1.getString("callPut"));
-                context.assertEquals(2010, result1.getInteger("contractYear"));
-                context.assertEquals(2, result1.getInteger("contractMonth"));
-                context.assertEquals(0, result1.getInteger("expiryDay"));
-                context.assertEquals(170.0, result1.getDouble("exercisePrice"));
-                context.assertEquals("0", result1.getString("version"));
-                context.assertEquals("", result1.getString("flexContractSymbol"));
-                context.assertEquals(-1943.0, result1.getDouble("netQuantityLs"));
-                context.assertEquals(0.0, result1.getDouble("netQuantityEa"));
-                context.assertEquals("EUR", result1.getString("clearingCurrency"));
-                context.assertEquals(22.539110869169235, result1.getDouble("mVar"));
-                context.assertEquals(21.725328222930678, result1.getDouble("compVar"));
-                context.assertEquals(0.8137826570693243, result1.getDouble("compCorrelationBreak"));
-                context.assertEquals(0.0060874443941714195, result1.getDouble("compCompressionError"));
-                context.assertEquals(6.287057332082231, result1.getDouble("compLiquidityAddOn"));
-                context.assertEquals(-28.832255656476406, result1.getDouble("compLongOptionCredit"));
-                context.assertEquals("EUR", result1.getString("productCurrency"));
-                context.assertInRange(0.0, result1.getDouble("variationPremiumPayment"), DOUBLE_DELTA);
-                context.assertInRange(0.0, result1.getDouble("premiumMargin"), DOUBLE_DELTA);
-                context.assertEquals(0.04391331213559379, result1.getDouble("normalizedDelta"));
-                context.assertEquals(-0.0021834196488993104, result1.getDouble("normalizedGamma"));
-                context.assertEquals(-0.002614335157912494, result1.getDouble("normalizedVega"));
-                context.assertEquals(0.00008193269784691068, result1.getDouble("normalizedRho"));
-                context.assertEquals(0.0004722838437817084, result1.getDouble("normalizedTheta"));
-                context.assertEquals("ALV", result1.getString("underlying"));
-
+                MongoPersistenceServiceIT.assertModelEqualsResult(context, model, ar.result().get(0));
                 asyncQuery.complete();
             } else {
                 context.fail(ar.cause());
@@ -897,42 +508,16 @@ public class MongoPersistenceServiceIT extends BaseTest {
     }
 
     private void checkRiskLimitUtilizationHistoryCollectionQuery(TestContext context) {
-        /* You can use this query to paste it directly into MongoDB shell, this is
-           what this test case expects:
-           db.RiskLimitUtilization.find({
-                clearer : "FULCC",
-                member : "MALFR",
-                maintainer : "FULCC",
-                limitType : "CULI",
-           }).sort({snapshotID: 1}).pretty()
-        */
-        JsonObject param = new JsonObject()
-                .put("clearer", "FULCC")
-                .put("member", "MALFR")
-                .put("maintainer", "FULCC")
-                .put("limitType", "CULI");
-
+        JsonObject jsonData = DataHelper.getLastJsonFromFile("riskLimitUtilization", 1).get();
+        RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(jsonData);
+        JsonObject param = MongoPersistenceServiceIT.getQueryParams(model);
         FindOptions findOptions = new FindOptions()
                 .setSort(new JsonObject().put("snapshotID", 1));
-
         Async asyncQuery = context.async();
         MongoPersistenceServiceIT.mongoClient.findWithOptions(MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, param, findOptions, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(2, ar.result().size());
-                JsonObject result1 = ar.result().get(0);
-
-                context.assertEquals(21, result1.getInteger("snapshotID"));
-                context.assertEquals(20091215, result1.getInteger("businessDate"));
-                context.assertEquals(new JsonObject().put("$date", "2017-03-01T14:00:38.036Z"), result1.getJsonObject("timestamp"));
-                context.assertEquals("FULCC", result1.getString("clearer"));
-                context.assertEquals("MALFR", result1.getString("member"));
-                context.assertEquals("FULCC", result1.getString("maintainer"));
-                context.assertEquals("CULI", result1.getString("limitType"));
-                context.assertEquals(1.109382109046E9, result1.getDouble("utilization"));
-                context.assertEquals(0.0, result1.getDouble("warningLevel"));
-                context.assertEquals(0.0, result1.getDouble("throttleLevel"));
-                context.assertEquals(2.0E7, result1.getDouble("rejectLevel"));
-
+                MongoPersistenceServiceIT.assertModelEqualsResult(context, model, ar.result().get(0));
                 asyncQuery.complete();
             } else {
                 context.fail(ar.cause());
@@ -942,45 +527,45 @@ public class MongoPersistenceServiceIT extends BaseTest {
     }
 
     private void checkRiskLimitUtilizationLatestCollectionQuery(TestContext context) {
-        /* You can use this query to paste it directly into MongoDB shell, this is
-           what this test case expects:
-           db.RiskLimitUtilization.find({
-                clearer : "FULCC",
-                member : "MALFR",
-                maintainer : "FULCC",
-                limitType : "TMR",
-           }).sort({snapshotID: 1}).pretty()
-        */
-        JsonObject param = new JsonObject()
-                .put("clearer", "FULCC")
-                .put("member", "MALFR")
-                .put("maintainer", "FULCC")
-                .put("limitType", "CULI");
-
+        JsonObject jsonData = DataHelper.getLastJsonFromFile("riskLimitUtilization", 2).get();
+        RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(jsonData);
+        JsonObject param = MongoPersistenceServiceIT.getQueryParams(model);
         Async asyncQuery = context.async();
         MongoPersistenceServiceIT.mongoClient.find(MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
-                JsonObject result1 = ar.result().get(0);
-
-                context.assertEquals(22, result1.getInteger("snapshotID"));
-                context.assertEquals(20091215, result1.getInteger("businessDate"));
-                context.assertEquals(new JsonObject().put("$date", "2017-03-01T14:00:49.484Z"), result1.getJsonObject("timestamp"));
-                context.assertEquals("FULCC", result1.getString("clearer"));
-                context.assertEquals("MALFR", result1.getString("member"));
-                context.assertEquals("FULCC", result1.getString("maintainer"));
-                context.assertEquals("CULI", result1.getString("limitType"));
-                context.assertEquals(1.109382109046E9, result1.getDouble("utilization"));
-                context.assertEquals(0.0, result1.getDouble("warningLevel"));
-                context.assertEquals(0.0, result1.getDouble("throttleLevel"));
-                context.assertEquals(2.0E7, result1.getDouble("rejectLevel"));
-
+                MongoPersistenceServiceIT.assertModelEqualsResult(context, model, ar.result().get(0));
                 asyncQuery.complete();
             } else {
                 context.fail(ar.cause());
             }
         });
         asyncQuery.awaitSuccess(5000);
+    }
+
+    private static JsonObject getExpectedMongoResultFromModel(JsonObject model) {
+        JsonObject result = new JsonObject();
+        model.fieldNames().stream()
+                .forEach(key -> {
+                    if (key.equals("timestamp")) {
+                        Instant instant = Instant.ofEpochMilli(model.getLong("timestamp"));
+                        result.put(key, new JsonObject().put("$date", ZonedDateTime.ofInstant(instant, ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+                    } else {
+                        result.put(key, model.getValue(key));
+                    }
+                });
+        return result;
+    }
+
+    private static JsonObject getQueryParams(AbstractModel model) {
+        JsonObject queryParams = new JsonObject();
+        model.getKeys().stream().forEach(key -> queryParams.put(key, model.getValue(key)));
+        return queryParams;
+    }
+
+    private static void assertModelEqualsResult(TestContext context, JsonObject model, JsonObject mongoResult) {
+        mongoResult.remove("_id");
+        context.assertEquals(MongoPersistenceServiceIT.getExpectedMongoResultFromModel(model), mongoResult);
     }
 
     @AfterClass

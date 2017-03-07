@@ -1,16 +1,18 @@
 package com.deutscheboerse.risk.dave.log;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class TestAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
     private String className;
-    private ILoggingEvent lastLogMessage;
-    private AtomicInteger messageCount = new AtomicInteger(0);
+    private Map<Level, ILoggingEvent> lastLogMessage = new ConcurrentHashMap<>();
+    private Map<Level, Integer> messageCount = new ConcurrentHashMap<>();
 
     private TestAppender(String className) {
         this.className = className;
@@ -25,33 +27,33 @@ public class TestAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
     protected void append(ILoggingEvent event) {
         if (event.getLoggerName().equals(this.className)) {
             synchronized(this) {
-                lastLogMessage = event;
-                this.messageCount.incrementAndGet();
+                lastLogMessage.put(event.getLevel(), event);
+                this.messageCount.compute(event.getLevel(), (k, v) -> (v == null) ? 1 : v + 1);
                 this.notifyAll();
             }
         }
     }
 
-    public ILoggingEvent getLastMessage() throws InterruptedException {
+    public ILoggingEvent getLastMessage(Level level) throws InterruptedException {
         synchronized(this) {
-            while (this.lastLogMessage == null) {
+            while (!this.lastLogMessage.containsKey(level)) {
                 this.wait(5000);
             }
         }
-        return lastLogMessage;
+        return lastLogMessage.get(level);
     }
 
-    public void waitForMessageCount(int count) throws InterruptedException {
+    public void waitForMessageCount(Level level, int count) throws InterruptedException {
         synchronized(this) {
-            while (this.messageCount.intValue() < count) {
+            while (this.messageCount.getOrDefault(level, 0) < count) {
                 this.wait(5000);
             }
         }
     }
 
-    public void waitForMessageContains(String message) throws InterruptedException {
+    public void waitForMessageContains(Level level, String message) throws InterruptedException {
         synchronized(this) {
-            while (!this.getLastMessage().getFormattedMessage().contains(message)) {
+            while (!this.getLastMessage(level).getFormattedMessage().contains(message)) {
                 this.wait(5000);
             }
         }

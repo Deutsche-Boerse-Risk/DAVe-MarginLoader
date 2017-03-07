@@ -1,6 +1,8 @@
 package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.persistence.MongoPersistenceService;
+import com.deutscheboerse.risk.dave.utils.BrokerFiller;
+import com.deutscheboerse.risk.dave.utils.BrokerFillerCorrectData;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -46,7 +48,7 @@ public class MainVerticleIT extends BaseTest {
         });
         mainVerticleAsync.awaitSuccess(30000);
         MongoClient mongoClient = this.createMongoClient(options.getConfig().getJsonObject("mongo"));
-        final BrokerFiller brokerFiller = new BrokerFiller(this.vertx);
+        final BrokerFiller brokerFiller = new BrokerFillerCorrectData(this.vertx);
         brokerFiller.setUpAllQueues(context.asyncAssertSuccess());
         this.testCountInCollection(context, mongoClient, MongoPersistenceService.ACCOUNT_MARGIN_HISTORY_COLLECTION, 1704);
         this.testCountInCollection(context, mongoClient, MongoPersistenceService.ACCOUNT_MARGIN_LATEST_COLLECTION, 1704);
