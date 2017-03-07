@@ -12,16 +12,16 @@ public abstract class AbstractModel extends JsonObject {
     public AbstractModel() {
     }
 
-    public JsonObject toJson() {
-        return new JsonObject(this.getMap());
-    }
-
     public AbstractModel(PrismaReports.PrismaHeader header) {
         verify(header);
 
         put("snapshotID", header.getId());
         put("businessDate", header.getBusinessDate());
         put("timestamp", header.getTimestamp());
+    }
+
+    public JsonObject toJson() {
+        return new JsonObject(this.getMap());
     }
 
     private void verify(PrismaReports.PrismaHeader header) {

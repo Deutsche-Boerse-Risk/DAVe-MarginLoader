@@ -49,18 +49,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
     @Test
     public void checkCollectionsExist(TestContext context) {
         List<String> requiredCollections = new ArrayList<>();
-        requiredCollections.add(MongoPersistenceService.ACCOUNT_MARGIN_HISTORY_COLLECTION);
-        requiredCollections.add(MongoPersistenceService.ACCOUNT_MARGIN_LATEST_COLLECTION);
-        requiredCollections.add(MongoPersistenceService.LIQUI_GROUP_MARGIN_HISTORY_COLLECTION);
-        requiredCollections.add(MongoPersistenceService.LIQUI_GROUP_MARGIN_LATEST_COLLECTION);
-        requiredCollections.add(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION);
-        requiredCollections.add(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION);
-        requiredCollections.add(MongoPersistenceService.POOL_MARGIN_HISTORY_COLLECTION);
-        requiredCollections.add(MongoPersistenceService.POOL_MARGIN_LATEST_COLLECTION);
-        requiredCollections.add(MongoPersistenceService.POSITION_REPORT_HISTORY_COLLECTION);
-        requiredCollections.add(MongoPersistenceService.POSITION_REPORT_LATEST_COLLECTION);
-        requiredCollections.add(MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION);
-        requiredCollections.add(MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION);
+        requiredCollections.addAll(MongoPersistenceService.getRequiredCollections());
         final Async async = context.async();
         MongoPersistenceServiceIT.mongoClient.getCollections(ar -> {
             if (ar.succeeded()) {
@@ -79,7 +68,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
     @Test
     public void checkIndexesExist(TestContext context) {
         // one index for history and one for latest collection in each model
-        final Async async = context.async(6 * 2);
+        final Async async = context.async(MongoPersistenceService.getRequiredCollections().size());
         BiConsumer<String, JsonObject> indexCheck = (collectionName, expectedIndex) -> {
             MongoPersistenceServiceIT.mongoClient.listIndexes(collectionName, ar -> {
                 if (ar.succeeded()) {

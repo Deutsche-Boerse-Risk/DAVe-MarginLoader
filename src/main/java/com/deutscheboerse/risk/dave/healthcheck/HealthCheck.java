@@ -55,38 +55,32 @@ public class HealthCheck {
     }
 
     public HealthCheck setAccountMarginState(boolean state) {
-        LOG.info("Setting {} readiness to {}", ACCOUNT_MARGIN_KEY, state);
-        localMap.put(ACCOUNT_MARGIN_KEY, state);
-        return this;
+        return this.setState(ACCOUNT_MARGIN_KEY, state);
     }
 
     public HealthCheck setLiquiGroupMarginState(boolean state) {
-        LOG.info("Setting {} readiness to {}", LIQUI_GROUP_MARGIN_KEY, state);
-        localMap.put(LIQUI_GROUP_MARGIN_KEY, state);
-        return this;
+        return this.setState(LIQUI_GROUP_MARGIN_KEY, state);
     }
 
     public HealthCheck setLiquiGroupSplitMarginState(boolean state) {
-        LOG.info("Setting {} readiness to {}", LIQUI_GROUP_SPLIT_MARGIN_KEY, state);
-        localMap.put(LIQUI_GROUP_SPLIT_MARGIN_KEY, state);
-        return this;
+        return this.setState(LIQUI_GROUP_SPLIT_MARGIN_KEY, state);
     }
 
     public HealthCheck setPoolMarginState(boolean state) {
-        LOG.info("Setting {} readiness to {}", POOL_MARGIN_KEY, state);
-        localMap.put(POOL_MARGIN_KEY, state);
-        return this;
+        return this.setState(POOL_MARGIN_KEY, state);
     }
 
     public HealthCheck setPositionReportState(boolean state) {
-        LOG.info("Setting {} readiness to {}", POSITION_REPORT_KEY, state);
-        localMap.put(POSITION_REPORT_KEY, state);
-        return this;
+        return this.setState(POSITION_REPORT_KEY, state);
     }
 
     public HealthCheck setRiskLimitUtilizationState(boolean state) {
-        LOG.info("Setting {} readiness to {}", RISK_LIMIT_UTILIZATION_KEY, state);
-        localMap.put(RISK_LIMIT_UTILIZATION_KEY, state);
+        return this.setState(RISK_LIMIT_UTILIZATION_KEY, state);
+    }
+
+    private HealthCheck setState(String key, boolean state) {
+        LOG.info("Setting {} readiness to {}", key, state);
+        localMap.put(key, state);
         return this;
     }
 }
