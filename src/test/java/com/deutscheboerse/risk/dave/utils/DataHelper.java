@@ -174,18 +174,23 @@ public class DataHelper {
     }
 
     public static PrismaReports.RiskLimitUtilization createRiskLimitUtilizationGPBFromJson(JsonObject json) {
-        PrismaReports.RiskLimitUtilization result = PrismaReports.RiskLimitUtilization.newBuilder()
+        PrismaReports.RiskLimitUtilization.Builder builder = PrismaReports.RiskLimitUtilization.newBuilder()
                 .setKey(PrismaReports.RiskLimitUtilizationKey.newBuilder()
                         .setClearer(json.getString("clearer"))
                         .setMember(json.getString("member"))
                         .setMaintainer(json.getString("maintainer"))
                         .setLimitType(json.getString("limitType")))
-                .setUtilization(json.getDouble("utilization"))
-                .setWarningLevel(json.getDouble("warningLevel"))
-                .setThrottleLevel(json.getDouble("throttleLevel"))
-                .setRejectLevel(json.getDouble("rejectLevel"))
-                .build();
-        return result;
+                .setUtilization(json.getDouble("utilization"));
+        if (json.getDouble("warningLevel") != null) {
+            builder.setWarningLevel(json.getDouble("warningLevel"));
+        }
+        if (json.getDouble("throttleLevel") != null) {
+            builder.setThrottleLevel(json.getDouble("throttleLevel"));
+        }
+        if (json.getDouble("rejectLevel") != null) {
+            builder.setRejectLevel(json.getDouble("rejectLevel"));
+        }
+        return builder.build();
     }
 
     public static PrismaReports.PrismaHeader createPrismaHeaderFromJson(JsonObject json) {

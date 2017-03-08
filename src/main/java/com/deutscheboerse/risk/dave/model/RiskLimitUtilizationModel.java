@@ -31,11 +31,16 @@ public class RiskLimitUtilizationModel extends AbstractModel {
         put("member", key.getMember());
         put("maintainer", key.getMaintainer());
         put("limitType", key.getLimitType());
-
         put("utilization", data.getUtilization());
-        put("warningLevel", data.getWarningLevel());
-        put("throttleLevel", data.getThrottleLevel());
-        put("rejectLevel", data.getRejectLevel());
+        if (data.hasWarningLevel()) {
+            put("warningLevel", data.getWarningLevel());
+        }
+        if (data.hasThrottleLevel()) {
+            put("throttleLevel", data.getThrottleLevel());
+        }
+        if (data.hasRejectLevel()) {
+            put("rejectLevel", data.getRejectLevel());
+        }
     }
 
     private void verify(PrismaReports.RiskLimitUtilization data) {
