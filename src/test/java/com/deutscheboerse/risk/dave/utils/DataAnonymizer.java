@@ -31,7 +31,6 @@ public class DataAnonymizer {
     private void anonymizeFile(String folderName, int ttsaveNo) {
         JsonArray anonymizedArray = new JsonArray();
         DataHelper.readTTSaveFile(folderName, ttsaveNo)
-                .stream()
                 .forEach(json -> {
                     if (json.containsKey("clearer")) {
                         String clearer = json.getString("clearer");

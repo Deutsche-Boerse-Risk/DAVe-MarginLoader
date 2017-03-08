@@ -6,14 +6,13 @@ import io.vertx.core.Vertx;
 import io.vertx.proton.ProtonConnection;
 import io.vertx.proton.ProtonSender;
 import org.apache.qpid.proton.amqp.Binary;
-import org.apache.qpid.proton.amqp.messaging.AmqpValue;
 import org.apache.qpid.proton.amqp.messaging.Data;
 import org.apache.qpid.proton.message.Message;
 
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Random;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public class BrokerFillerInvalidProtocol extends BrokerFillerCorrectData {
 
@@ -22,7 +21,7 @@ public class BrokerFillerInvalidProtocol extends BrokerFillerCorrectData {
     }
 
     @Override
-    protected Future<ProtonConnection> populateQueue(ProtonConnection protonConnection, String queueName, String folderName, Collection<Integer> ttsaveNumbers, BiFunction<String, Integer, Optional<ObjectList.GPBObjectList>> gpbBuilder) {
+    protected Future<ProtonConnection> populateQueue(ProtonConnection protonConnection, String queueName, Collection<Integer> ttsaveNumbers, Function<Integer, Optional<ObjectList.GPBObjectList>> gpbBuilder) {
         Future<ProtonConnection> populateQueueFuture = Future.future();
         protonConnection.createSender(queueName).openHandler(openResult -> {
             if (openResult.succeeded()) {

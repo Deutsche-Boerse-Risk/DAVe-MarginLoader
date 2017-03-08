@@ -22,10 +22,7 @@ public class BrokerFillerMissingHeader extends BrokerFillerCorrectData {
             gpbObjectListBuilder.addItem(gpbObject);
             lastRecord.mergeIn(json);
         });
-        if (! gpbObjectListBuilder.isInitialized()) {
-            return Optional.empty();
-        }
-        if (lastRecord == null) {
+        if (lastRecord.isEmpty()) {
             return Optional.empty();
         }
         return Optional.of(gpbObjectListBuilder.build());

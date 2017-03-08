@@ -16,7 +16,6 @@ import org.apache.qpid.proton.message.Message;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -108,59 +107,53 @@ public class BrokerFillerCorrectData implements BrokerFiller {
 
     private Future<ProtonConnection> populateAccountMarginQueue(ProtonConnection protonConnection) {
         final String queueName = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEAccountMargin";
-        final String folderName = "accountMargin";
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
-        return this.populateQueue(protonConnection, queueName, folderName, ttsaveNumbers, this::createAccountMarginGPBObjectList);
+        return this.populateQueue(protonConnection, queueName, ttsaveNumbers, this::createAccountMarginGPBObjectList);
     }
 
     private Future<ProtonConnection> populateLiquiGroupMarginQueue(ProtonConnection protonConnection) {
         final String queueName = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupMargin";
-        final String folderName = "liquiGroupMargin";
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
-        return this.populateQueue(protonConnection, queueName, folderName, ttsaveNumbers, this::createLiquiGroupMarginGPBObjectList);
+        return this.populateQueue(protonConnection, queueName, ttsaveNumbers, this::createLiquiGroupMarginGPBObjectList);
     }
 
     private Future<ProtonConnection> populateLiquiGroupSplitMarginQueue(ProtonConnection protonConnection) {
         final String queueName = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupSplitMargin";
-        final String folderName = "liquiGroupSplitMargin";
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
-        return this.populateQueue(protonConnection, queueName, folderName, ttsaveNumbers, this::createLiquiGroupSplitMarginGPBObjectList);
+        return this.populateQueue(protonConnection, queueName, ttsaveNumbers, this::createLiquiGroupSplitMarginGPBObjectList);
     }
 
     private Future<ProtonConnection> populatePoolMarginQueue(ProtonConnection protonConnection) {
         final String queueName = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPoolMargin";
-        final String folderName = "poolMargin";
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
-        return this.populateQueue(protonConnection, queueName, folderName, ttsaveNumbers, this::createPoolMarginGPBObjectList);
+        return this.populateQueue(protonConnection, queueName, ttsaveNumbers, this::createPoolMarginGPBObjectList);
     }
 
     private Future<ProtonConnection> populatePositionReportQueue(ProtonConnection protonConnection) {
         final String queueName = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPositionReport";
-        final String folderName = "positionReport";
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
-        return this.populateQueue(protonConnection, queueName, folderName, ttsaveNumbers, this::createPositionReportGPBObjectList);
+        return this.populateQueue(protonConnection, queueName, ttsaveNumbers, this::createPositionReportGPBObjectList);
     }
 
     private Future<ProtonConnection> populateRiskLimitUtilizationQueue(ProtonConnection protonConnection) {
         final String queueName = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVERiskLimitUtilization";
-        final String folderName = "riskLimitUtilization";
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
-        return this.populateQueue(protonConnection, queueName, folderName, ttsaveNumbers, this::createRiskLimitUtilizationGPBObjectList);
+        return this.populateQueue(protonConnection, queueName, ttsaveNumbers, this::createRiskLimitUtilizationGPBObjectList);
     }
 
-    protected Future<ProtonConnection> populateQueue(ProtonConnection protonConnection, String queueName, String folderName, Collection<Integer> ttsaveNumbers, BiFunction<String, Integer, Optional<ObjectList.GPBObjectList>> gpbBuilder) {
+    protected Future<ProtonConnection> populateQueue(ProtonConnection protonConnection, String queueName, Collection<Integer> ttsaveNumbers, Function<Integer, Optional<ObjectList.GPBObjectList>> gpbBuilder) {
         Future<ProtonConnection> populateQueueFuture = Future.future();
         protonConnection.createSender(queueName).openHandler(openResult -> {
             if (openResult.succeeded()) {
@@ -169,7 +162,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
                 sender.setAutoSettle(true);
                 for (Integer ttsaveNumber: ttsaveNumbers) {
                     Message message = Message.Factory.create();
-                    Optional<ObjectList.GPBObjectList> gpbObjectList = gpbBuilder.apply(folderName, ttsaveNumber);
+                    Optional<ObjectList.GPBObjectList> gpbObjectList = gpbBuilder.apply(ttsaveNumber);
                     if (gpbObjectList.isPresent()) {
                         byte[] messageBytes = gpbObjectList.get().toByteArray();
                         message.setBody(new Data(new Binary(messageBytes)));
@@ -190,62 +183,62 @@ public class BrokerFillerCorrectData implements BrokerFiller {
         return populateQueueFuture;
     }
 
-    private Optional<ObjectList.GPBObjectList> createAccountMarginGPBObjectList(String folderName, int ttsaveNo) {
+    private Optional<ObjectList.GPBObjectList> createAccountMarginGPBObjectList(int ttsaveNo) {
+        final String folderName = "accountMargin";
         Function<JsonObject, ObjectList.GPBObject> creator = (json) -> {
             PrismaReports.AccountMargin data = DataHelper.createAccountMarginGPBFromJson(json);
-            ObjectList.GPBObject gpbObject = ObjectList.GPBObject.newBuilder()
+            return ObjectList.GPBObject.newBuilder()
                     .setExtension(PrismaReports.accountMargin, data).build();
-            return gpbObject;
         };
         return this.createGPBFromJson(folderName, ttsaveNo, creator);
     }
 
-    private Optional<ObjectList.GPBObjectList> createLiquiGroupMarginGPBObjectList(String folderName, int ttsaveNo) {
+    private Optional<ObjectList.GPBObjectList> createLiquiGroupMarginGPBObjectList(int ttsaveNo) {
+        final String folderName = "liquiGroupMargin";
         Function<JsonObject, ObjectList.GPBObject> creator = (json) -> {
             PrismaReports.LiquiGroupMargin data = DataHelper.createLiquiGroupMarginGPBFromJson(json);
-            ObjectList.GPBObject gpbObject = ObjectList.GPBObject.newBuilder()
+            return ObjectList.GPBObject.newBuilder()
                     .setExtension(PrismaReports.liquiGroupMargin, data).build();
-            return gpbObject;
         };
         return this.createGPBFromJson(folderName, ttsaveNo, creator);
     }
 
-    private Optional<ObjectList.GPBObjectList> createLiquiGroupSplitMarginGPBObjectList(String folderName, int ttsaveNo) {
+    private Optional<ObjectList.GPBObjectList> createLiquiGroupSplitMarginGPBObjectList(int ttsaveNo) {
+        final String folderName = "liquiGroupSplitMargin";
         Function<JsonObject, ObjectList.GPBObject> creator = (json) -> {
             PrismaReports.LiquiGroupSplitMargin data = DataHelper.createLiquiGroupSplitMarginGPBFromJson(json);
-            ObjectList.GPBObject gpbObject = ObjectList.GPBObject.newBuilder()
+            return ObjectList.GPBObject.newBuilder()
                     .setExtension(PrismaReports.liquiGroupSplitMargin, data).build();
-            return gpbObject;
         };
         return this.createGPBFromJson(folderName, ttsaveNo, creator);
     }
 
-    private Optional<ObjectList.GPBObjectList> createPoolMarginGPBObjectList(String folderName, int ttsaveNo) {
+    private Optional<ObjectList.GPBObjectList> createPoolMarginGPBObjectList(int ttsaveNo) {
+        final String folderName = "poolMargin";
         Function<JsonObject, ObjectList.GPBObject> creator = (json) -> {
             PrismaReports.PoolMargin data = DataHelper.createPoolMarginGPBFromJson(json);
-            ObjectList.GPBObject gpbObject = ObjectList.GPBObject.newBuilder()
+            return ObjectList.GPBObject.newBuilder()
                     .setExtension(PrismaReports.poolMargin, data).build();
-            return gpbObject;
         };
         return this.createGPBFromJson(folderName, ttsaveNo, creator);
     }
 
-    private Optional<ObjectList.GPBObjectList> createPositionReportGPBObjectList(String folderName, int ttsaveNo) {
+    private Optional<ObjectList.GPBObjectList> createPositionReportGPBObjectList(int ttsaveNo) {
+        final String folderName = "positionReport";
         Function<JsonObject, ObjectList.GPBObject> creator = (json) -> {
             PrismaReports.PositionReport data = DataHelper.createPositionReportGPBFromJson(json);
-            ObjectList.GPBObject gpbObject = ObjectList.GPBObject.newBuilder()
+            return ObjectList.GPBObject.newBuilder()
                     .setExtension(PrismaReports.positionReport, data).build();
-            return gpbObject;
         };
         return this.createGPBFromJson(folderName, ttsaveNo, creator);
     }
 
-    private Optional<ObjectList.GPBObjectList> createRiskLimitUtilizationGPBObjectList(String folderName, int ttsaveNo) {
+    private Optional<ObjectList.GPBObjectList> createRiskLimitUtilizationGPBObjectList(int ttsaveNo) {
+        final String folderName = "riskLimitUtilization";
         Function<JsonObject, ObjectList.GPBObject> creator = (json) -> {
             PrismaReports.RiskLimitUtilization data = DataHelper.createRiskLimitUtilizationGPBFromJson(json);
-            ObjectList.GPBObject gpbObject = ObjectList.GPBObject.newBuilder()
+            return ObjectList.GPBObject.newBuilder()
                     .setExtension(PrismaReports.riskLimitUtilization, data).build();
-            return gpbObject;
         };
         return this.createGPBFromJson(folderName, ttsaveNo, creator);
     }
@@ -258,16 +251,12 @@ public class BrokerFillerCorrectData implements BrokerFiller {
             gpbObjectListBuilder.addItem(gpbObject);
             lastRecord.mergeIn(json);
         });
-        if (! gpbObjectListBuilder.isInitialized()) {
-            return Optional.empty();
-        }
-        if (lastRecord == null) {
+        if (lastRecord.isEmpty()) {
             return Optional.empty();
         }
         ObjectList.GPBHeader gpbHeader = ObjectList.GPBHeader.newBuilder()
                 .setExtension(PrismaReports.prismaHeader, DataHelper.createPrismaHeaderFromJson(lastRecord)).build();
         gpbObjectListBuilder.setHeader(gpbHeader);
         return Optional.of(gpbObjectListBuilder.build());
-    };
-
+    }
 }

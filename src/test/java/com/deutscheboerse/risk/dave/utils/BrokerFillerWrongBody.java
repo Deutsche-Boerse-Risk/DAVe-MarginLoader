@@ -11,6 +11,7 @@ import org.apache.qpid.proton.message.Message;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public class BrokerFillerWrongBody extends BrokerFillerCorrectData {
 
@@ -19,7 +20,7 @@ public class BrokerFillerWrongBody extends BrokerFillerCorrectData {
     }
 
     @Override
-    protected Future<ProtonConnection> populateQueue(ProtonConnection protonConnection, String queueName, String folderName, Collection<Integer> ttsaveNumbers, BiFunction<String, Integer, Optional<ObjectList.GPBObjectList>> gpbBuilder) {
+    protected Future<ProtonConnection> populateQueue(ProtonConnection protonConnection, String queueName,  Collection<Integer> ttsaveNumbers, Function<Integer, Optional<ObjectList.GPBObjectList>> gpbBuilder) {
         Future<ProtonConnection> populateQueueFuture = Future.future();
         protonConnection.createSender(queueName).openHandler(openResult -> {
             if (openResult.succeeded()) {
