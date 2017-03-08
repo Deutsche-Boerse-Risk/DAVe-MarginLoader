@@ -156,7 +156,7 @@ public abstract class AMQPVerticle extends AbstractVerticle {
                 if (gpbObjectList.hasHeader() && gpbObjectList.getHeader().hasExtension(PrismaReports.prismaHeader)) {
                     this.processObjectList(gpbObjectList);
                 } else {
-                    LOG.warn("Message header is missing for message - ignoring it {}", gpbObjectList.toString());
+                    LOG.error("Message header is missing for message - ignoring it (Verticle: {})", this.verticleName);
                 }
             } catch (InvalidProtocolBufferException e) {
                 LOG.error("Unable to decode GPB message", e);

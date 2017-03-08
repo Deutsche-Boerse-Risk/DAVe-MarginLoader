@@ -18,9 +18,7 @@ import io.vertx.serviceproxy.ServiceException;
 
 import javax.inject.Inject;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 public class MongoPersistenceService implements PersistenceService {
@@ -139,6 +137,24 @@ public class MongoPersistenceService implements PersistenceService {
         return document;
     }
 
+    public static Collection<String> getRequiredCollections() {
+        List<String> neededCollections = new ArrayList<>(Arrays.asList(
+                ACCOUNT_MARGIN_HISTORY_COLLECTION,
+                ACCOUNT_MARGIN_LATEST_COLLECTION,
+                LIQUI_GROUP_MARGIN_HISTORY_COLLECTION,
+                LIQUI_GROUP_MARGIN_LATEST_COLLECTION,
+                LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION,
+                LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION,
+                POOL_MARGIN_HISTORY_COLLECTION,
+                POOL_MARGIN_LATEST_COLLECTION,
+                POSITION_REPORT_HISTORY_COLLECTION,
+                POSITION_REPORT_LATEST_COLLECTION,
+                RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION,
+                RISK_LIMIT_UTILIZATION_LATEST_COLLECTION
+        ));
+        return Collections.unmodifiableList(neededCollections);
+    }
+
     private Future<String> storeIntoHistoryCollection(AbstractModel model, String collection) {
         JsonObject document = MongoPersistenceService.getStoreDocument(model);
         LOG.trace("Storing message into {} with body {}", collection, document.encodePrettily());
@@ -175,24 +191,8 @@ public class MongoPersistenceService implements PersistenceService {
         mongo.getCollections(res -> {
             if (res.succeeded()) {
                 List<String> mongoCollections = res.result();
-                List<String> neededCollections = new ArrayList<>(Arrays.asList(
-                        ACCOUNT_MARGIN_HISTORY_COLLECTION,
-                        ACCOUNT_MARGIN_LATEST_COLLECTION,
-                        LIQUI_GROUP_MARGIN_HISTORY_COLLECTION,
-                        LIQUI_GROUP_MARGIN_LATEST_COLLECTION,
-                        LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION,
-                        LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION,
-                        POOL_MARGIN_HISTORY_COLLECTION,
-                        POOL_MARGIN_LATEST_COLLECTION,
-                        POSITION_REPORT_HISTORY_COLLECTION,
-                        POSITION_REPORT_LATEST_COLLECTION,
-                        RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION,
-                        RISK_LIMIT_UTILIZATION_LATEST_COLLECTION
-                ));
-
                 List<Future> futs = new ArrayList<>();
-
-                neededCollections.stream()
+                MongoPersistenceService.getRequiredCollections().stream()
                         .filter(collection -> ! mongoCollections.contains(collection))
                         .forEach(collection -> {
                             LOG.info("Collection {} is missing and will be added", collection);
@@ -200,7 +200,6 @@ public class MongoPersistenceService implements PersistenceService {
                             mongo.createCollection(collection, fut.completer());
                             futs.add(fut);
                         });
-
                 CompositeFuture.all(futs).setHandler(ar -> {
                     if (ar.succeeded()) {
                         LOG.info("Mongo has all needed collections for DAVe");
