@@ -7,6 +7,8 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -45,23 +47,39 @@ public class HealthCheckIT extends BaseTest {
 
     @Test
     public void testHealth(TestContext context) throws InterruptedException {
+        JsonObject expected = new JsonObject();
+        expected.put("checks", new JsonArray().add(new JsonObject()
+                .put("id", "healthz")
+                .put("status", "UP")))
+                .put("outcome", "UP");
         vertx.createHttpClient().getNow(HTTP_PORT, "localhost", HealthCheckVerticle.REST_HEALTHZ,
-                assertEqualsHttpHandler(200, "ok", context));
+                assertEqualsHttpHandler(200, expected.encode(), context));
     }
 
     @Test
     public void testReadinessOk(TestContext context) throws InterruptedException {
+        JsonObject expected = new JsonObject();
+        expected.put("checks", new JsonArray().add(new JsonObject()
+                .put("id", "readiness")
+                .put("status", "UP")))
+                .put("outcome", "UP");
         vertx.createHttpClient().getNow(HTTP_PORT, "localhost", HealthCheckVerticle.REST_READINESS,
-                assertEqualsHttpHandler(200, "ok", context));
+                assertEqualsHttpHandler(200, expected.encode(), context));
     }
 
     @Test
     public void testReadinessNok(TestContext context) throws InterruptedException {
+        JsonObject expected = new JsonObject();
+        expected.put("checks", new JsonArray().add(new JsonObject()
+                .put("id", "readiness")
+                .put("status", "DOWN")))
+                .put("outcome", "DOWN");
+
         HealthCheck healthCheck = new HealthCheck(vertx);
         healthCheck.setAccountMarginState(false);
 
         vertx.createHttpClient().getNow(HTTP_PORT, "localhost", HealthCheckVerticle.REST_READINESS,
-                assertEqualsHttpHandler(503, "nok", context));
+                assertEqualsHttpHandler(503, expected.encode(), context));
     }
 
     @AfterClass
