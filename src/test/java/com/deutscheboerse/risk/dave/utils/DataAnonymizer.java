@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class DataAnonymizer {
@@ -56,26 +56,19 @@ public class DataAnonymizer {
 
     private String generateRandomString(int length) {
         return this.random.ints(65, 91)
-                .mapToObj(i -> (char) i)
                 .limit(length)
+                .mapToObj(i -> (char) i)
                 .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
                 .toString();
     }
 
     private void write(String path, JsonArray jsonArray) {
+        String output = jsonArray.stream()
+                .map(o -> (JsonObject) o)
+                .map(json -> json.encode())
+                .collect(Collectors.joining(",\n", "[\n", "\n]"));
         try (PrintWriter writer = new PrintWriter(new FileWriter(path))) {
-            AtomicBoolean first = new AtomicBoolean(true);
-            writer.println("[");
-            jsonArray.stream().forEach(json -> {
-                if (!first.get()) {
-                    writer.println(",");
-                } else {
-                    first.set(false);
-                }
-                writer.print(((JsonObject)json).encode());
-            });
-            writer.println();
-            writer.println("]");
+            writer.println(output);
         } catch (IOException e) {
             e.printStackTrace();
         }
