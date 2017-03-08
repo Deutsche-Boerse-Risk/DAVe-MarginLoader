@@ -7,6 +7,8 @@ import io.vertx.core.Future;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.healthchecks.HealthCheckHandler;
+import io.vertx.ext.healthchecks.Status;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
@@ -63,26 +65,27 @@ public class HealthCheckVerticle extends AbstractVerticle
     }
 
     private Router configureRouter() {
+        HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
+        HealthCheckHandler readinessHandler = HealthCheckHandler.create(vertx);
+
+        healthCheckHandler.register("healthz", this::healthz);
+        readinessHandler.register("readiness", this::readiness);
 
         Router router = Router.router(vertx);
 
         LOG.info("Adding route REST API");
-        router.get(REST_HEALTHZ).handler(this::healthz);
-        router.get(REST_READINESS).handler(this::readiness);
+        router.get(REST_HEALTHZ).handler(healthCheckHandler);
+        router.get(REST_READINESS).handler(readinessHandler);
 
         return router;
     }
 
-    private void healthz(RoutingContext routingContext) {
-        routingContext.response().setStatusCode(HttpResponseStatus.OK.code()).end("ok");
+    private void healthz(Future<Status> future) {
+        future.complete(Status.OK());
     }
 
-    private void readiness(RoutingContext routingContext) {
-        if (healthCheck.ready())  {
-            routingContext.response().setStatusCode(HttpResponseStatus.OK.code()).end("ok");
-        } else  {
-            routingContext.response().setStatusCode(HttpResponseStatus.SERVICE_UNAVAILABLE.code()).end("nok");
-        }
+    private void readiness(Future<Status> future) {
+        future.complete(healthCheck.ready() ? Status.OK() : Status.KO());
     }
 
     @Override
