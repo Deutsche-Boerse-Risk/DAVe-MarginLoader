@@ -16,12 +16,12 @@ import org.junit.runner.RunWith;
 @RunWith(VertxUnitRunner.class)
 public class PersistenceVerticleIT {
     private Vertx vertx;
-    public static InitPersistenceService persistenceService;
+    private static InitPersistenceService persistenceService;
 
     @Test
     public void checkPersistenceServiceInitialized(TestContext context) {
         this.vertx = Vertx.vertx();
-        PersistenceVerticleIT.persistenceService = new InitPersistenceService(this.vertx, true);
+        PersistenceVerticleIT.persistenceService = new InitPersistenceService(true);
         JsonObject config = new JsonObject().put("guice_binder", TestBinder.class.getName());
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
         Async async = context.async();
@@ -39,7 +39,7 @@ public class PersistenceVerticleIT {
     @Test
     public void checkPersistenceServiceNotInitialized(TestContext context) {
         this.vertx = Vertx.vertx();
-        PersistenceVerticleIT.persistenceService = new InitPersistenceService(this.vertx, false);
+        PersistenceVerticleIT.persistenceService = new InitPersistenceService(false);
         JsonObject config = new JsonObject().put("guice_binder", TestBinder.class.getName());
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
         Async async = context.async();

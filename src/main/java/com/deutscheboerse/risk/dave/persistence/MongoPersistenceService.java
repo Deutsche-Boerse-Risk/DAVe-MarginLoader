@@ -24,9 +24,6 @@ import java.util.function.BiConsumer;
 public class MongoPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(MongoPersistenceService.class);
 
-    private static final String DEFAULT_DB_NAME = "DAVe";
-    private static final String DEFAULT_CONNECTION_URL = "mongodb://localhost:27017/?waitqueuemultiple=20000";
-
     public static final String ACCOUNT_MARGIN_HISTORY_COLLECTION = "AccountMargin";
     public static final String ACCOUNT_MARGIN_LATEST_COLLECTION = "AccountMargin.latest";
     public static final String LIQUI_GROUP_MARGIN_HISTORY_COLLECTION = "LiquiGroupMargin";
@@ -40,30 +37,33 @@ public class MongoPersistenceService implements PersistenceService {
     public static final String RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION = "RiskLimitUtilization";
     public static final String RISK_LIMIT_UTILIZATION_LATEST_COLLECTION = "RiskLimitUtilization.latest";
 
-    private int CONNECTION_STATUS_TIMER = 5000;
+    private static final int RECONNECT_DELAY = 2000;
 
     private final Vertx vertx;
-    private MongoClient mongo;
-    private HealthCheck healthCheck;
-    private boolean scheduledConnectionStatus = false;
+    private final MongoClient mongo;
+    private final HealthCheck healthCheck;
 
     @Inject
-    public MongoPersistenceService(Vertx vertx) {
+    public MongoPersistenceService(Vertx vertx, MongoClient mongo) {
         this.vertx = vertx;
         this.healthCheck = new HealthCheck(this.vertx);
+        this.mongo = mongo;
     }
 
     @Override
-    public void initialize(JsonObject config, Handler<AsyncResult<Void>> resultHandler) {
-        connectDb(config)
-                .compose(i -> initDb())
+    public void initialize(Handler<AsyncResult<Void>> resultHandler) {
+        initDb()
                 .compose(i -> createIndexes())
                 .setHandler(ar -> {
             if (ar.succeeded()) {
                 healthCheck.setComponentReady(Component.PERSISTENCE_SERVICE);
                 resultHandler.handle(Future.succeededFuture());
             } else {
-                resultHandler.handle(ServiceException.fail(INIT_ERROR, ar.cause().getMessage()));
+                // Inform the caller that we succeeded even if the connection to mongo database
+                // failed. We will try to reconnect automatically on background.
+                resultHandler.handle(Future.succeededFuture());
+                // Try to re-initialize in a few seconds
+                vertx.setTimer(RECONNECT_DELAY, i -> initialize(res -> {/*empty handler*/}));
             }
         });
     }
@@ -112,31 +112,28 @@ public class MongoPersistenceService implements PersistenceService {
             if (ar.succeeded()) {
                 resultHandler.handle(Future.succeededFuture());
             } else {
-                // Inform other components that we have failed
-                healthCheck.setComponentFailed(Component.PERSISTENCE_SERVICE);
+                if (healthCheck.isComponentReady(Component.PERSISTENCE_SERVICE)) {
+                    // Inform other components that we have failed
+                    healthCheck.setComponentFailed(Component.PERSISTENCE_SERVICE);
+                    // Re-check the connection
+                    scheduleConnectionStatus();
+                }
                 resultHandler.handle(ServiceException.fail(STORE_ERROR, ar.cause().getMessage()));
-
-                // Retry the connection station in a few seconds
-                scheduleConnectionStatus();;
             }
         });
     }
 
     private void scheduleConnectionStatus() {
-        if (!scheduledConnectionStatus) {
-            scheduledConnectionStatus = true;
-            vertx.setTimer(CONNECTION_STATUS_TIMER, id -> checkConnectionStatus());
-        }
+        vertx.setTimer(RECONNECT_DELAY, id -> checkConnectionStatus());
     }
 
     private void checkConnectionStatus() {
         this.mongo.runCommand("dbstats", new JsonObject().put("dbstats", 1), res -> {
-            scheduledConnectionStatus = false;
             if (res.succeeded()) {
-                // We are back online
+                LOG.info("Back online");
                 healthCheck.setComponentReady(Component.PERSISTENCE_SERVICE);
             } else {
-                // Still disconnected, reschedule timer
+                LOG.error("Still disconnected");
                 scheduleConnectionStatus();
             }
         });
@@ -144,7 +141,7 @@ public class MongoPersistenceService implements PersistenceService {
 
     public static JsonObject getLatestQueryParams(AbstractModel model) {
         JsonObject queryParams = new JsonObject();
-        model.getKeys().stream().forEach(key -> queryParams.put(key, model.getValue(key)));
+        model.getKeys().forEach(key -> queryParams.put(key, model.getValue(key)));
         return queryParams;
     }
 
@@ -205,16 +202,6 @@ public class MongoPersistenceService implements PersistenceService {
                 result.completer());
         return result;
 
-    }
-
-    private Future<Void> connectDb(JsonObject config) {
-        JsonObject mongoConfig = new JsonObject();
-        mongoConfig.put("db_name", config.getString("dbName", MongoPersistenceService.DEFAULT_DB_NAME));
-        mongoConfig.put("useObjectId", true);
-        mongoConfig.put("connection_string", config.getString("connectionUrl", MongoPersistenceService.DEFAULT_CONNECTION_URL));
-        mongo = MongoClient.createShared(vertx, mongoConfig);
-        LOG.info("Connected to MongoDB");
-        return Future.succeededFuture();
     }
 
     private Future<Void> initDb() {

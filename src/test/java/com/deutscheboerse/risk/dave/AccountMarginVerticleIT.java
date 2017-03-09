@@ -50,7 +50,7 @@ public class AccountMarginVerticleIT extends BaseTest {
         Async async = context.async(msgCount);
 
         // Setup persistence persistence
-        CountdownPersistenceService persistenceService = new CountdownPersistenceService(vertx, async);
+        CountdownPersistenceService persistenceService = new CountdownPersistenceService(async);
         MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
 
         // Fill in the broker
@@ -72,7 +72,7 @@ public class AccountMarginVerticleIT extends BaseTest {
     public void testMessageStoreError(TestContext context) throws InterruptedException {
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
 
-        ErrorPersistenceService persistenceService = new ErrorPersistenceService(vertx);
+        ErrorPersistenceService persistenceService = new ErrorPersistenceService();
         MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
 
         // Fill in the broker

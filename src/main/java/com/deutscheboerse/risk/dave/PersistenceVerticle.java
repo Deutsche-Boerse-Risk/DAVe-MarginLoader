@@ -27,7 +27,7 @@ public class PersistenceVerticle extends AbstractVerticle {
         ProxyHelper.registerService(PersistenceService.class, vertx, this.persistenceService, PersistenceService.SERVICE_ADDRESS);
         this.proxyPersistenceService = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
 
-        this.proxyPersistenceService.initialize(config(), ar -> {
+        this.proxyPersistenceService.initialize(ar -> {
             if (ar.succeeded()) {
                 LOG.info("Persistence verticle started");
                 fut.complete();

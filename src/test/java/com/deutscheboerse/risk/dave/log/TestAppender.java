@@ -10,9 +10,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class TestAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
-    private String className;
-    private Map<Level, ILoggingEvent> lastLogMessage = new ConcurrentHashMap<>();
-    private Map<Level, Integer> messageCount = new ConcurrentHashMap<>();
+    private final String className;
+    private final Map<Level, ILoggingEvent> lastLogMessage = new ConcurrentHashMap<>();
+    private final Map<Level, Integer> messageCount = new ConcurrentHashMap<>();
 
     private TestAppender(String className) {
         this.className = className;
@@ -61,7 +61,7 @@ public class TestAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 
     @Override
     public void stop() {
-        lastLogMessage = null;
+        lastLogMessage.clear();
         super.stop();
     }
 }
