@@ -2,6 +2,7 @@ package com.deutscheboerse.risk.dave;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
+import com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component;
 import com.deutscheboerse.risk.dave.model.PoolMarginModel;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -28,12 +29,12 @@ public class PoolMarginVerticle extends AMQPVerticle {
 
     @Override
     protected void onConnect() {
-        healthCheck.setPoolMarginState(true);
+        healthCheck.setComponentReady(Component.POOL_MARGIN);
     }
 
     @Override
     protected void onDisconnect() {
-        healthCheck.setPoolMarginState(false);
+        healthCheck.setComponentFailed(Component.POOL_MARGIN);
     }
 
     @Override

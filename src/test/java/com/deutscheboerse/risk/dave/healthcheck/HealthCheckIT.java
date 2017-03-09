@@ -76,7 +76,7 @@ public class HealthCheckIT extends BaseTest {
                 .put("outcome", "DOWN");
 
         HealthCheck healthCheck = new HealthCheck(vertx);
-        healthCheck.setAccountMarginState(false);
+        healthCheck.setComponentFailed(HealthCheck.Component.ACCOUNT_MARGIN);
 
         vertx.createHttpClient().getNow(HTTP_PORT, "localhost", HealthCheckVerticle.REST_READINESS,
                 assertEqualsHttpHandler(503, expected.encode(), context));

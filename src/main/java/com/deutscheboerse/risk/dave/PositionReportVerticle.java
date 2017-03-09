@@ -2,6 +2,7 @@ package com.deutscheboerse.risk.dave;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
+import com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component;
 import com.deutscheboerse.risk.dave.model.PositionReportModel;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -28,12 +29,12 @@ public class PositionReportVerticle extends AMQPVerticle {
 
     @Override
     protected void onConnect() {
-        healthCheck.setPositionReportState(true);
+        healthCheck.setComponentReady(Component.POSITION_REPORT);
     }
 
     @Override
     protected void onDisconnect() {
-        healthCheck.setPositionReportState(false);
+        healthCheck.setComponentFailed(Component.POSITION_REPORT);
     }
 
     @Override

@@ -4,24 +4,18 @@ import com.deutscheboerse.risk.dave.model.*;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.serviceproxy.ServiceException;
 
 public class InitPersistenceService implements PersistenceService {
-    private final Vertx vertx;
     private final boolean succeeds;
     private boolean initialized = false;
 
-    public InitPersistenceService(Vertx vertx, boolean succeeds) {
-        this.vertx = vertx;
+    public InitPersistenceService(boolean succeeds) {
         this.succeeds = succeeds;
     }
 
     @Override
-    public void initialize(JsonObject config, Handler<AsyncResult<Void>> resultHandler) {
+    public void initialize(Handler<AsyncResult<Void>> resultHandler) {
         if (this.succeeds) {
             this.initialized = true;
             resultHandler.handle(Future.succeededFuture());
