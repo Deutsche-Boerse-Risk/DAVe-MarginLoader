@@ -388,6 +388,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
         testAppender.start();
         persistenceErrorProxy.initialize(context.asyncAssertSuccess());
         testAppender.waitForMessageContains(Level.ERROR, expectedErrorMessage);
+        testAppender.waitForMessageContains(Level.ERROR, "Initialize failed, trying again...");
         testAppender.stop();
 
         persistenceErrorProxy.close();

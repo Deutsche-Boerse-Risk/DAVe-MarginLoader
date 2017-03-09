@@ -55,17 +55,17 @@ public class MongoPersistenceService implements PersistenceService {
         initDb()
                 .compose(i -> createIndexes())
                 .setHandler(ar -> {
-            if (ar.succeeded()) {
-                healthCheck.setComponentReady(Component.PERSISTENCE_SERVICE);
-                resultHandler.handle(Future.succeededFuture());
-            } else {
-                // Inform the caller that we succeeded even if the connection to mongo database
-                // failed. We will try to reconnect automatically on background.
-                resultHandler.handle(Future.succeededFuture());
-                // Try to re-initialize in a few seconds
-                vertx.setTimer(RECONNECT_DELAY, i -> initialize(res -> {/*empty handler*/}));
-            }
-        });
+                    if (ar.succeeded()) {
+                        healthCheck.setComponentReady(Component.PERSISTENCE_SERVICE);
+                    } else {
+                        // Try to re-initialize in a few seconds
+                        vertx.setTimer(RECONNECT_DELAY, i -> initialize(res -> {/*empty handler*/}));
+                        LOG.error("Initialize failed, trying again...");
+                    }
+                    // Inform the caller that we succeeded even if the connection to mongo database
+                    // failed. We will try to reconnect automatically on background.
+                    resultHandler.handle(Future.succeededFuture());
+                });
     }
 
     @Override
