@@ -1,7 +1,6 @@
 package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpServer;
@@ -10,7 +9,6 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.healthchecks.HealthCheckHandler;
 import io.vertx.ext.healthchecks.Status;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
 
 /**
  * Starts an {@link HttpServer} on default port 8080.
