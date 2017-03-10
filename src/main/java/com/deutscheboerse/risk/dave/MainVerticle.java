@@ -1,5 +1,8 @@
 package com.deutscheboerse.risk.dave;
 
+import io.vertx.config.ConfigRetriever;
+import io.vertx.config.ConfigRetrieverOptions;
+import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
@@ -18,12 +21,14 @@ public class MainVerticle extends AbstractVerticle {
     private static final String MONGO_CONF_KEY = "mongo";
     private static final String BROKER_CONF_KEY = "broker";
     private static final String HEALTHCHECK_CONF_KEY = "healthCheck";
+    private JsonObject configuration;
     private Map<String, String> verticleDeployments = new HashMap<>();
 
     @Override
     public void start(Future<Void> startFuture) {
         Future<Void> chainFuture = Future.future();
-        this.deployPersistenceVerticle()
+        this.retrieveConfig()
+                .compose(i -> deployPersistenceVerticle())
                 .compose(i -> deployAccountMarginVerticle())
                 .compose(i -> deployLiquiGroupMarginVerticle())
                 .compose(i -> deployLiquiGroupSplitMarginVerticle())
@@ -45,41 +50,75 @@ public class MainVerticle extends AbstractVerticle {
         });
     }
 
+    private void addHoconConfigStoreOptions(ConfigRetrieverOptions options) {
+        String configurationFile = System.getProperty("dave.configurationFile");
+        if (configurationFile != null) {
+            options.addStore(new ConfigStoreOptions()
+                    .setType("file")
+                    .setFormat("hocon")
+                    .setConfig(new JsonObject()
+                            .put("path", configurationFile)));
+        }
+    }
+
+    private void addDeploymentConfigStoreOptions(ConfigRetrieverOptions options) {
+        options.addStore(new ConfigStoreOptions().setType("json").setConfig(vertx.getOrCreateContext().config()));
+    }
+
+    private Future<Void> retrieveConfig() {
+        Future<Void> future = Future.future();
+        ConfigRetrieverOptions options = new ConfigRetrieverOptions();
+            this.addHoconConfigStoreOptions(options);
+            this.addDeploymentConfigStoreOptions(options);
+            ConfigRetriever retriever = ConfigRetriever.create(vertx, options);
+            retriever.getConfig(ar -> {
+                if (ar.succeeded()) {
+                    this.configuration = ar.result();
+                    LOG.debug("Retrieved configuration: {}", this.configuration.encodePrettily());
+                    future.complete();
+                } else {
+                    LOG.error("Unable to retrieve configuration", ar.cause());
+                    future.fail(ar.cause());
+                }
+            });
+        return future;
+    }
+
     private Future<Void> deployPersistenceVerticle() {
-        return this.deployVerticle(PersistenceVerticle.class, config().getJsonObject(MONGO_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(PersistenceVerticle.class, this.configuration.getJsonObject(MONGO_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployAccountMarginVerticle() {
-        return this.deployVerticle(AccountMarginVerticle.class, config().getJsonObject(BROKER_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(AccountMarginVerticle.class, this.configuration.getJsonObject(BROKER_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployLiquiGroupMarginVerticle() {
-        return this.deployVerticle(LiquiGroupMarginVerticle.class, config().getJsonObject(BROKER_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(LiquiGroupMarginVerticle.class, this.configuration.getJsonObject(BROKER_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployLiquiGroupSplitMarginVerticle() {
-        return this.deployVerticle(LiquiGroupSplitMarginVerticle.class, config().getJsonObject(BROKER_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(LiquiGroupSplitMarginVerticle.class, this.configuration.getJsonObject(BROKER_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployPoolMarginVerticle() {
-        return this.deployVerticle(PoolMarginVerticle.class, config().getJsonObject(BROKER_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(PoolMarginVerticle.class, this.configuration.getJsonObject(BROKER_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployPositionReportVerticle() {
-        return this.deployVerticle(PositionReportVerticle.class, config().getJsonObject(BROKER_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(PositionReportVerticle.class, this.configuration.getJsonObject(BROKER_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployRiskLimitUtilizationVerticle() {
-        return this.deployVerticle(RiskLimitUtilizationVerticle.class, config().getJsonObject(BROKER_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(RiskLimitUtilizationVerticle.class, this.configuration.getJsonObject(BROKER_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployHealthCheckVerticle() {
-        return this.deployVerticle(HealthCheckVerticle.class, config().getJsonObject(HEALTHCHECK_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(HealthCheckVerticle.class, this.configuration.getJsonObject(HEALTHCHECK_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployVerticle(Class clazz, JsonObject config) {
         Future<Void> verticleFuture = Future.future();
-        config.put("guice_binder", config().getString("guice_binder", Binder.class.getName()));
+        config.put("guice_binder", this.configuration.getString("guice_binder", Binder.class.getName()));
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
         vertx.deployVerticle("java-guice:" + clazz.getName(), options, ar -> {
             if (ar.succeeded()) {

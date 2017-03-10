@@ -72,6 +72,21 @@ public class MainVerticleIT extends BaseTest {
     }
 
     @Test
+    public void testFailedDeploymentWrongConfig(TestContext context) {
+        Async mainVerticleAsync = context.async();
+        DeploymentOptions options = createDeploymentOptions();
+        System.setProperty("dave.configurationFile", "nonexisting");
+        this.vertx.deployVerticle(MainVerticle.class.getName(), options, ar -> {
+            System.clearProperty("dave.configurationFile");
+            if (ar.succeeded()) {
+                context.fail(ar.cause());
+            } else {
+                mainVerticleAsync.complete();
+            }
+        });
+    }
+
+    @Test
     public void testFailedDeployment(TestContext context) {
         DeploymentOptions options = createDeploymentOptions();
         options.getConfig().getJsonObject("healthCheck", new JsonObject()).put("port", -1);
