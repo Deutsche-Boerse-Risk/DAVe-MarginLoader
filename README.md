@@ -15,7 +15,7 @@ The shippable artifact will be built in `target/dave-margin-loader-VERSION` dire
 
 ## Configure
 
-Configuration is stored in `marginloader.json` file in JSON format. It is split into several sections:
+Configuration is stored in `marginloader.conf` file in Hocon format. It is split into several sections:
 
 ### Broker
 

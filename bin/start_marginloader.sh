@@ -14,4 +14,5 @@ export MARGINLOADER_LOG=${MARGINLOADER_ROOT}/log
 java ${DEBUG} \
      -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory \
      -Dlogback.configurationFile=${MARGINLOADER_ETC}/logback.xml \
-     -jar ${MARGINLOADER_LIB}/dave-margin-loader-1.0-SNAPSHOT-fat.jar -conf ${MARGINLOADER_ETC}/marginloader.json
+     -Ddave.configurationFile=${MARGINLOADER_ETC}/marginloader.conf \
+     -jar ${MARGINLOADER_LIB}/dave-margin-loader-1.0-SNAPSHOT-fat.jar
