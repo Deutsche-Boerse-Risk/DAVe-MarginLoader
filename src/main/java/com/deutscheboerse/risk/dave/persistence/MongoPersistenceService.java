@@ -94,9 +94,7 @@ public class MongoPersistenceService implements PersistenceService {
     }
 
     private void store(AbstractModel model, String collection, Handler<AsyncResult<Void>> resultHandler) {
-        List<Future> tasks = new ArrayList<>();
-        tasks.add(this.storeIntoCollection(model, collection));
-        CompositeFuture.all(tasks).setHandler(ar -> {
+        this.storeIntoCollection(model, collection).setHandler(ar -> {
             if (ar.succeeded()) {
                 resultHandler.handle(Future.succeededFuture());
             } else {
@@ -173,7 +171,7 @@ public class MongoPersistenceService implements PersistenceService {
                 queryParams,
                 document,
                 new UpdateOptions().setUpsert(true),
-                result.completer());
+                result);
         return result;
     }
 
@@ -188,7 +186,7 @@ public class MongoPersistenceService implements PersistenceService {
                         .forEach(collection -> {
                             LOG.info("Collection {} is missing and will be added", collection);
                             Future<Void> fut = Future.future();
-                            mongo.createCollection(collection, fut.completer());
+                            mongo.createCollection(collection, fut);
                             futs.add(fut);
                         });
                 CompositeFuture.all(futs).setHandler(ar -> {
@@ -216,7 +214,7 @@ public class MongoPersistenceService implements PersistenceService {
         BiConsumer<String, JsonObject> indexCreate = (collectionName, index) -> {
             IndexOptions indexOptions = new IndexOptions().name("unique_idx").unique(true);
             Future<Void> indexFuture = Future.future();
-            mongo.createIndexWithOptions(collectionName, index, indexOptions, indexFuture.completer());
+            mongo.createIndexWithOptions(collectionName, index, indexOptions, indexFuture);
             futs.add(indexFuture);
         };
 

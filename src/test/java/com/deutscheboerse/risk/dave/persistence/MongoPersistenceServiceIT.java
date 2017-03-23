@@ -1,38 +1,33 @@
  package com.deutscheboerse.risk.dave.persistence;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.Appender;
-import com.deutscheboerse.risk.dave.BaseTest;
-import com.deutscheboerse.risk.dave.log.TestAppender;
-import com.deutscheboerse.risk.dave.model.*;
-import com.deutscheboerse.risk.dave.utils.DataHelper;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.mongo.FindOptions;
-import io.vertx.ext.mongo.MongoClient;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.serviceproxy.ProxyHelper;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.slf4j.LoggerFactory;
+ import ch.qos.logback.classic.Level;
+ import ch.qos.logback.classic.Logger;
+ import ch.qos.logback.classic.spi.ILoggingEvent;
+ import ch.qos.logback.core.Appender;
+ import com.deutscheboerse.risk.dave.BaseTest;
+ import com.deutscheboerse.risk.dave.log.TestAppender;
+ import com.deutscheboerse.risk.dave.model.*;
+ import com.deutscheboerse.risk.dave.utils.DataHelper;
+ import io.vertx.core.Vertx;
+ import io.vertx.core.json.JsonArray;
+ import io.vertx.core.json.JsonObject;
+ import io.vertx.ext.mongo.MongoClient;
+ import io.vertx.ext.unit.Async;
+ import io.vertx.ext.unit.TestContext;
+ import io.vertx.ext.unit.junit.VertxUnitRunner;
+ import io.vertx.serviceproxy.ProxyHelper;
+ import org.junit.AfterClass;
+ import org.junit.Assert;
+ import org.junit.BeforeClass;
+ import org.junit.Test;
+ import org.junit.runner.RunWith;
+ import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.BiConsumer;
+ import java.io.IOException;
+ import java.util.ArrayList;
+ import java.util.List;
+ import java.util.Optional;
+ import java.util.function.BiConsumer;
 
 @RunWith(VertxUnitRunner.class)
 public class MongoPersistenceServiceIT extends BaseTest {
