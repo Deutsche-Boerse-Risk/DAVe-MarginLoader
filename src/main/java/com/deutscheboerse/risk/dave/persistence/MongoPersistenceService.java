@@ -14,28 +14,18 @@ import io.vertx.ext.mongo.UpdateOptions;
 import io.vertx.serviceproxy.ServiceException;
 
 import javax.inject.Inject;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.BiConsumer;
 
 public class MongoPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(MongoPersistenceService.class);
 
-    public static final String ACCOUNT_MARGIN_HISTORY_COLLECTION = "AccountMargin";
-    public static final String ACCOUNT_MARGIN_LATEST_COLLECTION = "AccountMargin.latest";
-    public static final String LIQUI_GROUP_MARGIN_HISTORY_COLLECTION = "LiquiGroupMargin";
-    public static final String LIQUI_GROUP_MARGIN_LATEST_COLLECTION = "LiquiGroupMargin.latest";
-    public static final String LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION = "LiquiGroupSplitMargin";
-    public static final String LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION = "LiquiGroupSplitMargin.latest";
-    public static final String POOL_MARGIN_HISTORY_COLLECTION = "PoolMargin";
-    public static final String POOL_MARGIN_LATEST_COLLECTION = "PoolMargin.latest";
-    public static final String POSITION_REPORT_HISTORY_COLLECTION = "PositionReport";
-    public static final String POSITION_REPORT_LATEST_COLLECTION = "PositionReport.latest";
-    public static final String RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION = "RiskLimitUtilization";
-    public static final String RISK_LIMIT_UTILIZATION_LATEST_COLLECTION = "RiskLimitUtilization.latest";
+    public static final String ACCOUNT_MARGIN_COLLECTION = "AccountMargin";
+    public static final String LIQUI_GROUP_MARGIN_COLLECTION = "LiquiGroupMargin";
+    public static final String LIQUI_GROUP_SPLIT_MARGIN_COLLECTION = "LiquiGroupSplitMargin";
+    public static final String POOL_MARGIN_COLLECTION = "PoolMargin";
+    public static final String POSITION_REPORT_COLLECTION = "PositionReport";
+    public static final String RISK_LIMIT_UTILIZATION_COLLECTION = "RiskLimitUtilization";
 
     private static final int RECONNECT_DELAY = 2000;
 
@@ -70,32 +60,32 @@ public class MongoPersistenceService implements PersistenceService {
 
     @Override
     public void storeAccountMargin(AccountMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.store(model, ACCOUNT_MARGIN_HISTORY_COLLECTION, ACCOUNT_MARGIN_LATEST_COLLECTION, resultHandler);
+        this.store(model, ACCOUNT_MARGIN_COLLECTION, resultHandler);
     }
 
     @Override
     public void storeLiquiGroupMargin(LiquiGroupMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.store(model, LIQUI_GROUP_MARGIN_HISTORY_COLLECTION, LIQUI_GROUP_MARGIN_LATEST_COLLECTION, resultHandler);
+        this.store(model, LIQUI_GROUP_MARGIN_COLLECTION, resultHandler);
     }
 
     @Override
     public void storeLiquiGroupSplitMargin(LiquiGroupSplitMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.store(model, LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION, LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION, resultHandler);
+        this.store(model, LIQUI_GROUP_SPLIT_MARGIN_COLLECTION, resultHandler);
     }
 
     @Override
     public void storePoolMargin(PoolMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.store(model, POOL_MARGIN_HISTORY_COLLECTION, POOL_MARGIN_LATEST_COLLECTION, resultHandler);
+        this.store(model, POOL_MARGIN_COLLECTION, resultHandler);
     }
 
     @Override
     public void storePositionReport(PositionReportModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.store(model, POSITION_REPORT_HISTORY_COLLECTION, POSITION_REPORT_LATEST_COLLECTION, resultHandler);
+        this.store(model, POSITION_REPORT_COLLECTION, resultHandler);
     }
 
     @Override
     public void storeRiskLimitUtilization(RiskLimitUtilizationModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.store(model, RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, resultHandler);
+        this.store(model, RISK_LIMIT_UTILIZATION_COLLECTION, resultHandler);
     }
 
     @Override
@@ -103,11 +93,9 @@ public class MongoPersistenceService implements PersistenceService {
         this.mongo.close();
     }
 
-    private void store(AbstractModel model, String historyCollection, String latestCollection, Handler<AsyncResult<Void>> resultHandler) {
-        JsonObject latestQueryParams = MongoPersistenceService.getLatestQueryParams(model);
+    private void store(AbstractModel model, String collection, Handler<AsyncResult<Void>> resultHandler) {
         List<Future> tasks = new ArrayList<>();
-        tasks.add(this.storeIntoHistoryCollection(model, historyCollection));
-        tasks.add(this.storeIntoLatestCollection(model, latestCollection, latestQueryParams));
+        tasks.add(this.storeIntoCollection(model, collection));
         CompositeFuture.all(tasks).setHandler(ar -> {
             if (ar.succeeded()) {
                 resultHandler.handle(Future.succeededFuture());
@@ -139,69 +127,54 @@ public class MongoPersistenceService implements PersistenceService {
         });
     }
 
-    public static JsonObject getLatestQueryParams(AbstractModel model) {
+    private static JsonObject getQueryParams(AbstractModel model) {
         JsonObject queryParams = new JsonObject();
         model.getKeys().forEach(key -> queryParams.put(key, model.getValue(key)));
         return queryParams;
     }
 
-    public static JsonObject getHistoryUniqueIndex(AbstractModel model) {
+    static JsonObject getUniqueIndex(AbstractModel model) {
         JsonObject uniqueIndex = new JsonObject();
-        uniqueIndex.put("snapshotID", 1);
-        uniqueIndex.mergeIn(MongoPersistenceService.getLatestUniqueIndex(model));
+        model.getKeys().forEach(key -> uniqueIndex.put(key, 1));
         return uniqueIndex;
     }
 
-    public static JsonObject getLatestUniqueIndex(AbstractModel model) {
-        JsonObject uniqueIndex = new JsonObject();
-        model.getKeys().stream().forEach(key -> uniqueIndex.put(key, 1));
-        return uniqueIndex;
-    }
-
-    public static JsonObject getStoreDocument(AbstractModel model) {
-        JsonObject document = new JsonObject().mergeIn(model);
-        Instant instant = Instant.ofEpochMilli(document.getLong("timestamp"));
-        document.put("timestamp", new JsonObject().put("$date", ZonedDateTime.ofInstant(instant, ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+    private static JsonObject getStoreDocument(AbstractModel model) {
+        JsonObject document = new JsonObject();
+        JsonObject setDocument = new JsonObject();
+        JsonObject pushDocument = new JsonObject();
+        model.getKeys().forEach(key -> setDocument.put(key, model.getValue(key)));
+        model.stream()
+                .filter(entry -> !model.getKeys().contains(entry.getKey()))
+                .forEach(entry -> pushDocument.put(entry.getKey(), entry.getValue()));
+        document.put("$set", setDocument);
+        document.put("$push", new JsonObject().put("snapshots", pushDocument));
         return document;
     }
 
-    public static Collection<String> getRequiredCollections() {
+    static Collection<String> getRequiredCollections() {
         List<String> neededCollections = new ArrayList<>(Arrays.asList(
-                ACCOUNT_MARGIN_HISTORY_COLLECTION,
-                ACCOUNT_MARGIN_LATEST_COLLECTION,
-                LIQUI_GROUP_MARGIN_HISTORY_COLLECTION,
-                LIQUI_GROUP_MARGIN_LATEST_COLLECTION,
-                LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION,
-                LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION,
-                POOL_MARGIN_HISTORY_COLLECTION,
-                POOL_MARGIN_LATEST_COLLECTION,
-                POSITION_REPORT_HISTORY_COLLECTION,
-                POSITION_REPORT_LATEST_COLLECTION,
-                RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION,
-                RISK_LIMIT_UTILIZATION_LATEST_COLLECTION
+                ACCOUNT_MARGIN_COLLECTION,
+                LIQUI_GROUP_MARGIN_COLLECTION,
+                LIQUI_GROUP_SPLIT_MARGIN_COLLECTION,
+                POOL_MARGIN_COLLECTION,
+                POSITION_REPORT_COLLECTION,
+                RISK_LIMIT_UTILIZATION_COLLECTION
         ));
         return Collections.unmodifiableList(neededCollections);
     }
 
-    private Future<String> storeIntoHistoryCollection(AbstractModel model, String collection) {
-        JsonObject document = MongoPersistenceService.getStoreDocument(model);
-        LOG.trace("Storing message into {} with body {}", collection, document.encodePrettily());
-        Future<String> result = Future.future();
-        mongo.insert(collection, document, result.completer());
-        return result;
-    }
-
-    private Future<MongoClientUpdateResult> storeIntoLatestCollection(AbstractModel model, String collection, JsonObject queryParams) {
+    private Future<MongoClientUpdateResult> storeIntoCollection(AbstractModel model, String collection) {
+        JsonObject queryParams = MongoPersistenceService.getQueryParams(model);
         JsonObject document = MongoPersistenceService.getStoreDocument(model);
         LOG.trace("Storing message into {} with body {}", collection, document.encodePrettily());
         Future<MongoClientUpdateResult> result = Future.future();
-        mongo.replaceDocumentsWithOptions(collection,
+        mongo.updateCollectionWithOptions(collection,
                 queryParams,
                 document,
                 new UpdateOptions().setUpsert(true),
                 result.completer());
         return result;
-
     }
 
     private Future<Void> initDb() {
@@ -247,18 +220,12 @@ public class MongoPersistenceService implements PersistenceService {
             futs.add(indexFuture);
         };
 
-        indexCreate.accept(MongoPersistenceService.ACCOUNT_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new AccountMarginModel()));
-        indexCreate.accept(MongoPersistenceService.ACCOUNT_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new AccountMarginModel()));
-        indexCreate.accept(MongoPersistenceService.LIQUI_GROUP_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new LiquiGroupMarginModel()));
-        indexCreate.accept(MongoPersistenceService.LIQUI_GROUP_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new LiquiGroupMarginModel()));
-        indexCreate.accept(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new LiquiGroupSplitMarginModel()));
-        indexCreate.accept(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new LiquiGroupSplitMarginModel()));
-        indexCreate.accept(MongoPersistenceService.POOL_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new PoolMarginModel()));
-        indexCreate.accept(MongoPersistenceService.POOL_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new PoolMarginModel()));
-        indexCreate.accept(MongoPersistenceService.POSITION_REPORT_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new PositionReportModel()));
-        indexCreate.accept(MongoPersistenceService.POSITION_REPORT_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new PositionReportModel()));
-        indexCreate.accept(MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new RiskLimitUtilizationModel()));
-        indexCreate.accept(MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new RiskLimitUtilizationModel()));
+        indexCreate.accept(MongoPersistenceService.ACCOUNT_MARGIN_COLLECTION, MongoPersistenceService.getUniqueIndex(new AccountMarginModel()));
+        indexCreate.accept(MongoPersistenceService.LIQUI_GROUP_MARGIN_COLLECTION, MongoPersistenceService.getUniqueIndex(new LiquiGroupMarginModel()));
+        indexCreate.accept(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_COLLECTION, MongoPersistenceService.getUniqueIndex(new LiquiGroupSplitMarginModel()));
+        indexCreate.accept(MongoPersistenceService.POOL_MARGIN_COLLECTION, MongoPersistenceService.getUniqueIndex(new PoolMarginModel()));
+        indexCreate.accept(MongoPersistenceService.POSITION_REPORT_COLLECTION, MongoPersistenceService.getUniqueIndex(new PositionReportModel()));
+        indexCreate.accept(MongoPersistenceService.RISK_LIMIT_UTILIZATION_COLLECTION, MongoPersistenceService.getUniqueIndex(new RiskLimitUtilizationModel()));
 
         CompositeFuture.all(futs).setHandler(ar -> {
             if (ar.succeeded()) {

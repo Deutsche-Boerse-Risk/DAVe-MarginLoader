@@ -1,4 +1,4 @@
-package com.deutscheboerse.risk.dave.persistence;
+ package com.deutscheboerse.risk.dave.persistence;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -18,6 +18,7 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.serviceproxy.ProxyHelper;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -98,18 +99,12 @@ public class MongoPersistenceServiceIT extends BaseTest {
                 }
             });
 
-        indexCheck.accept(MongoPersistenceService.ACCOUNT_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new AccountMarginModel()));
-        indexCheck.accept(MongoPersistenceService.ACCOUNT_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new AccountMarginModel()));
-        indexCheck.accept(MongoPersistenceService.LIQUI_GROUP_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new LiquiGroupMarginModel()));
-        indexCheck.accept(MongoPersistenceService.LIQUI_GROUP_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new LiquiGroupMarginModel()));
-        indexCheck.accept(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new LiquiGroupSplitMarginModel()));
-        indexCheck.accept(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new LiquiGroupSplitMarginModel()));
-        indexCheck.accept(MongoPersistenceService.POOL_MARGIN_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new PoolMarginModel()));
-        indexCheck.accept(MongoPersistenceService.POOL_MARGIN_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new PoolMarginModel()));
-        indexCheck.accept(MongoPersistenceService.POSITION_REPORT_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new PositionReportModel()));
-        indexCheck.accept(MongoPersistenceService.POSITION_REPORT_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new PositionReportModel()));
-        indexCheck.accept(MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, MongoPersistenceService.getHistoryUniqueIndex(new RiskLimitUtilizationModel()));
-        indexCheck.accept(MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, MongoPersistenceService.getLatestUniqueIndex(new RiskLimitUtilizationModel()));
+        indexCheck.accept(MongoPersistenceService.ACCOUNT_MARGIN_COLLECTION, MongoPersistenceService.getUniqueIndex(new AccountMarginModel()));
+        indexCheck.accept(MongoPersistenceService.LIQUI_GROUP_MARGIN_COLLECTION, MongoPersistenceService.getUniqueIndex(new LiquiGroupMarginModel()));
+        indexCheck.accept(MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_COLLECTION, MongoPersistenceService.getUniqueIndex(new LiquiGroupSplitMarginModel()));
+        indexCheck.accept(MongoPersistenceService.POOL_MARGIN_COLLECTION, MongoPersistenceService.getUniqueIndex(new PoolMarginModel()));
+        indexCheck.accept(MongoPersistenceService.POSITION_REPORT_COLLECTION, MongoPersistenceService.getUniqueIndex(new PositionReportModel()));
+        indexCheck.accept(MongoPersistenceService.RISK_LIMIT_UTILIZATION_COLLECTION, MongoPersistenceService.getUniqueIndex(new RiskLimitUtilizationModel()));
     }
 
     @Test
@@ -129,7 +124,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
 
     @Test
     public void testConnectionStatusBackOnline(TestContext context) throws InterruptedException {
-        JsonObject proxyConfig = new JsonObject().put("functionsToFail", new JsonArray().add("insert"));
+        JsonObject proxyConfig = new JsonObject().put("functionsToFail", new JsonArray().add("updateCollectionWithOptions"));
 
         final PersistenceService persistenceErrorProxy = getPersistenceErrorProxy(proxyConfig);
         persistenceErrorProxy.initialize(context.asyncAssertSuccess());
@@ -149,7 +144,7 @@ public class MongoPersistenceServiceIT extends BaseTest {
 
     @Test
     public void testConnectionStatusError(TestContext context) throws InterruptedException {
-        JsonObject proxyConfig = new JsonObject().put("functionsToFail", new JsonArray().add("insert").add("runCommand"));
+        JsonObject proxyConfig = new JsonObject().put("functionsToFail", new JsonArray().add("updateCollectionWithOptions").add("runCommand"));
 
         final PersistenceService persistenceErrorProxy = getPersistenceErrorProxy(proxyConfig);
         persistenceErrorProxy.initialize(context.asyncAssertSuccess());
@@ -197,10 +192,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
         });
         asyncStore2.awaitSuccess(30000);
 
-        this.checkCountInCollection(context, MongoPersistenceService.ACCOUNT_MARGIN_HISTORY_COLLECTION, firstMsgCount + secondMsgCount);
-        this.checkCountInCollection(context, MongoPersistenceService.ACCOUNT_MARGIN_LATEST_COLLECTION, firstMsgCount);
-        this.checkAccountMarginHistoryCollectionQuery(context);
-        this.checkAccountMarginLatestCollectionQuery(context);
+        this.checkCountInCollection(context, MongoPersistenceService.ACCOUNT_MARGIN_COLLECTION, firstMsgCount);
+        this.checkAccountMarginCollectionQuery(context);
     }
 
     @Test
@@ -233,10 +226,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
         });
         asyncStore2.awaitSuccess(30000);
 
-        this.checkCountInCollection(context, MongoPersistenceService.LIQUI_GROUP_MARGIN_HISTORY_COLLECTION, firstMsgCount + secondMsgCount);
-        this.checkCountInCollection(context, MongoPersistenceService.LIQUI_GROUP_MARGIN_LATEST_COLLECTION, firstMsgCount);
-        this.checkLiquiGroupMarginHistoryCollectionQuery(context);
-        this.checkLiquiGroupMarginLatestCollectionQuery(context);
+        this.checkCountInCollection(context, MongoPersistenceService.LIQUI_GROUP_MARGIN_COLLECTION, firstMsgCount);
+        this.checkLiquiGroupMarginCollectionQuery(context);
     }
 
     @Test
@@ -269,10 +260,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
         });
         asyncStore2.awaitSuccess(30000);
 
-        this.checkCountInCollection(context, MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION, firstMsgCount + secondMsgCount);
-        this.checkCountInCollection(context, MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION, firstMsgCount);
-        this.checkLiquiGroupSplitMarginHistoryCollectionQuery(context);
-        this.checkLiquiGroupSplitMarginLatestCollectionQuery(context);
+        this.checkCountInCollection(context, MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_COLLECTION, firstMsgCount);
+        this.checkLiquiGroupSplitMarginCollectionQuery(context);
     }
 
     @Test
@@ -304,10 +293,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
             });
         });
         asyncSecondSnapshotStore.awaitSuccess(30000);
-        this.checkCountInCollection(context, MongoPersistenceService.POOL_MARGIN_HISTORY_COLLECTION, firstMsgCount + secondMsgCount);
-        this.checkCountInCollection(context, MongoPersistenceService.POOL_MARGIN_LATEST_COLLECTION, firstMsgCount);
-        this.checkPoolMarginHistoryCollectionQuery(context);
-        this.checkPoolMarginLatestCollectionQuery(context);
+        this.checkCountInCollection(context, MongoPersistenceService.POOL_MARGIN_COLLECTION, firstMsgCount);
+        this.checkPoolMarginCollectionQuery(context);
     }
 
     @Test
@@ -338,10 +325,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
             });
         });
         asyncSecondSnapshotStore.awaitSuccess(30000);
-        this.checkCountInCollection(context, MongoPersistenceService.POSITION_REPORT_HISTORY_COLLECTION, firstMsgCount + secondMsgCount);
-        this.checkCountInCollection(context, MongoPersistenceService.POSITION_REPORT_LATEST_COLLECTION, firstMsgCount);
-        this.checkPositionReportHistoryCollectionQuery(context);
-        this.checkPositionReportLatestCollectionQuery(context);
+        this.checkCountInCollection(context, MongoPersistenceService.POSITION_REPORT_COLLECTION, firstMsgCount );
+        this.checkPositionReportCollectionQuery(context);
     }
 
     @Test
@@ -372,10 +357,8 @@ public class MongoPersistenceServiceIT extends BaseTest {
             });
         });
         asyncSecondSnapshotStore.awaitSuccess(30000);
-        this.checkCountInCollection(context, MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, firstMsgCount + secondMsgCount);
-        this.checkCountInCollection(context, MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, firstMsgCount);
-        this.checkRiskLimitUtilizationHistoryCollectionQuery(context);
-        this.checkRiskLimitUtilizationLatestCollectionQuery(context);
+        this.checkCountInCollection(context, MongoPersistenceService.RISK_LIMIT_UTILIZATION_COLLECTION, firstMsgCount);
+        this.checkRiskLimitUtilizationCollectionQuery(context);
     }
 
     private void testErrorInInitialize(TestContext context, String functionToFail, String expectedErrorMessage) throws InterruptedException {
@@ -407,102 +390,66 @@ public class MongoPersistenceServiceIT extends BaseTest {
         asyncHistoryCount.awaitSuccess(5000);
     }
 
-    private void checkAccountMarginHistoryCollectionQuery(TestContext context) {
-        JsonObject jsonData = DataHelper.getLastJsonFromFile("accountMargin", 1).orElse(new JsonObject());
-        AccountMarginModel model = new AccountMarginModel(jsonData);
-        checkHistoryCollection(context, model, MongoPersistenceService.ACCOUNT_MARGIN_HISTORY_COLLECTION);
+    private void checkAccountMarginCollectionQuery(TestContext context) {
+        JsonObject firstJsonData = DataHelper.getLastJsonFromFile("accountMargin", 1).orElse(new JsonObject());
+        JsonObject secondJsonData = DataHelper.getLastJsonFromFile("accountMargin", 2).orElse(new JsonObject());
+        AccountMarginModel firstModel = new AccountMarginModel(firstJsonData);
+        AccountMarginModel secondModel = new AccountMarginModel(secondJsonData);
+        checkCollection(context, firstModel, secondModel, MongoPersistenceService.ACCOUNT_MARGIN_COLLECTION);
     }
 
-    private void checkAccountMarginLatestCollectionQuery(TestContext context) {
-        JsonObject jsonData = DataHelper.getLastJsonFromFile("accountMargin", 2).orElse(new JsonObject());
-        AccountMarginModel model = new AccountMarginModel(jsonData);
-        checkLatestCollection(context, model, MongoPersistenceService.ACCOUNT_MARGIN_LATEST_COLLECTION);
+    private void checkLiquiGroupMarginCollectionQuery(TestContext context) {
+        JsonObject firstJsonData = DataHelper.getLastJsonFromFile("liquiGroupMargin", 1).orElse(new JsonObject());
+        JsonObject secondJsonData = DataHelper.getLastJsonFromFile("liquiGroupMargin", 2).orElse(new JsonObject());
+        LiquiGroupMarginModel firstModel = new LiquiGroupMarginModel(firstJsonData);
+        LiquiGroupMarginModel secondModel = new LiquiGroupMarginModel(secondJsonData);
+        checkCollection(context, firstModel, secondModel, MongoPersistenceService.LIQUI_GROUP_MARGIN_COLLECTION);
     }
 
-    private void checkLiquiGroupMarginHistoryCollectionQuery(TestContext context) {
-        JsonObject jsonData = DataHelper.getLastJsonFromFile("liquiGroupMargin", 1).orElse(new JsonObject());
-        LiquiGroupMarginModel model = new LiquiGroupMarginModel(jsonData);
-        checkHistoryCollection(context, model, MongoPersistenceService.LIQUI_GROUP_MARGIN_HISTORY_COLLECTION);
+    private void checkLiquiGroupSplitMarginCollectionQuery(TestContext context) {
+        JsonObject firstJsonData = DataHelper.getLastJsonFromFile("liquiGroupSplitMargin", 1).orElse(new JsonObject());
+        JsonObject secondJsonData = DataHelper.getLastJsonFromFile("liquiGroupSplitMargin", 2).orElse(new JsonObject());
+        LiquiGroupSplitMarginModel firstModel = new LiquiGroupSplitMarginModel(firstJsonData);
+        LiquiGroupSplitMarginModel secondModel = new LiquiGroupSplitMarginModel(secondJsonData);
+        checkCollection(context, firstModel, secondModel, MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_COLLECTION);
     }
 
-    private void checkLiquiGroupMarginLatestCollectionQuery(TestContext context) {
-        JsonObject jsonData = DataHelper.getLastJsonFromFile("liquiGroupMargin", 2).orElse(new JsonObject());
-        LiquiGroupMarginModel model = new LiquiGroupMarginModel(jsonData);
-        checkLatestCollection(context, model, MongoPersistenceService.LIQUI_GROUP_MARGIN_LATEST_COLLECTION);
+    private void checkPoolMarginCollectionQuery(TestContext context) {
+        JsonObject firstJsonData = DataHelper.getLastJsonFromFile("poolMargin", 1).orElse(new JsonObject());
+        JsonObject secondJsonData = DataHelper.getLastJsonFromFile("poolMargin", 2).orElse(new JsonObject());
+        PoolMarginModel firstModel = new PoolMarginModel(firstJsonData);
+        PoolMarginModel secondModel = new PoolMarginModel(secondJsonData);
+        checkCollection(context, firstModel, secondModel, MongoPersistenceService.POOL_MARGIN_COLLECTION);
     }
 
-    private void checkLiquiGroupSplitMarginHistoryCollectionQuery(TestContext context) {
-        JsonObject jsonData = DataHelper.getLastJsonFromFile("liquiGroupSplitMargin", 1).orElse(new JsonObject());
-        LiquiGroupSplitMarginModel model = new LiquiGroupSplitMarginModel(jsonData);
-        checkHistoryCollection(context, model, MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION);
+    private void checkPositionReportCollectionQuery(TestContext context) {
+        JsonObject firstJsonData = DataHelper.getLastJsonFromFile("positionReport", 1).orElse(new JsonObject());
+        JsonObject secondJsonData = DataHelper.getLastJsonFromFile("positionReport", 2).orElse(new JsonObject());
+        PositionReportModel firstModel = new PositionReportModel(firstJsonData);
+        PositionReportModel secondModel = new PositionReportModel(secondJsonData);
+        checkCollection(context, firstModel, secondModel, MongoPersistenceService.POSITION_REPORT_COLLECTION);
     }
 
-    private void checkLiquiGroupSplitMarginLatestCollectionQuery(TestContext context) {
-        JsonObject jsonData = DataHelper.getLastJsonFromFile("liquiGroupSplitMargin", 2).orElse(new JsonObject());
-        LiquiGroupSplitMarginModel model = new LiquiGroupSplitMarginModel(jsonData);
-        checkLatestCollection(context, model, MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION);
+    private void checkRiskLimitUtilizationCollectionQuery(TestContext context) {
+        JsonObject firstJsonData = DataHelper.getLastJsonFromFile("riskLimitUtilization", 1).orElse(new JsonObject());
+        JsonObject secondJsonData = DataHelper.getLastJsonFromFile("riskLimitUtilization", 2).orElse(new JsonObject());
+        RiskLimitUtilizationModel firstModel = new RiskLimitUtilizationModel(firstJsonData);
+        RiskLimitUtilizationModel secondModel = new RiskLimitUtilizationModel(secondJsonData);
+        checkCollection(context, firstModel, secondModel, MongoPersistenceService.RISK_LIMIT_UTILIZATION_COLLECTION);
     }
 
-    private void checkPoolMarginHistoryCollectionQuery(TestContext context) {
-        JsonObject jsonData = DataHelper.getLastJsonFromFile("poolMargin", 1).orElse(new JsonObject());
-        PoolMarginModel model = new PoolMarginModel(jsonData);
-        checkHistoryCollection(context, model, MongoPersistenceService.POOL_MARGIN_HISTORY_COLLECTION);
-    }
-
-    private void checkPoolMarginLatestCollectionQuery(TestContext context) {
-        JsonObject jsonData = DataHelper.getLastJsonFromFile("poolMargin", 2).orElse(new JsonObject());
-        PoolMarginModel model = new PoolMarginModel(jsonData);
-        checkLatestCollection(context, model, MongoPersistenceService.POOL_MARGIN_LATEST_COLLECTION);
-    }
-
-    private void checkPositionReportHistoryCollectionQuery(TestContext context) {
-        JsonObject jsonData = DataHelper.getLastJsonFromFile("positionReport", 1).orElse(new JsonObject());
-        PositionReportModel model = new PositionReportModel(jsonData);
-        checkHistoryCollection(context, model, MongoPersistenceService.POSITION_REPORT_HISTORY_COLLECTION);
-    }
-
-    private void checkPositionReportLatestCollectionQuery(TestContext context) {
-        JsonObject jsonData = DataHelper.getLastJsonFromFile("positionReport", 2).orElse(new JsonObject());
-        PositionReportModel model = new PositionReportModel(jsonData);
-        checkLatestCollection(context, model, MongoPersistenceService.POSITION_REPORT_LATEST_COLLECTION);
-    }
-
-    private void checkRiskLimitUtilizationHistoryCollectionQuery(TestContext context) {
-        JsonObject jsonData = DataHelper.getLastJsonFromFile("riskLimitUtilization", 1).orElse(new JsonObject());
-        RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(jsonData);
-        checkHistoryCollection(context, model, MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION);
-    }
-
-    private void checkRiskLimitUtilizationLatestCollectionQuery(TestContext context) {
-        JsonObject jsonData = DataHelper.getLastJsonFromFile("riskLimitUtilization", 2).orElse(new JsonObject());
-        RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(jsonData);
-        checkLatestCollection(context, model, MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION);
-    }
-
-    private void checkHistoryCollection(TestContext context, AbstractModel model, String collectionName) {
-        JsonObject param = MongoPersistenceServiceIT.getQueryParams(model);
-        FindOptions findOptions = new FindOptions()
-                .setSort(new JsonObject().put("snapshotID", 1));
-        Async asyncQuery = context.async();
-        mongoClient.findWithOptions(collectionName, param, findOptions, ar -> {
-            if (ar.succeeded()) {
-                context.assertEquals(2, ar.result().size());
-                MongoPersistenceServiceIT.assertModelEqualsResult(context, model, ar.result().get(0));
-                asyncQuery.complete();
-            } else {
-                context.fail(ar.cause());
-            }
-        });
-        asyncQuery.awaitSuccess(5000);
-    }
-
-    private void checkLatestCollection(TestContext context, AbstractModel model, String collectionName) {
-        JsonObject param = MongoPersistenceServiceIT.getQueryParams(model);
+    private void checkCollection(TestContext context, AbstractModel firstSnapshotModel, AbstractModel secondSnapshotModel, String collectionName) {
+        JsonObject param = MongoPersistenceServiceIT.getQueryParams(firstSnapshotModel);
+        Assert.assertEquals(param, MongoPersistenceServiceIT.getQueryParams(secondSnapshotModel));
         Async asyncQuery = context.async();
         mongoClient.find(collectionName, param, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals(1, ar.result().size());
-                MongoPersistenceServiceIT.assertModelEqualsResult(context, model, ar.result().get(0));
+                JsonObject result = ar.result().get(0);
+                JsonArray snapshots = result.getJsonArray("snapshots");
+                Assert.assertEquals(2, snapshots.size());
+                MongoPersistenceServiceIT.assertSnapshotsContains(context, snapshots, firstSnapshotModel, 0);
+                MongoPersistenceServiceIT.assertSnapshotsContains(context, snapshots, secondSnapshotModel, 1);
                 asyncQuery.complete();
             } else {
                 context.fail(ar.cause());
@@ -518,29 +465,18 @@ public class MongoPersistenceServiceIT extends BaseTest {
         return ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS+"Error");
     }
 
-    private static JsonObject getExpectedMongoResultFromModel(JsonObject model) {
-        JsonObject result = new JsonObject();
-        model.fieldNames()
-                .forEach(key -> {
-                    if (key.equals("timestamp")) {
-                        Instant instant = Instant.ofEpochMilli(model.getLong("timestamp"));
-                        result.put(key, new JsonObject().put("$date", ZonedDateTime.ofInstant(instant, ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
-                    } else {
-                        result.put(key, model.getValue(key));
-                    }
-                });
-        return result;
-    }
-
     private static JsonObject getQueryParams(AbstractModel model) {
         JsonObject queryParams = new JsonObject();
         model.getKeys().forEach(key -> queryParams.put(key, model.getValue(key)));
         return queryParams;
     }
 
-    private static void assertModelEqualsResult(TestContext context, JsonObject model, JsonObject mongoResult) {
-        mongoResult.remove("_id");
-        context.assertEquals(MongoPersistenceServiceIT.getExpectedMongoResultFromModel(model), mongoResult);
+    private static void assertSnapshotsContains(TestContext context, JsonArray snapshots, AbstractModel model, int position) {
+        JsonObject snapshotData = new JsonObject();
+        model.stream()
+                .filter(entry -> !model.getKeys().contains(entry.getKey()))
+                .forEach(entry -> snapshotData.put(entry.getKey(), entry.getValue()));
+        context.assertEquals(snapshotData, snapshots.getJsonObject(position));
     }
 
     @AfterClass
