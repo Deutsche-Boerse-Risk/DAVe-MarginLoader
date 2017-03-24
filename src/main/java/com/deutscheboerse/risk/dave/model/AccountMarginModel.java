@@ -34,7 +34,7 @@ public class AccountMarginModel extends AbstractModel {
         put("clearingCurrency", data.getClearingCurrency());
         put("pool", data.getPool());
         put("marginReqInMarginCurr", data.getMarginReqInMarginCurr());
-        put("marginReqInCrlCurr", data.getMarginReqInClrCurr());
+        put("marginReqInClrCurr", data.getMarginReqInClrCurr());
         put("unadjustedMarginRequirement", data.getUnadjustedMarginRequirement());
         put("variationPremiumPayment", data.getVariationPremiumPayment());
     }
