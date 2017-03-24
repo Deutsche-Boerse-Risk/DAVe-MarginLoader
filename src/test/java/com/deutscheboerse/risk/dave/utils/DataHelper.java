@@ -70,7 +70,7 @@ public class DataHelper {
                 .setClearingCurrency(json.getString("clearingCurrency"))
                 .setPool(json.getString("pool"))
                 .setMarginReqInMarginCurr(json.getDouble("marginReqInMarginCurr"))
-                .setMarginReqInClrCurr(json.getDouble("marginReqInCrlCurr"))
+                .setMarginReqInClrCurr(json.getDouble("marginReqInClrCurr"))
                 .setUnadjustedMarginRequirement(json.getDouble("unadjustedMarginRequirement"))
                 .setVariationPremiumPayment(json.getDouble("variationPremiumPayment"))
                 .build();
