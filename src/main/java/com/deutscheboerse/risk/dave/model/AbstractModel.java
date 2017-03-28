@@ -9,10 +9,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 public abstract class AbstractModel extends JsonObject {
 
-    public AbstractModel() {
+    AbstractModel() {
     }
 
-    public AbstractModel(PrismaReports.PrismaHeader header) {
+    AbstractModel(PrismaReports.PrismaHeader header) {
         verify(header);
 
         put("snapshotID", header.getId());

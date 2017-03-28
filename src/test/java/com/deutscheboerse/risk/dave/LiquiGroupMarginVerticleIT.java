@@ -9,10 +9,7 @@ import com.deutscheboerse.risk.dave.model.LiquiGroupMarginModel;
 import com.deutscheboerse.risk.dave.persistence.CountdownPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.ErrorPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
-import com.deutscheboerse.risk.dave.utils.BrokerFiller;
-import com.deutscheboerse.risk.dave.utils.BrokerFillerCorrectData;
-import com.deutscheboerse.risk.dave.utils.BrokerFillerMissingField;
-import com.deutscheboerse.risk.dave.utils.DataHelper;
+import com.deutscheboerse.risk.dave.utils.*;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
@@ -28,7 +25,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 
 @RunWith(VertxUnitRunner.class)
-public class LiquiGroupMarginVerticleIT extends BaseTest {
+public class LiquiGroupMarginVerticleIT {
     private final TestAppender testAppender = TestAppender.getAppender(LiquiGroupMarginVerticle.class);
     private final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
     private Vertx vertx;
@@ -47,7 +44,7 @@ public class LiquiGroupMarginVerticleIT extends BaseTest {
 
     @Test
     public void testLiquiGroupMarginVerticle(TestContext context) throws InterruptedException {
-        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getBrokerConfig());
         // we expect 2171 messages to be received
         int msgCount = DataHelper.getJsonObjectCount("liquiGroupMargin", 1);
         Async async = context.async(msgCount);
@@ -73,7 +70,7 @@ public class LiquiGroupMarginVerticleIT extends BaseTest {
 
     @Test
     public void testMessageStoreError(TestContext context) throws InterruptedException {
-        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getBrokerConfig());
 
         // Setup persistence persistence
         ErrorPersistenceService persistenceService = new ErrorPersistenceService();
@@ -103,7 +100,7 @@ public class LiquiGroupMarginVerticleIT extends BaseTest {
     @Test
     public void testUnknownGPBExtensionError(TestContext context) throws InterruptedException {
         // Setup account margin to listen on incorrect queue
-        JsonObject config = BaseTest.getBrokerConfig();
+        JsonObject config = TestConfig.getBrokerConfig();
         config.getJsonObject("listeners").put("liquiGroupMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupSplitMargin");
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(config);
 
@@ -127,7 +124,7 @@ public class LiquiGroupMarginVerticleIT extends BaseTest {
 
     @Test
     public void testInvalidGPBError(TestContext context) throws InterruptedException {
-        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getBrokerConfig());
 
         BrokerFiller brokerFiller = new BrokerFillerMissingField(this.vertx);
         brokerFiller.setUpLiquiGroupMarginQueue(context.asyncAssertSuccess());

@@ -4,18 +4,12 @@ import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component;
 import com.deutscheboerse.risk.dave.model.RiskLimitUtilizationModel;
-import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
 public class RiskLimitUtilizationVerticle extends AMQPVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(RiskLimitUtilizationVerticle.class);
-
-    @Override
-    public void start(Future<Void> fut) throws Exception {
-        super.start(fut, RiskLimitUtilizationVerticle.class.getSimpleName());
-    }
 
     @Override
     protected String getAmqpContainerName() {

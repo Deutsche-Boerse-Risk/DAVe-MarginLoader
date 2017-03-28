@@ -18,9 +18,10 @@ import java.util.Map;
 
 public class MainVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(MainVerticle.class);
-    private static final String MONGO_CONF_KEY = "mongo";
+    private static final String STORE_MANAGER_CONF_KEY = "storeManager";
     private static final String BROKER_CONF_KEY = "broker";
     private static final String HEALTHCHECK_CONF_KEY = "healthCheck";
+    private static final String GUICE_BINDER_KEY = "guice_binder";
     private JsonObject configuration;
     private Map<String, String> verticleDeployments = new HashMap<>();
 
@@ -85,7 +86,8 @@ public class MainVerticle extends AbstractVerticle {
     }
 
     private Future<Void> deployPersistenceVerticle() {
-        return this.deployVerticle(PersistenceVerticle.class, this.configuration.getJsonObject(MONGO_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(PersistenceVerticle.class, this.configuration.getJsonObject(STORE_MANAGER_CONF_KEY, new JsonObject())
+            .put(GUICE_BINDER_KEY, this.configuration.getString(GUICE_BINDER_KEY, PersistenceBinder.class.getName())));
     }
 
     private Future<Void> deployAccountMarginVerticle() {
@@ -118,9 +120,9 @@ public class MainVerticle extends AbstractVerticle {
 
     private Future<Void> deployVerticle(Class clazz, JsonObject config) {
         Future<Void> verticleFuture = Future.future();
-        config.put("guice_binder", this.configuration.getString("guice_binder", Binder.class.getName()));
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
-        vertx.deployVerticle("java-guice:" + clazz.getName(), options, ar -> {
+        String prefix = config.containsKey(GUICE_BINDER_KEY) ? "java-guice:" : "java:";
+        vertx.deployVerticle(prefix + clazz.getName(), options, ar -> {
             if (ar.succeeded()) {
                 LOG.info("Deployed {} with ID {}", clazz.getName(), ar.result());
                 verticleDeployments.put(clazz.getSimpleName(), ar.result());
