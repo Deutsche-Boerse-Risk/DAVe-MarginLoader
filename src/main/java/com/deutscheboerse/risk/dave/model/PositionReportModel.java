@@ -4,18 +4,10 @@ import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 import static com.google.common.base.Preconditions.checkArgument;
 
 @DataObject
 public class PositionReportModel extends AbstractModel {
-    public PositionReportModel() {
-        super();
-    }
 
     public PositionReportModel(JsonObject json) {
         this.mergeIn(json);
@@ -97,24 +89,5 @@ public class PositionReportModel extends AbstractModel {
         checkArgument(data.hasNormalizedRho(), "Missing normalized rho in AMQP data");
         checkArgument(data.hasNormalizedTheta(), "Missing normalized theta in AMQP data");
         checkArgument(data.hasUnderlying(), "Missing underlying in AMQP data");
-    }
-
-    @Override
-    public Collection<String> getKeys() {
-        List<String> keys = new ArrayList<>();
-        keys.add("clearer");
-        keys.add("member");
-        keys.add("account");
-        keys.add("liquidationGroup");
-        keys.add("liquidationGroupSplit");
-        keys.add("product");
-        keys.add("callPut");
-        keys.add("contractYear");
-        keys.add("contractMonth");
-        keys.add("expiryDay");
-        keys.add("exercisePrice");
-        keys.add("version");
-        keys.add("flexContractSymbol");
-        return Collections.unmodifiableCollection(keys);
     }
 }

@@ -4,18 +4,10 @@ import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 import static com.google.common.base.Preconditions.checkArgument;
 
 @DataObject
 public class LiquiGroupMarginModel extends AbstractModel {
-    public LiquiGroupMarginModel() {
-        super();
-    }
 
     public LiquiGroupMarginModel(JsonObject json) {
         this.mergeIn(json);
@@ -55,16 +47,5 @@ public class LiquiGroupMarginModel extends AbstractModel {
         checkArgument(liquiGroupMarginData.hasAdditionalMargin(), "Missing liqui group additional margin in AMQP data");
         checkArgument(liquiGroupMarginData.hasUnadjustedMarginRequirement(), "Missing liqui group unadjusted margin in AMQP data");
         checkArgument(liquiGroupMarginData.hasVariationPremiumPayment(), "Missing liqui group variation premium payment in AMQP data");
-    }
-
-    @Override
-    public Collection<String> getKeys() {
-        List<String> keys = new ArrayList<>();
-        keys.add("clearer");
-        keys.add("member");
-        keys.add("account");
-        keys.add("marginClass");
-        keys.add("marginCurrency");
-        return Collections.unmodifiableCollection(keys);
     }
 }

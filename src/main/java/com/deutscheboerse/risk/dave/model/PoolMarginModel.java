@@ -4,18 +4,10 @@ import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 import static com.google.common.base.Preconditions.checkArgument;
 
 @DataObject
 public class PoolMarginModel extends AbstractModel {
-    public PoolMarginModel() {
-        super();
-    }
 
     public PoolMarginModel(JsonObject json) {
         this.mergeIn(json);
@@ -57,14 +49,5 @@ public class PoolMarginModel extends AbstractModel {
         checkArgument(data.hasVariPremInMarginCurr(), "Missing pool variation premium in AMQP data");
         checkArgument(data.hasAdjustedExchangeRate(), "Missing pool adjusted exchange rate in AMQP data");
         checkArgument(data.hasPoolOwner(), "Missing pool owner in AMQP data");
-    }
-
-    @Override
-    public Collection<String> getKeys() {
-        List<String> keys = new ArrayList<>();
-        keys.add("clearer");
-        keys.add("pool");
-        keys.add("marginCurrency");
-        return Collections.unmodifiableCollection(keys);
     }
 }
