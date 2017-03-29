@@ -106,10 +106,14 @@ public class RestPersistenceService implements PersistenceService {
                     if (response.statusCode() == 200) {
                         response.bodyHandler(body -> resultHandler.handle(Future.succeededFuture()));
                     } else {
-                        LOG.error("{} post failed: {}", model.getClass().getSimpleName(), response.statusMessage());
+                        LOG.error("{} failed: {}", requestURI, response.statusMessage());
                         connectionManager.startReconnection();
                         resultHandler.handle(Future.failedFuture(response.statusMessage()));
                     }
+                }).exceptionHandler(e -> {
+                    LOG.error("{} failed: {}", requestURI, e.getMessage());
+                    connectionManager.startReconnection();
+                    resultHandler.handle(Future.failedFuture(e.getMessage()));
                 }).putHeader("content-type", "application/json").end(model.toString());
     }
 
@@ -125,7 +129,7 @@ public class RestPersistenceService implements PersistenceService {
         }
 
         void ping(Handler<AsyncResult<Void>> resultHandler) {
-            httpClient.getNow(
+            httpClient.get(
                     config.getInteger("port", DEFAULT_PORT),
                     config.getString("hostname", DEFAULT_HOSTNAME),
                     restApi.getString("healthz", DEFAULT_HEALTHZ_URI),
@@ -135,7 +139,9 @@ public class RestPersistenceService implements PersistenceService {
                         } else {
                             resultHandler.handle(Future.failedFuture(response.statusMessage()));
                         }
-                    });
+                    }).exceptionHandler(e ->
+                        resultHandler.handle(Future.failedFuture(e.getMessage()))
+                    ).end();
         }
 
         private void scheduleConnectionStatus() {

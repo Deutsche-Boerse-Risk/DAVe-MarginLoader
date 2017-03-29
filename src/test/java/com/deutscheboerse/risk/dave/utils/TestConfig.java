@@ -39,12 +39,12 @@ public class TestConfig {
         return new JsonObject()
                 .put("port", STORAGE_PORT)
                 .put("restApi", new JsonObject()
-                        .put("accountMargin", "/accountMargin/store")
-                        .put("liquiGroupMargin", "/liquiGroupMargin/store")
-                        .put("liquiGroupSplitMargin", "/liquiGroupSplitMargin/store")
-                        .put("positionReport", "/positionReport/store")
-                        .put("poolMargin", "/poolMargin/store")
-                        .put("riskLimitUtilization", "/riskLimitUtilization/store")
+                        .put("accountMargin", "/api/v1.0/storeAccountMargin")
+                        .put("liquiGroupMargin", "/api/v1.0/storeLiquiGroupMargin")
+                        .put("liquiGroupSplitMargin", "/api/v1.0/storeLiquiGroupSplitMargin")
+                        .put("positionReport", "/api/v1.0/storePoolMargin")
+                        .put("poolMargin", "/api/v1.0/storePositionReport")
+                        .put("riskLimitUtilization", "/api/v1.0/storeRiskLimitUtilization")
                         .put("healthz", "/healthz"));
     }
 
