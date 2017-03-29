@@ -5,7 +5,7 @@ import io.vertx.core.json.JsonObject;
 public class TestConfig {
 
     private static final int BROKER_PORT = Integer.getInteger("cil.tcpport", 5672);
-    private static final int PERSISTENCE_PORT = Integer.getInteger("persistence.port", 8084);
+    private static final int STORAGE_PORT = Integer.getInteger("storage.port", 8084);
     public static final int HTTP_PORT = Integer.getInteger("http.port", 8083);
 
     private TestConfig() {
@@ -15,7 +15,7 @@ public class TestConfig {
     public static JsonObject getGlobalConfig() {
         return new JsonObject()
                 .put("broker", TestConfig.getBrokerConfig())
-                .put("persistence", TestConfig.getPersistenceConfig())
+                .put("storage", TestConfig.getStorageConfig())
                 .put("healthCheck", TestConfig.getHealthCheckConfig());
     }
 
@@ -35,9 +35,9 @@ public class TestConfig {
                         .put("riskLimitUtilization", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVERiskLimitUtilization"));
     }
 
-    private static JsonObject getPersistenceConfig() {
+    public static JsonObject getStorageConfig() {
         return new JsonObject()
-                .put("port", PERSISTENCE_PORT)
+                .put("port", STORAGE_PORT)
                 .put("restApi", new JsonObject()
                         .put("accountMargin", "/accountMargin/store")
                         .put("liquiGroupMargin", "/liquiGroupMargin/store")
