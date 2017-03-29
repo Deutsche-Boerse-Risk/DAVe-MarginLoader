@@ -242,7 +242,7 @@ public class RestPersistenceServiceTest {
         storageManager.setHealth(false);
         testAppender.start();
         persistenceProxy.storeAccountMargin(new AccountMarginModel(new JsonObject()), context.asyncAssertFailure());
-        testAppender.waitForMessageContains(Level.ERROR, "/api/v1.0/storeAccountMargin failed:");
+        testAppender.waitForMessageContains(Level.ERROR, "/api/v1.0/store/am failed:");
         testAppender.stop();
         storageManager.setHealth(true);
     }
@@ -252,7 +252,7 @@ public class RestPersistenceServiceTest {
         storageManager.setHealth(false);
         testAppender.start();
         persistenceProxy.storeAccountMargin(new AccountMarginModel(new JsonObject()), context.asyncAssertFailure());
-        testAppender.waitForMessageContains(Level.ERROR, "/api/v1.0/storeAccountMargin failed:");
+        testAppender.waitForMessageContains(Level.ERROR, "/api/v1.0/store/am failed:");
         testAppender.waitForMessageContains(Level.ERROR, "Still disconnected");
         storageManager.setHealth(true);
         testAppender.waitForMessageContains(Level.INFO, "Back online");
@@ -266,7 +266,7 @@ public class RestPersistenceServiceTest {
         closeAsync.awaitSuccess();
         testAppender.start();
         persistenceProxy.storeAccountMargin(new AccountMarginModel(new JsonObject()), context.asyncAssertFailure());
-        testAppender.waitForMessageContains(Level.ERROR, "/api/v1.0/storeAccountMargin failed:");
+        testAppender.waitForMessageContains(Level.ERROR, "/api/v1.0/store/am failed:");
         testAppender.waitForMessageContains(Level.ERROR, "Still disconnected");
         storageManager.listen(context.asyncAssertSuccess());
         testAppender.waitForMessageContains(Level.INFO, "Back online");

@@ -13,6 +13,7 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 public class RestPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(RestPersistenceService.class);
@@ -22,12 +23,12 @@ public class RestPersistenceService implements PersistenceService {
 
     private static final int RECONNECT_DELAY = 2000;
 
-    private static final String DEFAULT_ACCOUNT_MARGIN_URI = "/api/v1.0/storeAccountMargin";
-    private static final String DEFAULT_LIQUI_GROUP_MARGIN_URI = "/api/v1.0/storeLiquiGroupMargin";
-    private static final String DEFAULT_LIQUI_SPLIT_MARGIN_URI = "/api/v1.0/storeLiquiGroupSplitMargin";
-    private static final String DEFAULT_POSITION_REPORT_URI = "/api/v1.0/storePoolMargin";
-    private static final String DEFAULT_POOL_MARGIN_URI = "/api/v1.0/storePositionReport";
-    private static final String DEFAULT_RISK_LIMIT_UTILIZATION_URI = "/api/v1.0/storeRiskLimitUtilization";
+    private static final String DEFAULT_ACCOUNT_MARGIN_URI = "/api/v1.0/store/am";
+    private static final String DEFAULT_LIQUI_GROUP_MARGIN_URI = "/api/v1.0/store/lgm";
+    private static final String DEFAULT_LIQUI_SPLIT_MARGIN_URI = "/api/v1.0/store/lgsm";
+    private static final String DEFAULT_POSITION_REPORT_URI = "/api/v1.0/store/pr";
+    private static final String DEFAULT_POOL_MARGIN_URI = "/api/v1.0/store/pm";
+    private static final String DEFAULT_RISK_LIMIT_UTILIZATION_URI = "/api/v1.0/store/rlu";
     private static final String DEFAULT_HEALTHZ_URI = "/healthz";
 
     private final Vertx vertx;
@@ -38,7 +39,7 @@ public class RestPersistenceService implements PersistenceService {
     private final ConnectionManager connectionManager = new ConnectionManager();
 
     @Inject
-    public RestPersistenceService(Vertx vertx, JsonObject config) {
+    public RestPersistenceService(Vertx vertx, @Named("storeManager.conf") JsonObject config) {
         this.vertx = vertx;
         this.config = config;
         this.restApi = this.config.getJsonObject("restApi", new JsonObject());
@@ -103,7 +104,7 @@ public class RestPersistenceService implements PersistenceService {
                 config.getString("hostname", DEFAULT_HOSTNAME),
                 requestURI,
                 response -> {
-                    if (response.statusCode() == 200) {
+                    if (response.statusCode() == 201) {
                         response.bodyHandler(body -> resultHandler.handle(Future.succeededFuture()));
                     } else {
                         LOG.error("{} failed: {}", requestURI, response.statusMessage());

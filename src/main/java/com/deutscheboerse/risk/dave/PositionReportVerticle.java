@@ -4,22 +4,11 @@ import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component;
 import com.deutscheboerse.risk.dave.model.PositionReportModel;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
 public class PositionReportVerticle extends AMQPVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(PositionReportVerticle.class);
-
-    @Override
-    protected String getAmqpContainerName() {
-        return "dave/marginloader-PositionReportVerticle";
-    }
-
-    @Override
-    protected String getAmqpQueueName() {
-        return config().getJsonObject("listeners", new JsonObject()).getString("positionReport");
-    }
 
     @Override
     protected void onConnect() {

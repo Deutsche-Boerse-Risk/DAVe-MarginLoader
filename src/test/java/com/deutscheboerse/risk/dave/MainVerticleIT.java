@@ -1,7 +1,7 @@
 package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.persistence.CountdownPersistenceService;
-import com.deutscheboerse.risk.dave.persistence.NullPersistenceService;
+import com.deutscheboerse.risk.dave.persistence.SuccessPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.utils.BrokerFiller;
 import com.deutscheboerse.risk.dave.utils.BrokerFillerCorrectData;
@@ -74,7 +74,7 @@ public class MainVerticleIT {
     @Test
     public void testFailedDeploymentWrongConfig(TestContext context) {
         Async mainVerticleAsync = context.async();
-        DeploymentOptions options = createDeploymentOptions(NullBinder.class);
+        DeploymentOptions options = createDeploymentOptions(SuccessBinder.class);
         System.setProperty("dave.configurationFile", "nonexisting");
         this.vertx.deployVerticle(MainVerticle.class.getName(), options, ar -> {
             System.clearProperty("dave.configurationFile");
@@ -88,7 +88,7 @@ public class MainVerticleIT {
 
     @Test
     public void testFailedDeployment(TestContext context) {
-        DeploymentOptions options = createDeploymentOptions(NullBinder.class);
+        DeploymentOptions options = createDeploymentOptions(SuccessBinder.class);
         options.getConfig().getJsonObject("healthCheck", new JsonObject()).put("port", -1);
         this.vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertFailure());
     }
@@ -99,10 +99,10 @@ public class MainVerticleIT {
     }
 
 
-    public static class NullBinder extends AbstractModule {
+    public static class SuccessBinder extends AbstractModule {
         @Override
         protected void configure() {
-            bind(PersistenceService.class).to(NullPersistenceService.class).in(Singleton.class);
+            bind(PersistenceService.class).to(SuccessPersistenceService.class).in(Singleton.class);
         }
     }
 

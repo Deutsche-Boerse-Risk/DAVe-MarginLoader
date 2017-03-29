@@ -52,8 +52,14 @@ public abstract class AMQPVerticle extends AbstractVerticle {
         fut.complete();
     }
 
-    protected abstract String getAmqpContainerName();
-    protected abstract String getAmqpQueueName();
+    private String getAmqpContainerName() {
+        return "dave/marginloader-" + verticleName;
+    }
+    private String getAmqpQueueName() {
+        String listenerKey = verticleName.substring(0, 1).toLowerCase() + verticleName.substring(1)
+                .replace("Verticle", "");
+        return config().getJsonObject("listeners", new JsonObject()).getString(listenerKey);
+    }
     protected abstract void onConnect();
     protected abstract void onDisconnect();
     protected abstract void processObjectList(ObjectList.GPBObjectList objectList);

@@ -2,7 +2,7 @@ package com.deutscheboerse.risk.dave.healthcheck;
 
 import com.deutscheboerse.risk.dave.HealthCheckVerticle;
 import com.deutscheboerse.risk.dave.MainVerticle;
-import com.deutscheboerse.risk.dave.persistence.NullPersistenceService;
+import com.deutscheboerse.risk.dave.persistence.SuccessPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
 import com.google.inject.AbstractModule;
@@ -30,7 +30,7 @@ public class HealthCheckIT {
         vertx = Vertx.vertx();
 
         JsonObject config = TestConfig.getGlobalConfig();
-        config.put("guice_binder", NullBinder.class.getName());
+        config.put("guice_binder", SuccessBinder.class.getName());
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(config);
 
         vertx.deployVerticle(MainVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
@@ -94,11 +94,11 @@ public class HealthCheckIT {
     }
 
 
-    public static class NullBinder extends AbstractModule {
+    public static class SuccessBinder extends AbstractModule {
 
         @Override
         protected void configure() {
-            bind(PersistenceService.class).to(NullPersistenceService.class);
+            bind(PersistenceService.class).to(SuccessPersistenceService.class);
         }
     }
 }

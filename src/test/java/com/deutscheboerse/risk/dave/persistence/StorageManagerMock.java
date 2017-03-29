@@ -59,14 +59,16 @@ public class StorageManagerMock {
 
         Router router = Router.router(vertx);
 
+        JsonObject restApi = config.getJsonObject("restApi", new JsonObject());
+
         LOG.info("Adding route REST API");
         router.get("/healthz").handler(healthCheckHandler);
-        router.post("/api/v1.0/storeAccountMargin").handler(this::storeAccountMargin);
-        router.post("/api/v1.0/storeLiquiGroupMargin").handler(this::storeLiquiGroupMargin);
-        router.post("/api/v1.0/storeLiquiGroupSplitMargin").handler(this::storeLiquiGroupSplitMargin);
-        router.post("/api/v1.0/storePoolMargin").handler(this::storePoolMargin);
-        router.post("/api/v1.0/storePositionReport").handler(this::storePositionReport);
-        router.post("/api/v1.0/storeRiskLimitUtilization").handler(this::storeRiskLimitUtilization);
+        router.post(restApi.getString("accountMargin")).handler(this::storeAccountMargin);
+        router.post(restApi.getString("liquiGroupMargin")).handler(this::storeLiquiGroupMargin);
+        router.post(restApi.getString("liquiGroupSplitMargin")).handler(this::storeLiquiGroupSplitMargin);
+        router.post(restApi.getString("poolMargin")).handler(this::storePoolMargin);
+        router.post(restApi.getString("positionReport")).handler(this::storePositionReport);
+        router.post(restApi.getString("riskLimitUtilization")).handler(this::storeRiskLimitUtilization);
 
         return router;
     }
@@ -77,32 +79,32 @@ public class StorageManagerMock {
 
     private void storeAccountMargin(RoutingContext routingContext) {
         LOG.trace("Received storeAccountMargin request");
-        routingContext.response().setStatusCode(health ? 200: 503).end("");
+        routingContext.response().setStatusCode(health ? 201: 503).end("");
     }
 
     private void storeLiquiGroupMargin(RoutingContext routingContext) {
         LOG.trace("Received storeLiquiGroupMargin request");
-        routingContext.response().setStatusCode(health ? 200: 503).end("");
+        routingContext.response().setStatusCode(health ? 201: 503).end("");
     }
 
     private void storeLiquiGroupSplitMargin(RoutingContext routingContext) {
         LOG.trace("Received storeLiquiGroupSplitMargin request");
-        routingContext.response().setStatusCode(health ? 200: 503).end("");
+        routingContext.response().setStatusCode(health ? 201: 503).end("");
     }
 
     private void storePoolMargin(RoutingContext routingContext) {
         LOG.trace("Received storePoolMargin request");
-        routingContext.response().setStatusCode(health ? 200: 503).end("");
+        routingContext.response().setStatusCode(health ? 201: 503).end("");
     }
 
     private void storePositionReport(RoutingContext routingContext) {
         LOG.trace("Received storePositionReport request");
-        routingContext.response().setStatusCode(health ? 200: 503).end("");
+        routingContext.response().setStatusCode(health ? 201: 503).end("");
     }
 
     private void storeRiskLimitUtilization(RoutingContext routingContext) {
         LOG.trace("Received storeRiskLimitUtilization request");
-        routingContext.response().setStatusCode(health ? 200: 503).end("");
+        routingContext.response().setStatusCode(health ? 201: 503).end("");
     }
 
     public void close(Handler<AsyncResult<Void>> completionHandler) {

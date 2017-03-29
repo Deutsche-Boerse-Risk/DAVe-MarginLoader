@@ -9,12 +9,12 @@ import io.vertx.core.Vertx;
 
 import javax.inject.Inject;
 
-public class NullPersistenceService implements PersistenceService {
+public class SuccessPersistenceService implements PersistenceService {
 
     private final HealthCheck healthCheck;
 
     @Inject
-    public NullPersistenceService(Vertx vertx) {
+    public SuccessPersistenceService(Vertx vertx) {
         this.healthCheck = new HealthCheck(vertx);
     }
 
