@@ -185,6 +185,7 @@
                         <configuration>
                             <portNames>
                                 <portName>http.port</portName>
+                                <portName>storage.port</portName>
                             </portNames>
                           </configuration>
                     </execution>
