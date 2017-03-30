@@ -20,7 +20,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 
 @RunWith(VertxUnitRunner.class)
-public class PersistenceVerticleIT {
+public class PersistenceVerticleTest {
     private final TestAppender testAppender = TestAppender.getAppender(PersistenceVerticle.class);
     private final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
     private Vertx vertx;
@@ -45,7 +45,7 @@ public class PersistenceVerticleIT {
 
     @Test
     public void checkPersistenceServiceInitialized(TestContext context) {
-        PersistenceVerticleIT.persistenceService = new InitPersistenceService(true);
+        PersistenceVerticleTest.persistenceService = new InitPersistenceService(true);
         JsonObject config = new JsonObject().put("guice_binder", TestBinder.class.getName());
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
         Async async = context.async();
@@ -62,7 +62,7 @@ public class PersistenceVerticleIT {
 
     @Test
     public void checkPersistenceServiceNotInitialized(TestContext context) {
-        PersistenceVerticleIT.persistenceService = new InitPersistenceService(false);
+        PersistenceVerticleTest.persistenceService = new InitPersistenceService(false);
         JsonObject config = new JsonObject().put("guice_binder", TestBinder.class.getName());
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
         Async async = context.async();
