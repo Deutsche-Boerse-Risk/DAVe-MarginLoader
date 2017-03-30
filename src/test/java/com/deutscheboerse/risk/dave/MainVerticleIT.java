@@ -46,7 +46,6 @@ public class MainVerticleIT {
 
     @Test
     public void testFullChain(TestContext context) throws IOException, InterruptedException {
-        Async mainVerticleAsync = context.async();
         Async totalMsgCountAsync = context.async(
                 ACCOUNT_MARGIN_COUNT
                    + LIQUI_GROUP_MARGIN_COUNT
@@ -57,14 +56,7 @@ public class MainVerticleIT {
 
         countdownService = new CountdownPersistenceService(totalMsgCountAsync);
         DeploymentOptions options = createDeploymentOptions(CountdownBinder.class);
-        this.vertx.deployVerticle(MainVerticle.class.getName(), options, ar -> {
-            if (ar.succeeded()) {
-                mainVerticleAsync.complete();
-            } else {
-                context.fail(ar.cause());
-            }
-        });
-        mainVerticleAsync.awaitSuccess(30000);
+        this.vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertSuccess());
         final BrokerFiller brokerFiller = new BrokerFillerCorrectData(this.vertx);
         brokerFiller.setUpAllQueues(context.asyncAssertSuccess());
 
