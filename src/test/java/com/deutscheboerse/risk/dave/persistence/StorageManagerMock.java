@@ -78,7 +78,7 @@ public class StorageManagerMock {
     }
 
     private void storeAccountMargin(RoutingContext routingContext) {
-        LOG.info("Received storeAccountMargin request");
+        LOG.trace("Received storeAccountMargin request");
         routingContext.response().setStatusCode(health ? 201: 503).end();
     }
 
