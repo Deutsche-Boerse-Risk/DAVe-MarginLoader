@@ -4,18 +4,10 @@ import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 import static com.google.common.base.Preconditions.checkArgument;
 
 @DataObject
 public class RiskLimitUtilizationModel extends AbstractModel {
-    public RiskLimitUtilizationModel() {
-        super();
-    }
 
     public RiskLimitUtilizationModel(JsonObject json) {
         this.mergeIn(json);
@@ -54,15 +46,5 @@ public class RiskLimitUtilizationModel extends AbstractModel {
                       data.hasThrottleLevel() ||
                       data.hasRejectLevel(), "At least one of the levels " +
                                     "(warning, throttle or reject) has to be specified");
-    }
-
-    @Override
-    public Collection<String> getKeys() {
-        List<String> keys = new ArrayList<>();
-        keys.add("clearer");
-        keys.add("member");
-        keys.add("maintainer");
-        keys.add("limitType");
-        return Collections.unmodifiableCollection(keys);
     }
 }

@@ -68,6 +68,7 @@
                     <configuration>
                         <systemPropertyVariables>
                             <http.port>${http.port}</http.port>
+                            <storage.port>${storage.port}</storage.port>
                             <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
                             <logback.configurationFile>${project.basedir}/src/test/resources/logback.xml</logback.configurationFile>
                         </systemPropertyVariables>
@@ -80,7 +81,7 @@
                     <configuration>
                         <systemPropertyVariables>
                             <http.port>${http.port}</http.port>
-                            <mongodb.port>${mongodb.port}</mongodb.port>
+                            <storage.port>${storage.port}</storage.port>
                             <cil.tcpport>${cil.tcpport}</cil.tcpport>
                             <cil.sslport>${cil.sslport}</cil.sslport>
                             <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
@@ -185,6 +186,7 @@
                         <configuration>
                             <portNames>
                                 <portName>http.port</portName>
+                                <portName>storage.port</portName>
                             </portNames>
                           </configuration>
                     </execution>
@@ -199,24 +201,6 @@
                     <skip>${skipTests}</skip>
                     <logStdout>false</logStdout>
                     <images>
-                        <image>
-                            <alias>db</alias>
-                            <name>mongo:3.4</name>
-                            <run>
-                                <wait>
-                                    <log>waiting for connections on port</log>
-                                    <time>10000</time>
-                                </wait>
-                                <log>
-                                    <prefix>DB</prefix>
-                                    <color>yellow</color>
-                                    <file>${project.build.directory}/mongo.log</file>
-                                </log>
-                                <ports>
-                                    <port>mongodb.port:27017</port>
-                                </ports>
-                            </run>
-                        </image>
                         <image>
                             <alias>cil</alias>
                             <name>zeromic/cil:prod</name>
@@ -331,11 +315,6 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-proton</artifactId>
-            <version>${vertx.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-mongo-client</artifactId>
             <version>${vertx.version}</version>
         </dependency>
         <dependency>

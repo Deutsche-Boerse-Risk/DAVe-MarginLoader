@@ -25,7 +25,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 
 @RunWith(VertxUnitRunner.class)
-public class AccountMarginVerticleIT extends BaseTest {
+public class AccountMarginVerticleIT {
     private final TestAppender testAppender = TestAppender.getAppender(AccountMarginVerticle.class);
     private final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
     private Vertx vertx;
@@ -44,7 +44,7 @@ public class AccountMarginVerticleIT extends BaseTest {
 
     @Test
     public void testAccountMarginVerticle(TestContext context) throws InterruptedException {
-        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getBrokerConfig());
         // we expect 1704 messages to be received
         int msgCount = DataHelper.getJsonObjectCount("accountMargin", 1);
         Async async = context.async(msgCount);
@@ -70,7 +70,7 @@ public class AccountMarginVerticleIT extends BaseTest {
 
     @Test
     public void testMessageStoreError(TestContext context) throws InterruptedException {
-        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getBrokerConfig());
 
         ErrorPersistenceService persistenceService = new ErrorPersistenceService();
         MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
@@ -99,7 +99,7 @@ public class AccountMarginVerticleIT extends BaseTest {
     @Test
     public void testUnknownGPBExtensionError(TestContext context) throws InterruptedException {
         // Setup account margin to listen on incorrect queue
-        JsonObject config = BaseTest.getBrokerConfig();
+        JsonObject config = TestConfig.getBrokerConfig();
         config.getJsonObject("listeners").put("accountMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupMargin");
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(config);
 
@@ -123,7 +123,7 @@ public class AccountMarginVerticleIT extends BaseTest {
 
     @Test
     public void testInvalidGPBError(TestContext context) throws InterruptedException {
-        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(BaseTest.getBrokerConfig());
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getBrokerConfig());
 
         BrokerFiller brokerFiller = new BrokerFillerMissingField(this.vertx);
         brokerFiller.setUpAccountMarginQueue(context.asyncAssertSuccess());

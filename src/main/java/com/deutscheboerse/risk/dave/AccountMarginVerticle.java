@@ -4,28 +4,11 @@ import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component;
 import com.deutscheboerse.risk.dave.model.AccountMarginModel;
-import io.vertx.core.Future;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
 public class AccountMarginVerticle extends AMQPVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(AccountMarginVerticle.class);
-
-    @Override
-    public void start(Future<Void> fut) throws Exception {
-        super.start(fut, AccountMarginVerticle.class.getSimpleName());
-    }
-
-    @Override
-    protected String getAmqpContainerName() {
-        return "dave/marginloader-AccountMarginVerticle";
-    }
-
-    @Override
-    protected String getAmqpQueueName() {
-        return config().getJsonObject("listeners", new JsonObject()).getString("accountMargin");
-    }
 
     @Override
     protected void onConnect() {
