@@ -93,7 +93,6 @@ public class HealthCheckIT {
         vertx.close(context.asyncAssertSuccess());
     }
 
-
     public static class SuccessBinder extends AbstractModule {
 
         @Override
