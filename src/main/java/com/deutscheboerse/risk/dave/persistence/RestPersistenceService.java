@@ -2,15 +2,21 @@ package com.deutscheboerse.risk.dave.persistence;
 
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import com.deutscheboerse.risk.dave.model.*;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.net.PemKeyCertOptions;
+import io.vertx.core.net.PemTrustOptions;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -20,6 +26,7 @@ public class RestPersistenceService implements PersistenceService {
 
     private static final String DEFAULT_HOSTNAME = "localhost";
     private static final int DEFAULT_PORT = 80;
+    private static final boolean DEFAULT_VERIFY_HOST = true;
 
     private static final int RECONNECT_DELAY = 2000;
 
@@ -30,6 +37,7 @@ public class RestPersistenceService implements PersistenceService {
     private static final String DEFAULT_POOL_MARGIN_URI = "/api/v1.0/store/pm";
     private static final String DEFAULT_RISK_LIMIT_UTILIZATION_URI = "/api/v1.0/store/rlu";
     private static final String DEFAULT_HEALTHZ_URI = "/healthz";
+    private static final Boolean DEFAULT_SSL_REQUIRE_CLIENT_AUTH = false;
 
     private final Vertx vertx;
     private final JsonObject config;
@@ -43,8 +51,32 @@ public class RestPersistenceService implements PersistenceService {
         this.vertx = vertx;
         this.config = config;
         this.restApi = this.config.getJsonObject("restApi", new JsonObject());
-        this.httpClient = this.vertx.createHttpClient();
+        this.httpClient = this.createHttpClient();
         this.healthCheck = new HealthCheck(vertx);
+    }
+
+    private HttpClient createHttpClient() {
+        HttpClientOptions httpClientOptions = this.createHttpClientOptions();
+        return this.vertx.createHttpClient(httpClientOptions);
+    }
+
+    private HttpClientOptions createHttpClientOptions() {
+        HttpClientOptions httpClientOptions = new HttpClientOptions();
+        httpClientOptions.setSsl(true);
+        httpClientOptions.setVerifyHost(this.config.getBoolean("verifyHost", DEFAULT_VERIFY_HOST));
+        PemTrustOptions pemTrustOptions = new PemTrustOptions();
+        this.config.getJsonArray("sslTrustCerts", new JsonArray())
+                .stream()
+                .map(Object::toString)
+                .forEach(trustKey -> pemTrustOptions.addCertValue(Buffer.buffer(trustKey)));
+        httpClientOptions.setPemTrustOptions(pemTrustOptions);
+        if (this.config.getBoolean("sslRequireClientAuth", DEFAULT_SSL_REQUIRE_CLIENT_AUTH)) {
+            PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions()
+                    .setKeyValue(Buffer.buffer(this.config.getString("sslKey")))
+                    .setCertValue(Buffer.buffer(this.config.getString("sslCert")));
+            httpClientOptions.setPemKeyCertOptions(pemKeyCertOptions);
+        }
+        return httpClientOptions;
     }
 
     @Override
@@ -104,7 +136,7 @@ public class RestPersistenceService implements PersistenceService {
                 config.getString("hostname", DEFAULT_HOSTNAME),
                 requestURI,
                 response -> {
-                    if (response.statusCode() == 201) {
+                    if (response.statusCode() == HttpResponseStatus.CREATED.code()) {
                         response.bodyHandler(body -> resultHandler.handle(Future.succeededFuture()));
                     } else {
                         LOG.error("{} failed: {}", requestURI, response.statusMessage());
@@ -135,7 +167,7 @@ public class RestPersistenceService implements PersistenceService {
                     config.getString("hostname", DEFAULT_HOSTNAME),
                     restApi.getString("healthz", DEFAULT_HEALTHZ_URI),
                     response -> {
-                        if (response.statusCode() == 200) {
+                        if (response.statusCode() == HttpResponseStatus.OK.code()) {
                             resultHandler.handle(Future.succeededFuture());
                         } else {
                             resultHandler.handle(Future.failedFuture(response.statusMessage()));

@@ -25,7 +25,7 @@ public class RestPersistenceServiceTest {
     private static final TestAppender testAppender = TestAppender.getAppender(RestPersistenceService.class);
     private static final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
     private static Vertx vertx;
-    private static StorageManagerMock storageManager;
+    private static StoreManagerMock storageManager;
     private static PersistenceService persistenceProxy;
 
     @BeforeClass
@@ -33,7 +33,7 @@ public class RestPersistenceServiceTest {
         RestPersistenceServiceTest.vertx = Vertx.vertx();
 
         JsonObject config = TestConfig.getStorageConfig();
-        storageManager = new StorageManagerMock(vertx, config);
+        storageManager = new StoreManagerMock(vertx, config);
         storageManager.listen(context.asyncAssertSuccess());
 
         ProxyHelper.registerService(PersistenceService.class, vertx, new RestPersistenceService(vertx, config), PersistenceService.SERVICE_ADDRESS);
@@ -57,7 +57,7 @@ public class RestPersistenceServiceTest {
                 }
             });
         });
-        asyncStore1.awaitSuccess(30000);
+        asyncStore1.awaitSuccess(300000);
 
         int secondMsgCount = DataHelper.getJsonObjectCount("accountMargin", 2);
         Async asyncStore2 = context.async(secondMsgCount);
