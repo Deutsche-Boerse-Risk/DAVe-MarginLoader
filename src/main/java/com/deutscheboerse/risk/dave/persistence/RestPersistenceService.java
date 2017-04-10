@@ -45,7 +45,7 @@ public class RestPersistenceService implements PersistenceService {
     private final JsonObject restApi;
     private final HttpClient httpClient;
     private final HealthCheck healthCheck;
-    private final ConnectionManager connectionManager = new ConnectionManager();
+    private final ConnectionManager connectionManager;
 
     @Inject
     public RestPersistenceService(Vertx vertx, @Named("storeManager.conf") JsonObject config) {
@@ -54,6 +54,7 @@ public class RestPersistenceService implements PersistenceService {
         this.restApi = this.config.getJsonObject("restApi", new JsonObject());
         this.httpClient = this.createHttpClient();
         this.healthCheck = new HealthCheck(vertx);
+        this.connectionManager = new ConnectionManager();
     }
 
     private HttpClient createHttpClient() {

@@ -22,7 +22,7 @@ public class TestConfig {
     public static JsonObject getGlobalConfig() {
         return new JsonObject()
                 .put("broker", TestConfig.getBrokerConfig())
-                .put("storage", TestConfig.getStorageConfig())
+                .put("storeManager", TestConfig.getStorageConfig())
                 .put("healthCheck", TestConfig.getHealthCheckConfig());
     }
 
