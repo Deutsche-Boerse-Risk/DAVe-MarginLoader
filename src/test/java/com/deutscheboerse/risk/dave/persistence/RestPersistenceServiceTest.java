@@ -33,7 +33,7 @@ public class RestPersistenceServiceTest {
         RestPersistenceServiceTest.vertx = Vertx.vertx();
 
         JsonObject config = TestConfig.getStorageConfig();
-        storageManager = new StoreManagerMock(vertx, config);
+        storageManager = new StoreManagerMock(vertx);
         storageManager.listen(context.asyncAssertSuccess());
 
         ProxyHelper.registerService(PersistenceService.class, vertx, new RestPersistenceService(vertx, config), PersistenceService.SERVICE_ADDRESS);

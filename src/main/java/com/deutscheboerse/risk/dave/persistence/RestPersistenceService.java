@@ -25,7 +25,8 @@ public class RestPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(RestPersistenceService.class);
 
     private static final String DEFAULT_HOSTNAME = "localhost";
-    private static final int DEFAULT_PORT = 80;
+    private static final int DEFAULT_PORT = 8443;
+    private static final int DEFAULT_HEALTHCHECK_PORT = 8080;
     private static final boolean DEFAULT_VERIFY_HOST = true;
 
     private static final int RECONNECT_DELAY = 2000;
@@ -128,6 +129,7 @@ public class RestPersistenceService implements PersistenceService {
     @Override
     public void close() {
         this.httpClient.close();
+        this.connectionManager.httpClient.close();
     }
 
     private void postModel(String requestURI, AbstractModel model, Handler<AsyncResult<Void>> resultHandler) {
@@ -152,6 +154,8 @@ public class RestPersistenceService implements PersistenceService {
 
     private class ConnectionManager {
 
+        private HttpClient httpClient = vertx.createHttpClient();
+
         void startReconnection() {
             if (healthCheck.isComponentReady(HealthCheck.Component.PERSISTENCE_SERVICE)) {
                 // Inform other components that we have failed
@@ -163,7 +167,7 @@ public class RestPersistenceService implements PersistenceService {
 
         void ping(Handler<AsyncResult<Void>> resultHandler) {
             httpClient.get(
-                    config.getInteger("port", DEFAULT_PORT),
+                    config.getInteger("healthCheckPort", DEFAULT_HEALTHCHECK_PORT),
                     config.getString("hostname", DEFAULT_HOSTNAME),
                     restApi.getString("healthz", DEFAULT_HEALTHZ_URI),
                     response -> {

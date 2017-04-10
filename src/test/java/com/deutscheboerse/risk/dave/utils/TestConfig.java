@@ -9,8 +9,9 @@ import io.vertx.core.net.SelfSignedCertificate;
 public class TestConfig {
 
     private static final int BROKER_PORT = Integer.getInteger("cil.tcpport", 5672);
-    private static final int STORE_MANAGER_PORT = Integer.getInteger("storage.port", 8084);
-    public static final int HTTP_PORT = Integer.getInteger("http.port", 8083);
+    public static final int STORE_MANAGER_PORT = Integer.getInteger("storage.port", 8443);
+    public static final int STORE_MANAGER_HEALTHCHECK_PORT = Integer.getInteger("storageHealthCheck.port", 8080);
+    public static final int HEALTHCHECK_PORT = Integer.getInteger("healthCheck.port", 8080);
     public static final SelfSignedCertificate HTTP_SERVER_CERTIFICATE = SelfSignedCertificate.create();
     public static final SelfSignedCertificate HTTP_CLIENT_CERTIFICATE = SelfSignedCertificate.create();
 
@@ -52,6 +53,7 @@ public class TestConfig {
 
         return new JsonObject()
                 .put("port", STORE_MANAGER_PORT)
+                .put("healthCheckPort", STORE_MANAGER_HEALTHCHECK_PORT)
                 .put("verifyHost", false)
                 .put("sslKey", pemKeyBuffer.toString())
                 .put("sslCert", pemCertBuffer.toString())
@@ -69,6 +71,6 @@ public class TestConfig {
 
     public static JsonObject getHealthCheckConfig() {
         return new JsonObject()
-                .put("port", HTTP_PORT);
+                .put("port", HEALTHCHECK_PORT);
     }
 }
