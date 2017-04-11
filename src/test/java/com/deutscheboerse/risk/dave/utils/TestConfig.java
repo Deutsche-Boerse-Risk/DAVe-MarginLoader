@@ -8,7 +8,7 @@ import io.vertx.core.net.SelfSignedCertificate;
 
 public class TestConfig {
 
-    private static final int BROKER_PORT = Integer.getInteger("cil.tcpport", 5672);
+    public static final int BROKER_PORT = Integer.getInteger("cil.tcpport", 5672);
     public static final int STORE_MANAGER_PORT = Integer.getInteger("storage.port", 8443);
     public static final int STORE_MANAGER_HEALTHCHECK_PORT = Integer.getInteger("storageHealthCheck.port", 8080);
     public static final int HEALTHCHECK_PORT = Integer.getInteger("healthCheck.port", 8080);
