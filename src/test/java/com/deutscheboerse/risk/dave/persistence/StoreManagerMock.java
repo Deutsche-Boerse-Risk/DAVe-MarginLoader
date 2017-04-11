@@ -127,9 +127,9 @@ public class StoreManagerMock {
     public void close(Handler<AsyncResult<Void>> completionHandler) {
         LOG.info("Shutting down webserver");
         Future<Void> serverClose = Future.future();
-        Future<Void> healtchCheckClose = Future.future();
+        Future<Void> healthCheckClose = Future.future();
         server.close(serverClose);
-        healthCheckServer.close(healtchCheckClose);
-        CompositeFuture.all(serverClose, healtchCheckClose).map((Void)null).setHandler(completionHandler);
+        healthCheckServer.close(healthCheckClose);
+        CompositeFuture.all(serverClose, healthCheckClose).map((Void)null).setHandler(completionHandler);
     }
 }
