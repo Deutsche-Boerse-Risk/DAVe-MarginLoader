@@ -46,7 +46,8 @@ public class PersistenceVerticleTest {
     @Test
     public void checkPersistenceServiceInitialized(TestContext context) {
         PersistenceVerticleTest.persistenceService = new InitPersistenceService(true);
-        JsonObject config = new JsonObject().put("guice_binder", TestBinder.class.getName());
+        JsonObject config = TestConfig.getStorageConfig();
+        config.put("guice_binder", TestBinder.class.getName());
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
         Async async = context.async();
         this.vertx.deployVerticle("java-guice:" + PersistenceVerticle.class.getName(), options, ar -> {
@@ -63,7 +64,8 @@ public class PersistenceVerticleTest {
     @Test
     public void checkPersistenceServiceNotInitialized(TestContext context) {
         PersistenceVerticleTest.persistenceService = new InitPersistenceService(false);
-        JsonObject config = new JsonObject().put("guice_binder", TestBinder.class.getName());
+        JsonObject config = TestConfig.getStorageConfig();
+        config.put("guice_binder", TestBinder.class.getName());
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
         Async async = context.async();
         this.vertx.deployVerticle("java-guice:" + PersistenceVerticle.class.getName(), options, ar -> {

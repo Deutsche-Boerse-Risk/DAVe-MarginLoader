@@ -9,6 +9,7 @@ import com.deutscheboerse.risk.dave.utils.DataHelper;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
+import com.google.inject.name.Names;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -101,6 +102,9 @@ public class MainVerticleIT {
     public static class CountdownBinder extends AbstractModule {
         @Override
         protected void configure() {
+            JsonObject config = Vertx.currentContext().config();
+
+            bind(JsonObject.class).annotatedWith(Names.named("storeManager.conf")).toInstance(config);
             bind(PersistenceService.class).toInstance(countdownService);
         }
     }

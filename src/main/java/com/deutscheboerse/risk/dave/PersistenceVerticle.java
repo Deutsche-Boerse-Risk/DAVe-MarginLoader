@@ -3,6 +3,8 @@ package com.deutscheboerse.risk.dave;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.serviceproxy.ProxyHelper;
@@ -22,7 +24,14 @@ public class PersistenceVerticle extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> fut) throws Exception {
-        LOG.info("Starting {} with configuration: {}", PersistenceVerticle.class.getSimpleName(), config().encodePrettily());
+        JsonObject configWithoutSensitiveInfo = config().copy()
+                .put("sslKey", "******************")
+                .put("sslCert", "******************");
+        JsonArray trustCertsWithoutSensitiveInfo = new JsonArray();
+        config().getJsonArray("sslTrustCerts").forEach(key -> trustCertsWithoutSensitiveInfo.add("******************"));
+        configWithoutSensitiveInfo.put("sslTrustCerts", trustCertsWithoutSensitiveInfo);
+
+        LOG.info("Starting {} with configuration: {}", PersistenceVerticle.class.getSimpleName(), configWithoutSensitiveInfo.encodePrettily());
 
         ProxyHelper.registerService(PersistenceService.class, vertx, this.persistenceService, PersistenceService.SERVICE_ADDRESS);
         this.proxyPersistenceService = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);

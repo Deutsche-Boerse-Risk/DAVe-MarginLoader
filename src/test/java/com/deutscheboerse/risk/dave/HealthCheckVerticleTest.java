@@ -28,7 +28,7 @@ public class HealthCheckVerticleTest {
     public void testPlainHttp(TestContext context) {
         final Async asyncClient = context.async();
 
-        vertx.createHttpClient().getNow(TestConfig.HTTP_PORT, "localhost", "/healthz", res -> {
+        vertx.createHttpClient().getNow(TestConfig.HEALTHCHECK_PORT, "localhost", "/healthz", res -> {
             context.assertEquals(200, res.statusCode());
             asyncClient.complete();
         });

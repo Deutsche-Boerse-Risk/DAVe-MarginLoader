@@ -1,12 +1,19 @@
 package com.deutscheboerse.risk.dave.utils;
 
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.SelfSignedCertificate;
 
 public class TestConfig {
 
-    private static final int BROKER_PORT = Integer.getInteger("cil.tcpport", 5672);
-    private static final int STORAGE_PORT = Integer.getInteger("storage.port", 8084);
-    public static final int HTTP_PORT = Integer.getInteger("http.port", 8083);
+    public static final int BROKER_PORT = Integer.getInteger("cil.tcpport", 5672);
+    public static final int STORE_MANAGER_PORT = Integer.getInteger("storage.port", 8443);
+    public static final int STORE_MANAGER_HEALTHCHECK_PORT = Integer.getInteger("storageHealthCheck.port", 8080);
+    public static final int HEALTHCHECK_PORT = Integer.getInteger("healthCheck.port", 8080);
+    public static final SelfSignedCertificate HTTP_SERVER_CERTIFICATE = SelfSignedCertificate.create();
+    public static final SelfSignedCertificate HTTP_CLIENT_CERTIFICATE = SelfSignedCertificate.create();
 
     private TestConfig() {
         // Empty
@@ -15,7 +22,7 @@ public class TestConfig {
     public static JsonObject getGlobalConfig() {
         return new JsonObject()
                 .put("broker", TestConfig.getBrokerConfig())
-                .put("storage", TestConfig.getStorageConfig())
+                .put("storeManager", TestConfig.getStorageConfig())
                 .put("healthCheck", TestConfig.getHealthCheckConfig());
     }
 
@@ -36,8 +43,22 @@ public class TestConfig {
     }
 
     public static JsonObject getStorageConfig() {
+        JsonArray sslTrustCerts = new JsonArray();
+        HTTP_SERVER_CERTIFICATE.trustOptions().getCertPaths().forEach(certPath -> {
+            Buffer certBuffer = Vertx.vertx().fileSystem().readFileBlocking(certPath);
+            sslTrustCerts.add(certBuffer.toString());
+        });
+        Buffer pemKeyBuffer = Vertx.vertx().fileSystem().readFileBlocking(HTTP_CLIENT_CERTIFICATE.keyCertOptions().getKeyPath());
+        Buffer pemCertBuffer = Vertx.vertx().fileSystem().readFileBlocking(HTTP_CLIENT_CERTIFICATE.keyCertOptions().getCertPath());
+
         return new JsonObject()
-                .put("port", STORAGE_PORT)
+                .put("port", STORE_MANAGER_PORT)
+                .put("healthCheckPort", STORE_MANAGER_HEALTHCHECK_PORT)
+                .put("verifyHost", false)
+                .put("sslKey", pemKeyBuffer.toString())
+                .put("sslCert", pemCertBuffer.toString())
+                .put("sslRequireClientAuth", true)
+                .put("sslTrustCerts", sslTrustCerts)
                 .put("restApi", new JsonObject()
                         .put("accountMargin", "/api/v1.0/store/am")
                         .put("liquiGroupMargin", "/api/v1.0/store/lgm")
@@ -50,6 +71,6 @@ public class TestConfig {
 
     public static JsonObject getHealthCheckConfig() {
         return new JsonObject()
-                .put("port", HTTP_PORT);
+                .put("port", HEALTHCHECK_PORT);
     }
 }
