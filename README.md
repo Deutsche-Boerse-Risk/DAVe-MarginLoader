@@ -55,7 +55,7 @@ The `storeManager` section contains the configuration of the DAVe-StoreManager w
 | `verifyHost` | Flag for verification of the DAVe-StoreManager hostname | false |
 | `sslKey` | Private key of the DAVe-MarginLoader | |
 | `sslCert` | Public key of the DAVe-MarginLoader | |
-| `sslTrustCerts` | Public key of the DAVe-StoreManager | |
+| `sslTrustCerts` | Trusted certification authorities | |
 | `restApi` | Subsection defining REST API for storing every model (see next table) |  |
 
 REST API subsection has the following format:
