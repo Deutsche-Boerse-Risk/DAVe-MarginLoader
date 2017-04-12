@@ -1,6 +1,6 @@
 # DAVe Margin Loader Docker image
 
-**DAVe Margin Loader** docker image allows DAVe Margin Loader to be executed in Docker / Kubernetes. It contains an entrypoint which will take case of the configuration based on environment variables. The different options are described below.
+**DAVe Margin Loader** docker image allows DAVe Margin Loader to be executed in Docker / Kubernetes. The different options, provided via environment variables, are described below.
 
 ## Examples
 
