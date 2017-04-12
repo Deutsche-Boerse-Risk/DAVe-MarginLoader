@@ -17,9 +17,9 @@ The shippable artifact will be built in `target/dave-margin-loader-VERSION` dire
 
 Configuration is stored in `marginloader.conf` file in Hocon format. It is split into several sections:
 
-### Broker
+### Amqp
 
-The `broker` section configures the connection parameters for the Clearing Integration Layer AMQP broker. Margin Loader
+The `amqp` section configures the connection parameters for the Clearing Integration Layer AMQP broker. Margin Loader
 uses AMQP 1.0 protocol version.
 
 | Option | Explanation | Example |
@@ -43,15 +43,31 @@ Listeners subsection has the following format:
 | `poolMargin` | Queue name for pool margin data | `broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPoolMargin` |
 | `riskLimitUtilization` | Queue name for risk limit utilization data | `broadcast.PRISMA_BRIDGE.PRISMA_TTSAVERiskLimitUtilization` |
 
-### Mongo
+### StoreManager
 
-The `mongo` section contains the configuration of the Mongo database where the margining data will be persisted.
+The `storeManager` section contains the configuration of the DAVe-StoreManager where the margining data will be persisted.
 
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `dbName` | Name of the database which will be used | `DAVe` |
-| `connectionUrl` | Connection URL to connect to the database | `mongodb://localhost:27017/?waitqueuemultiple=20000` |
+| `hostname` | Hostname of the DAVe-StoreManager | `localhost` |
+| `port` | Port where the DAVe-StoreManager is listening to HTTPS connections | 8443 |
+| `verifyHost` | Flag for verification of the DAVe-StoreManager hostname | false |
+| `sslKey` | Private key of the DAVe-MarginLoader | |
+| `sslCert` | Public key of the DAVe-MarginLoader | |
+| `sslTrustCerts` | Public key of the DAVe-StoreManager | |
+| `restApi` | Subsection defining REST API for storing every model (see next table) |  |
+
+REST API subsection has the following format:
+
+| Option | Explanation | Example |
+|--------|-------------|---------|
+| `accountMargin` | REST API address for querying account margin data|  |
+| `liquiGroupMargin` | REST API address for querying liqui group margin data |  |
+| `liquiGroupSplitMargin` | REST API address for querying liqui group split margin data |  |
+| `positionReport` | REST API address for querying position report data |  |
+| `poolMargin` | REST API address for querying pool margin data |  |
+| `riskLimitUtilization` | REST API address for querying risk limit utilization data |  |
 
 ### Health Check
 
@@ -60,7 +76,7 @@ microservice will be published.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `port` | Port of the HTTP server hosting REST API | 80 |
+| `port` | Port of the HTTP server hosting REST API | 8080 |
 
 The REST API provides two endpoints for checking the state using HTTP GET method:
 - /healthz
@@ -68,4 +84,4 @@ The REST API provides two endpoints for checking the state using HTTP GET method
 
 ## Run
 
-Use script `start_marginloader.sh` to start the application.
+Use script `start.sh` to start the application.

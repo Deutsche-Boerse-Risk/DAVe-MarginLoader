@@ -23,25 +23,25 @@ Allows to configure logging parameters. Supported log levels are `off`, `error`,
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `DAVE_LOG_LEVEL` | Logging level which should be used | `info` |
+| `LOG_LEVEL` | Logging level which should be used | `info` |
 
 
 ### AMQP Broker
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `DAVE_BROKER_USERNAME` | Name of the user used when connecting to the broker |  |
-| `DAVE_BROKER_PASSWORD` | Password for the user used when connecting to the broker |  |
-| `DAVE_BROKER_PORT` | Port where the broker is listening to PLAIN connections |  |
+| `AMQP_USERNAME` | Name of the user used when connecting to the broker |  |
+| `AMQP_PASSWORD` | Password for the user used when connecting to the broker |  |
+| `AMQP_HOSTNAME` | Hostname where the broker is running |  |
+| `AMQP_PORT` | Port where the broker is listening to PLAIN connections |  |
 
 ### Store Manager
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `DAVE_STOREMANAGER_HOSTNAME` | Hostname where DAVe Store Manager is running |  |
-| `DAVE_STOREMANAGER_PORT` | Port where DAVe Store Manager is listening to SSL connections |  |
-| `DAVE_STOREMANAGER_CLIENT_SSL_KEY` | Private key of the client in PEM format |  |
-| `DAVE_STOREMANAGER_CLIENT_SSL_CERT` | Public key of the HTTP server in CRT format |  |
-| `DAVE_STOREMANAGER_CLIENT_SSL_REQUIRE_AUTH` | Make SSL Client Authentication required | `true` |
-| `DAVE_STOREMANAGER_VERIFY_HOST` | Require verification of the DAVe Store Manager host name during SSL | `true` |
-| `DAVE_STOREMANAGER_SSL_TRUST_CERTS` | List of DAVe Store Manager's public certificate | |
+| `STOREMANAGER_HOSTNAME` | Hostname where DAVe Store Manager is running |  |
+| `STOREMANAGER_PORT` | Port where DAVe Store Manager is listening to SSL connections |  |
+| `STOREMANAGER_CLIENT_SSL_KEY` | Private key of the client in PEM format |  |
+| `STOREMANAGER_CLIENT_SSL_CERT` | Public key of the HTTP server in CRT format |  |
+| `STOREMANAGER_VERIFY_HOST` | Require verification of the DAVe Store Manager host name during SSL | `true` |
+| `STOREMANAGER_SSL_TRUST_CERTS` | List of DAVe Store Manager's public certificate | |

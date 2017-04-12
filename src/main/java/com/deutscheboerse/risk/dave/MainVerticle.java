@@ -19,7 +19,7 @@ import java.util.Map;
 public class MainVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(MainVerticle.class);
     private static final String STORE_MANAGER_CONF_KEY = "storeManager";
-    private static final String BROKER_CONF_KEY = "broker";
+    private static final String AMQP_CONF_KEY = "amqp";
     private static final String HEALTHCHECK_CONF_KEY = "healthCheck";
     private static final String GUICE_BINDER_KEY = "guice_binder";
     private JsonObject configuration;
@@ -91,27 +91,27 @@ public class MainVerticle extends AbstractVerticle {
     }
 
     private Future<Void> deployAccountMarginVerticle() {
-        return this.deployVerticle(AccountMarginVerticle.class, this.configuration.getJsonObject(BROKER_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(AccountMarginVerticle.class, this.configuration.getJsonObject(AMQP_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployLiquiGroupMarginVerticle() {
-        return this.deployVerticle(LiquiGroupMarginVerticle.class, this.configuration.getJsonObject(BROKER_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(LiquiGroupMarginVerticle.class, this.configuration.getJsonObject(AMQP_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployLiquiGroupSplitMarginVerticle() {
-        return this.deployVerticle(LiquiGroupSplitMarginVerticle.class, this.configuration.getJsonObject(BROKER_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(LiquiGroupSplitMarginVerticle.class, this.configuration.getJsonObject(AMQP_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployPoolMarginVerticle() {
-        return this.deployVerticle(PoolMarginVerticle.class, this.configuration.getJsonObject(BROKER_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(PoolMarginVerticle.class, this.configuration.getJsonObject(AMQP_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployPositionReportVerticle() {
-        return this.deployVerticle(PositionReportVerticle.class, this.configuration.getJsonObject(BROKER_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(PositionReportVerticle.class, this.configuration.getJsonObject(AMQP_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployRiskLimitUtilizationVerticle() {
-        return this.deployVerticle(RiskLimitUtilizationVerticle.class, this.configuration.getJsonObject(BROKER_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(RiskLimitUtilizationVerticle.class, this.configuration.getJsonObject(AMQP_CONF_KEY, new JsonObject()));
     }
 
     private Future<Void> deployHealthCheckVerticle() {

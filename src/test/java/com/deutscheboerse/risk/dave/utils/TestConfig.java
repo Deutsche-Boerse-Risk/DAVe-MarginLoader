@@ -10,7 +10,6 @@ public class TestConfig {
 
     public static final int BROKER_PORT = Integer.getInteger("cil.tcpport", 5672);
     public static final int STORE_MANAGER_PORT = Integer.getInteger("storage.port", 8443);
-    public static final int STORE_MANAGER_HEALTHCHECK_PORT = Integer.getInteger("storageHealthCheck.port", 8080);
     public static final int HEALTHCHECK_PORT = Integer.getInteger("healthCheck.port", 8080);
     public static final SelfSignedCertificate HTTP_SERVER_CERTIFICATE = SelfSignedCertificate.create();
     public static final SelfSignedCertificate HTTP_CLIENT_CERTIFICATE = SelfSignedCertificate.create();
@@ -21,12 +20,12 @@ public class TestConfig {
 
     public static JsonObject getGlobalConfig() {
         return new JsonObject()
-                .put("broker", TestConfig.getBrokerConfig())
+                .put("amqp", TestConfig.getAmqpConfig())
                 .put("storeManager", TestConfig.getStorageConfig())
                 .put("healthCheck", TestConfig.getHealthCheckConfig());
     }
 
-    public static JsonObject getBrokerConfig() {
+    public static JsonObject getAmqpConfig() {
         return new JsonObject()
                 .put("port", BROKER_PORT)
                 .put("username", "admin")
@@ -53,11 +52,9 @@ public class TestConfig {
 
         return new JsonObject()
                 .put("port", STORE_MANAGER_PORT)
-                .put("healthCheckPort", STORE_MANAGER_HEALTHCHECK_PORT)
                 .put("verifyHost", false)
                 .put("sslKey", pemKeyBuffer.toString())
                 .put("sslCert", pemCertBuffer.toString())
-                .put("sslRequireClientAuth", true)
                 .put("sslTrustCerts", sslTrustCerts)
                 .put("restApi", new JsonObject()
                         .put("accountMargin", "/api/v1.0/store/am")
@@ -65,8 +62,7 @@ public class TestConfig {
                         .put("liquiGroupSplitMargin", "/api/v1.0/store/lgsm")
                         .put("poolMargin", "/api/v1.0/store/pm")
                         .put("positionReport", "/api/v1.0/store/pr")
-                        .put("riskLimitUtilization", "/api/v1.0/store/rlu")
-                        .put("healthz", "/healthz"));
+                        .put("riskLimitUtilization", "/api/v1.0/store/rlu"));
     }
 
     public static JsonObject getHealthCheckConfig() {

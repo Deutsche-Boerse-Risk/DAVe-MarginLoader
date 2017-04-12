@@ -44,7 +44,7 @@ public class RiskLimitUtilizationVerticleIT {
 
     @Test
     public void testRiskLimitUtilizationVerticle(TestContext context) throws InterruptedException {
-        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getBrokerConfig());
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getAmqpConfig());
         // we expect 2 messages to be received
         int msgCount = DataHelper.getJsonObjectCount("riskLimitUtilization", 1);
         Async async = context.async(msgCount);
@@ -69,7 +69,7 @@ public class RiskLimitUtilizationVerticleIT {
 
     @Test
     public void testMessageStoreError(TestContext context) throws InterruptedException {
-        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getBrokerConfig());
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getAmqpConfig());
         // Setup persistence persistence
         ErrorPersistenceService persistenceService = new ErrorPersistenceService();
         MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
@@ -98,7 +98,7 @@ public class RiskLimitUtilizationVerticleIT {
     @Test
     public void testUnknownGPBExtensionError(TestContext context) throws InterruptedException {
         // Setup account margin to listen on incorrect queue
-        JsonObject config = TestConfig.getBrokerConfig();
+        JsonObject config = TestConfig.getAmqpConfig();
         config.getJsonObject("listeners").put("riskLimitUtilization", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEAccountMargin");
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(config);
 
@@ -122,7 +122,7 @@ public class RiskLimitUtilizationVerticleIT {
 
     @Test
     public void testInvalidGPBError(TestContext context) throws InterruptedException {
-        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getBrokerConfig());
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getAmqpConfig());
 
         BrokerFiller brokerFiller = new BrokerFillerMissingField(this.vertx);
         brokerFiller.setUpRiskLimitUtilizationQueue(context.asyncAssertSuccess());

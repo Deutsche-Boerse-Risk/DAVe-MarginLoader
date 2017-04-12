@@ -88,8 +88,8 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     private Future<ProtonConnection> createAmqpConnection() {
         Future<ProtonConnection> createAmqpConnectionFuture = Future.future();
         ProtonClient protonClient = ProtonClient.create(vertx);
-        final String userName = TestConfig.getBrokerConfig().getString("username");
-        final String password = TestConfig.getBrokerConfig().getString("password");
+        final String userName = TestConfig.getAmqpConfig().getString("username");
+        final String password = TestConfig.getAmqpConfig().getString("password");
         protonClient.connect("localhost", this.tcpPort, userName, password, connectResult -> {
             if (connectResult.succeeded()) {
                 connectResult.result().setContainer("dave/marginLoaderIT").openHandler(openResult -> {
@@ -108,7 +108,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     }
 
     private Future<ProtonConnection> populateAccountMarginQueue(ProtonConnection protonConnection) {
-        final String queueName = TestConfig.getBrokerConfig().getJsonObject("listeners", new JsonObject()).getString("accountMargin");
+        final String queueName = TestConfig.getAmqpConfig().getJsonObject("listeners", new JsonObject()).getString("accountMargin");
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
@@ -116,7 +116,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     }
 
     private Future<ProtonConnection> populateLiquiGroupMarginQueue(ProtonConnection protonConnection) {
-        final String queueName = TestConfig.getBrokerConfig().getJsonObject("listeners", new JsonObject()).getString("liquiGroupMargin");
+        final String queueName = TestConfig.getAmqpConfig().getJsonObject("listeners", new JsonObject()).getString("liquiGroupMargin");
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
@@ -124,7 +124,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     }
 
     private Future<ProtonConnection> populateLiquiGroupSplitMarginQueue(ProtonConnection protonConnection) {
-        final String queueName = TestConfig.getBrokerConfig().getJsonObject("listeners", new JsonObject()).getString("liquiGroupSplitMargin");
+        final String queueName = TestConfig.getAmqpConfig().getJsonObject("listeners", new JsonObject()).getString("liquiGroupSplitMargin");
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
@@ -132,7 +132,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     }
 
     private Future<ProtonConnection> populatePoolMarginQueue(ProtonConnection protonConnection) {
-        final String queueName = TestConfig.getBrokerConfig().getJsonObject("listeners", new JsonObject()).getString("poolMargin");
+        final String queueName = TestConfig.getAmqpConfig().getJsonObject("listeners", new JsonObject()).getString("poolMargin");
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
@@ -140,7 +140,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     }
 
     private Future<ProtonConnection> populatePositionReportQueue(ProtonConnection protonConnection) {
-        final String queueName = TestConfig.getBrokerConfig().getJsonObject("listeners", new JsonObject()).getString("positionReport");
+        final String queueName = TestConfig.getAmqpConfig().getJsonObject("listeners", new JsonObject()).getString("positionReport");
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
@@ -148,7 +148,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     }
 
     private Future<ProtonConnection> populateRiskLimitUtilizationQueue(ProtonConnection protonConnection) {
-        final String queueName = TestConfig.getBrokerConfig().getJsonObject("listeners", new JsonObject()).getString("riskLimitUtilization");
+        final String queueName = TestConfig.getAmqpConfig().getJsonObject("listeners", new JsonObject()).getString("riskLimitUtilization");
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());

@@ -7,7 +7,7 @@ if [ -z "${MARGINLOADER_ROOT}" ]; then
     export MARGINLOADER_ROOT=`cd "${WHEREAMI}/../" && pwd`
 fi
 
-export DAVE_LOG_LEVEL="${DAVE_LOG_LEVEL:-info}"
+export LOG_LEVEL="${LOG_LEVEL:-info}"
 
 MARGINLOADER_LIB=${MARGINLOADER_ROOT}/lib
 MARGINLOADER_ETC=${MARGINLOADER_ROOT}/etc

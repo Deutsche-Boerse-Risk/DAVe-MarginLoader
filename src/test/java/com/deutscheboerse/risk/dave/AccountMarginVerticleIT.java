@@ -44,7 +44,7 @@ public class AccountMarginVerticleIT {
 
     @Test
     public void testAccountMarginVerticle(TestContext context) throws InterruptedException {
-        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getBrokerConfig());
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getAmqpConfig());
         // we expect 1704 messages to be received
         int msgCount = DataHelper.getJsonObjectCount("accountMargin", 1);
         Async async = context.async(msgCount);
@@ -70,7 +70,7 @@ public class AccountMarginVerticleIT {
 
     @Test
     public void testMessageStoreError(TestContext context) throws InterruptedException {
-        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getBrokerConfig());
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getAmqpConfig());
 
         ErrorPersistenceService persistenceService = new ErrorPersistenceService();
         MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
@@ -99,7 +99,7 @@ public class AccountMarginVerticleIT {
     @Test
     public void testUnknownGPBExtensionError(TestContext context) throws InterruptedException {
         // Setup account margin to listen on incorrect queue
-        JsonObject config = TestConfig.getBrokerConfig();
+        JsonObject config = TestConfig.getAmqpConfig();
         config.getJsonObject("listeners").put("accountMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupMargin");
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(config);
 
@@ -123,7 +123,7 @@ public class AccountMarginVerticleIT {
 
     @Test
     public void testInvalidGPBError(TestContext context) throws InterruptedException {
-        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getBrokerConfig());
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getAmqpConfig());
 
         BrokerFiller brokerFiller = new BrokerFillerMissingField(this.vertx);
         brokerFiller.setUpAccountMarginQueue(context.asyncAssertSuccess());
