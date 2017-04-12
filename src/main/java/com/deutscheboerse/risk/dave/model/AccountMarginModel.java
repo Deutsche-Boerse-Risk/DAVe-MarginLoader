@@ -4,18 +4,10 @@ import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 import static com.google.common.base.Preconditions.checkArgument;
 
 @DataObject
 public class AccountMarginModel extends AbstractModel {
-    public AccountMarginModel() {
-        super();
-    }
 
     public AccountMarginModel(JsonObject json) {
         this.mergeIn(json);
@@ -51,15 +43,5 @@ public class AccountMarginModel extends AbstractModel {
         checkArgument(data.hasMarginReqInClrCurr(), "Missing account margin margin requirement in clearing currency in AMQP data");
         checkArgument(data.hasUnadjustedMarginRequirement(), "Missing account margin unadjusted margin requirement in clearing currency in AMQP data");
         checkArgument(data.hasVariationPremiumPayment(), "Missing account margin variation premium payment in AMQP data");
-    }
-
-    @Override
-    public Collection<String> getKeys() {
-        List<String> keys = new ArrayList<>();
-        keys.add("clearer");
-        keys.add("member");
-        keys.add("account");
-        keys.add("marginCurrency");
-        return Collections.unmodifiableCollection(keys);
     }
 }

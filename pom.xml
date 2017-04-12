@@ -67,7 +67,9 @@
                     <version>${surefire.maven.plugin.version}</version>
                     <configuration>
                         <systemPropertyVariables>
-                            <http.port>${http.port}</http.port>
+                            <healthCheck.port>${healthCheck.port}</healthCheck.port>
+                            <storage.port>${storage.port}</storage.port>
+                            <storageHealthCheck.port>${storageHealthCheck.port}</storageHealthCheck.port>
                             <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
                             <logback.configurationFile>${project.basedir}/src/test/resources/logback.xml</logback.configurationFile>
                         </systemPropertyVariables>
@@ -79,8 +81,9 @@
                     <version>${failsafe.maven.plugin.version}</version>
                     <configuration>
                         <systemPropertyVariables>
-                            <http.port>${http.port}</http.port>
-                            <mongodb.port>${mongodb.port}</mongodb.port>
+                            <healthCheck.port>${healthCheck.port}</healthCheck.port>
+                            <storage.port>${storage.port}</storage.port>
+                            <storageHealthCheck.port>${storageHealthCheck.port}</storageHealthCheck.port>
                             <cil.tcpport>${cil.tcpport}</cil.tcpport>
                             <cil.sslport>${cil.sslport}</cil.sslport>
                             <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
@@ -184,7 +187,9 @@
                         <phase>process-sources</phase>
                         <configuration>
                             <portNames>
-                                <portName>http.port</portName>
+                                <portName>healthCheck.port</portName>
+                                <portName>storage.port</portName>
+                                <portName>storageHealthCheck.port</portName>
                             </portNames>
                           </configuration>
                     </execution>
@@ -199,24 +204,6 @@
                     <skip>${skipTests}</skip>
                     <logStdout>false</logStdout>
                     <images>
-                        <image>
-                            <alias>db</alias>
-                            <name>mongo:3.4</name>
-                            <run>
-                                <wait>
-                                    <log>waiting for connections on port</log>
-                                    <time>10000</time>
-                                </wait>
-                                <log>
-                                    <prefix>DB</prefix>
-                                    <color>yellow</color>
-                                    <file>${project.build.directory}/mongo.log</file>
-                                </log>
-                                <ports>
-                                    <port>mongodb.port:27017</port>
-                                </ports>
-                            </run>
-                        </image>
                         <image>
                             <alias>cil</alias>
                             <name>zeromic/cil:prod</name>
@@ -331,11 +318,6 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-proton</artifactId>
-            <version>${vertx.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-mongo-client</artifactId>
             <version>${vertx.version}</version>
         </dependency>
         <dependency>

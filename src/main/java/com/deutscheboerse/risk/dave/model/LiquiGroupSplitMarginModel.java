@@ -4,18 +4,10 @@ import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 import static com.google.common.base.Preconditions.checkArgument;
 
 @DataObject
 public class LiquiGroupSplitMarginModel extends AbstractModel {
-    public LiquiGroupSplitMarginModel() {
-        super();
-    }
 
     public LiquiGroupSplitMarginModel(JsonObject json) {
         this.mergeIn(json);
@@ -55,17 +47,5 @@ public class LiquiGroupSplitMarginModel extends AbstractModel {
         checkArgument(data.hasLiquRisk(), "Missing LGSM liqu risk in AMQP data");
         checkArgument(data.hasLongOptionCredit(), "Missing LGSM long option credit in AMQP data");
         checkArgument(data.hasVariationPremiumPayment(), "Missing LGSM variation premium payment in AMQP data");
-    }
-
-    @Override
-    public Collection<String> getKeys() {
-        List<String> keys = new ArrayList<>();
-        keys.add("clearer");
-        keys.add("member");
-        keys.add("account");
-        keys.add("liquidationGroup");
-        keys.add("liquidationGroupSplit");
-        keys.add("marginCurrency");
-        return Collections.unmodifiableCollection(keys);
     }
 }

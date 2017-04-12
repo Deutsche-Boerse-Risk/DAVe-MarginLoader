@@ -27,7 +27,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
 
     public BrokerFillerCorrectData(Vertx vertx) {
         this.vertx = vertx;
-        this.tcpPort = Integer.getInteger("cil.tcpport", 5672);
+        this.tcpPort = TestConfig.BROKER_PORT;
     }
 
     public void setUpAllQueues(Handler<AsyncResult<String>> handler) {
@@ -88,7 +88,9 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     private Future<ProtonConnection> createAmqpConnection() {
         Future<ProtonConnection> createAmqpConnectionFuture = Future.future();
         ProtonClient protonClient = ProtonClient.create(vertx);
-        protonClient.connect("localhost", this.tcpPort, "admin", "admin", connectResult -> {
+        final String userName = TestConfig.getBrokerConfig().getString("username");
+        final String password = TestConfig.getBrokerConfig().getString("password");
+        protonClient.connect("localhost", this.tcpPort, userName, password, connectResult -> {
             if (connectResult.succeeded()) {
                 connectResult.result().setContainer("dave/marginLoaderIT").openHandler(openResult -> {
                     if (openResult.succeeded()) {
@@ -106,7 +108,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     }
 
     private Future<ProtonConnection> populateAccountMarginQueue(ProtonConnection protonConnection) {
-        final String queueName = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEAccountMargin";
+        final String queueName = TestConfig.getBrokerConfig().getJsonObject("listeners", new JsonObject()).getString("accountMargin");
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
@@ -114,7 +116,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     }
 
     private Future<ProtonConnection> populateLiquiGroupMarginQueue(ProtonConnection protonConnection) {
-        final String queueName = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupMargin";
+        final String queueName = TestConfig.getBrokerConfig().getJsonObject("listeners", new JsonObject()).getString("liquiGroupMargin");
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
@@ -122,7 +124,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     }
 
     private Future<ProtonConnection> populateLiquiGroupSplitMarginQueue(ProtonConnection protonConnection) {
-        final String queueName = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupSplitMargin";
+        final String queueName = TestConfig.getBrokerConfig().getJsonObject("listeners", new JsonObject()).getString("liquiGroupSplitMargin");
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
@@ -130,7 +132,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     }
 
     private Future<ProtonConnection> populatePoolMarginQueue(ProtonConnection protonConnection) {
-        final String queueName = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPoolMargin";
+        final String queueName = TestConfig.getBrokerConfig().getJsonObject("listeners", new JsonObject()).getString("poolMargin");
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
@@ -138,7 +140,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     }
 
     private Future<ProtonConnection> populatePositionReportQueue(ProtonConnection protonConnection) {
-        final String queueName = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPositionReport";
+        final String queueName = TestConfig.getBrokerConfig().getJsonObject("listeners", new JsonObject()).getString("positionReport");
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
@@ -146,7 +148,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     }
 
     private Future<ProtonConnection> populateRiskLimitUtilizationQueue(ProtonConnection protonConnection) {
-        final String queueName = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVERiskLimitUtilization";
+        final String queueName = TestConfig.getBrokerConfig().getJsonObject("listeners", new JsonObject()).getString("riskLimitUtilization");
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());

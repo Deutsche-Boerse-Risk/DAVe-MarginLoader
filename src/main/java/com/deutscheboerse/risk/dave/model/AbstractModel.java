@@ -3,16 +3,15 @@ package com.deutscheboerse.risk.dave.model;
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import io.vertx.core.json.JsonObject;
 
-import java.util.Collection;
-
 import static com.google.common.base.Preconditions.checkArgument;
 
 public abstract class AbstractModel extends JsonObject {
 
-    public AbstractModel() {
+    AbstractModel() {
+        // Empty
     }
 
-    public AbstractModel(PrismaReports.PrismaHeader header) {
+    AbstractModel(PrismaReports.PrismaHeader header) {
         verify(header);
 
         put("snapshotID", header.getId());
@@ -29,6 +28,4 @@ public abstract class AbstractModel extends JsonObject {
         checkArgument(header.hasBusinessDate(), "Missing business date in header in AMQP data");
         checkArgument(header.hasTimestamp(), "Missing timestamp in header in AMQP data");
     }
-
-    public abstract Collection<String> getKeys();
 }

@@ -1,13 +1,18 @@
 package com.deutscheboerse.risk.dave;
 
-import com.deutscheboerse.risk.dave.persistence.MongoPersistenceService;
+import com.deutscheboerse.risk.dave.persistence.CountdownPersistenceService;
+import com.deutscheboerse.risk.dave.persistence.SuccessPersistenceService;
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.utils.BrokerFiller;
 import com.deutscheboerse.risk.dave.utils.BrokerFillerCorrectData;
 import com.deutscheboerse.risk.dave.utils.DataHelper;
+import com.deutscheboerse.risk.dave.utils.TestConfig;
+import com.google.inject.AbstractModule;
+import com.google.inject.Singleton;
+import com.google.inject.name.Names;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -17,11 +22,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicLong;
 
 @RunWith(VertxUnitRunner.class)
-public class MainVerticleIT extends BaseTest {
+public class MainVerticleIT {
     private Vertx vertx;
+    private static PersistenceService countdownService;
     private static int ACCOUNT_MARGIN_COUNT = DataHelper.getJsonObjectCount("accountMargin", 1);
     private static int LIQUI_GROUP_MARGIN_COUNT = DataHelper.getJsonObjectCount("liquiGroupMargin", 1);
     private static int LIQUI_GROUP_SPLIT_MARGIN_COUNT = DataHelper.getJsonObjectCount("liquiGroupSplitMargin", 1);
@@ -34,41 +39,35 @@ public class MainVerticleIT extends BaseTest {
         this.vertx = Vertx.vertx();
     }
 
-    private MongoClient createMongoClient(JsonObject mongoVerticleConfig) {
-        return MongoClient.createShared(this.vertx, BaseTest.getMongoClientConfig(mongoVerticleConfig));
-    }
-
-    private DeploymentOptions createDeploymentOptions() {
-        return new DeploymentOptions().setConfig(BaseTest.getGlobalConfig());
+    private DeploymentOptions createDeploymentOptions(Class<? extends AbstractModule> binder) {
+        JsonObject config = TestConfig.getGlobalConfig();
+        config.put("guice_binder", binder.getName());
+        return new DeploymentOptions().setConfig(config);
     }
 
     @Test
     public void testFullChain(TestContext context) throws IOException, InterruptedException {
-        Async mainVerticleAsync = context.async();
-        DeploymentOptions options = createDeploymentOptions();
-        this.vertx.deployVerticle(MainVerticle.class.getName(), options, ar -> {
-            if (ar.succeeded()) {
-                mainVerticleAsync.complete();
-            } else {
-                context.fail(ar.cause());
-            }
-        });
-        mainVerticleAsync.awaitSuccess(30000);
-        MongoClient mongoClient = this.createMongoClient(options.getConfig().getJsonObject("mongo"));
+        Async totalMsgCountAsync = context.async(
+                ACCOUNT_MARGIN_COUNT
+                   + LIQUI_GROUP_MARGIN_COUNT
+                   + LIQUI_GROUP_SPLIT_MARGIN_COUNT
+                   + POOL_MARGIN_COUNT
+                   + POSITION_REPORT_COUNT
+                   + RISK_LIMIT_UTILIZATION_COUNT);
+
+        countdownService = new CountdownPersistenceService(totalMsgCountAsync);
+        DeploymentOptions options = createDeploymentOptions(CountdownBinder.class);
+        this.vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertSuccess());
         final BrokerFiller brokerFiller = new BrokerFillerCorrectData(this.vertx);
         brokerFiller.setUpAllQueues(context.asyncAssertSuccess());
-        this.testCountInCollection(context, mongoClient, MongoPersistenceService.ACCOUNT_MARGIN_COLLECTION, ACCOUNT_MARGIN_COUNT);
-        this.testCountInCollection(context, mongoClient, MongoPersistenceService.LIQUI_GROUP_MARGIN_COLLECTION, LIQUI_GROUP_MARGIN_COUNT);
-        this.testCountInCollection(context, mongoClient, MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_COLLECTION, LIQUI_GROUP_SPLIT_MARGIN_COUNT);
-        this.testCountInCollection(context, mongoClient, MongoPersistenceService.POOL_MARGIN_COLLECTION, POOL_MARGIN_COUNT);
-        this.testCountInCollection(context, mongoClient, MongoPersistenceService.POSITION_REPORT_COLLECTION, POSITION_REPORT_COUNT);
-        this.testCountInCollection(context, mongoClient, MongoPersistenceService.RISK_LIMIT_UTILIZATION_COLLECTION, RISK_LIMIT_UTILIZATION_COUNT);
+
+        totalMsgCountAsync.awaitSuccess(30000);
     }
 
     @Test
     public void testFailedDeploymentWrongConfig(TestContext context) {
         Async mainVerticleAsync = context.async();
-        DeploymentOptions options = createDeploymentOptions();
+        DeploymentOptions options = createDeploymentOptions(SuccessBinder.class);
         System.setProperty("dave.configurationFile", "nonexisting");
         this.vertx.deployVerticle(MainVerticle.class.getName(), options, ar -> {
             System.clearProperty("dave.configurationFile");
@@ -82,38 +81,31 @@ public class MainVerticleIT extends BaseTest {
 
     @Test
     public void testFailedDeployment(TestContext context) {
-        DeploymentOptions options = createDeploymentOptions();
+        DeploymentOptions options = createDeploymentOptions(SuccessBinder.class);
         options.getConfig().getJsonObject("healthCheck", new JsonObject()).put("port", -1);
         this.vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertFailure());
-    }
-
-    private void testCountInCollection(TestContext  context, MongoClient mongoClient, String collection, long count) {
-        AtomicLong currentCount = new AtomicLong();
-        int tries = 0;
-        while (currentCount.get() != count && tries < 60) {
-            Async asyncHistoryCount = context.async();
-            mongoClient.count(collection, new JsonObject(), ar -> {
-                if (ar.succeeded()) {
-                    currentCount.set(ar.result());
-                    if (currentCount.get() == count && !asyncHistoryCount.isCompleted()) {
-                        asyncHistoryCount.complete();
-                    }
-                } else {
-                    context.fail(ar.cause());
-                }
-            });
-            try {
-                asyncHistoryCount.await(1000);
-            } catch (Exception ignored) {
-                asyncHistoryCount.complete();
-            }
-            tries++;
-        }
-        context.assertEquals(count, currentCount.get());
     }
 
     @After
     public void cleanup(TestContext context) {
         vertx.close(context.asyncAssertSuccess());
+    }
+
+
+    public static class SuccessBinder extends AbstractModule {
+        @Override
+        protected void configure() {
+            bind(PersistenceService.class).to(SuccessPersistenceService.class).in(Singleton.class);
+        }
+    }
+
+    public static class CountdownBinder extends AbstractModule {
+        @Override
+        protected void configure() {
+            JsonObject config = Vertx.currentContext().config();
+
+            bind(JsonObject.class).annotatedWith(Names.named("storeManager.conf")).toInstance(config);
+            bind(PersistenceService.class).toInstance(countdownService);
+        }
     }
 }

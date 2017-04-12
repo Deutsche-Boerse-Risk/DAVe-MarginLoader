@@ -28,19 +28,19 @@ public abstract class AMQPVerticle extends AbstractVerticle {
     private static final int DEFAULT_RECONNECT_ATTEMPTS = -1;
     private static final int DEFAULT_RECONNECT_TIMEOUT = 60000;
 
-    private ExtensionRegistry registry = ExtensionRegistry.newInstance();
-    private String verticleName;
+    private final ExtensionRegistry registry = ExtensionRegistry.newInstance();
+    private final String verticleName = this.getClass().getSimpleName();
     private ProtonClient protonClient;
     private ProtonConnection protonBrokerConnection;
     private ProtonReceiver protonBrokerReceiver;
     protected PersistenceService persistenceService;
     protected HealthCheck healthCheck;
 
-    public void start(Future<Void> fut, String verticleName) {
+    @Override
+    public void start(Future<Void> fut) {
         LOG.info("Starting {} with configuration: {}", verticleName, config().encodePrettily());
         this.registerExtensions();
 
-        this.verticleName = verticleName;
         this.persistenceService = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
         this.healthCheck = new HealthCheck(this.vertx);
         this.protonClient = ProtonClient.create(vertx);
@@ -52,8 +52,14 @@ public abstract class AMQPVerticle extends AbstractVerticle {
         fut.complete();
     }
 
-    protected abstract String getAmqpContainerName();
-    protected abstract String getAmqpQueueName();
+    private String getAmqpContainerName() {
+        return "dave/marginloader-" + verticleName;
+    }
+    private String getAmqpQueueName() {
+        String listenerKey = verticleName.substring(0, 1).toLowerCase() + verticleName.substring(1)
+                .replace("Verticle", "");
+        return config().getJsonObject("listeners", new JsonObject()).getString(listenerKey);
+    }
     protected abstract void onConnect();
     protected abstract void onDisconnect();
     protected abstract void processObjectList(ObjectList.GPBObjectList objectList);
@@ -87,25 +93,25 @@ public abstract class AMQPVerticle extends AbstractVerticle {
         Future<Void> createBrokerConnectionFuture = Future.future();
 
         JsonObject amqpConfig = config();
+        Future<ProtonConnection> connectFuture = Future.future();
         protonClient.connect(getClientOptions(),
                 amqpConfig.getString("hostname", AMQPVerticle.DEFAULT_BROKER_HOST),
                 amqpConfig.getInteger("port", AMQPVerticle.DEFAULT_BROKER_PORT),
                 amqpConfig.getString("username"),
                 amqpConfig.getString("password"),
-                connectResult -> {
-                    if (connectResult.succeeded()) {
-                        connectResult.result().setContainer(this.getAmqpContainerName()).openHandler(openResult -> {
-                            if (openResult.succeeded()) {
-                                this.protonBrokerConnection = openResult.result();
-                                createBrokerConnectionFuture.complete();
-                            } else {
-                                createBrokerConnectionFuture.fail(openResult.cause());
-                            }
-                        }).open();
-                    } else {
-                        createBrokerConnectionFuture.fail(connectResult.cause());
-                    }
-                });
+                connectFuture);
+
+        connectFuture.compose(connectResult -> {
+            // When the connection is established (connectFuture), execute this
+            Future<ProtonConnection> openFuture = Future.future();
+            connectResult.setContainer(this.getAmqpContainerName()).openHandler(openFuture).open();
+            return openFuture;
+        }).compose(openResult -> {
+            // When the connection is open (openFuture), execute this
+            this.protonBrokerConnection = openResult;
+            createBrokerConnectionFuture.complete();
+        }, createBrokerConnectionFuture);
+
         return createBrokerConnectionFuture;
     }
 
@@ -125,24 +131,18 @@ public abstract class AMQPVerticle extends AbstractVerticle {
     }
 
     private Future<Void> createAmqpReceiver() {
-        Future<Void> receiverOpenFuture = Future.future();
+        Future<ProtonReceiver> receiverOpenFuture = Future.future();
         this.protonBrokerReceiver = this.protonBrokerConnection.createReceiver(this.getAmqpQueueName());
         this.protonBrokerReceiver.setPrefetch(1000);
         this.protonBrokerReceiver.setAutoAccept(false);
-        this.protonBrokerReceiver.openHandler(ar -> {
-            if (ar.succeeded()) {
-                receiverOpenFuture.complete();
-            } else {
-                receiverOpenFuture.fail(ar.cause());
-            }
-        });
+        this.protonBrokerReceiver.openHandler(receiverOpenFuture);
         this.protonBrokerReceiver.closeHandler(ar -> LOG.info("Closed"));
         this.protonBrokerReceiver.handler((delivery, msg) -> {
             Section body = msg.getBody();
             this.processMessage(body);
             delivery.settle();
         }).open();
-        return receiverOpenFuture;
+        return receiverOpenFuture.mapEmpty();
     }
 
     private void processMessage(Section body) {

@@ -7,11 +7,12 @@ if [ -z "${MARGINLOADER_ROOT}" ]; then
     export MARGINLOADER_ROOT=`cd "${WHEREAMI}/../" && pwd`
 fi
 
+export DAVE_LOG_LEVEL="${DAVE_LOG_LEVEL:-info}"
+
 MARGINLOADER_LIB=${MARGINLOADER_ROOT}/lib
 MARGINLOADER_ETC=${MARGINLOADER_ROOT}/etc
-export MARGINLOADER_LOG=${MARGINLOADER_ROOT}/log
 
-java ${DEBUG} \
+java ${JAVA_OPTS} ${DEBUG} \
      -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory \
      -Dlogback.configurationFile=${MARGINLOADER_ETC}/logback.xml \
      -Ddave.configurationFile=${MARGINLOADER_ETC}/marginloader.conf \
