@@ -85,3 +85,7 @@ The REST API provides two endpoints for checking the state using HTTP GET method
 ## Run
 
 Use script `start.sh` to start the application.
+
+### Docker image to run standalone API
+[DAVe-MarginLoader Docker image](docker)
+
