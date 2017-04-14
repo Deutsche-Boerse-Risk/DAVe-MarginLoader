@@ -87,12 +87,9 @@ public class LiquiGroupMarginVerticleIT {
         vertx.deployVerticle(LiquiGroupMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         int msgCount = DataHelper.getJsonObjectCount("liquiGroupMargin", 1);
         testAppender.waitForMessageCount(Level.ERROR, msgCount);
-        ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
+        testAppender.waitForMessageContains(Level.ERROR, "Unable to store message");
         testAppender.stop();
         rootLogger.addAppender(stdout);
-
-        context.assertEquals(Level.ERROR, logMessage.getLevel());
-        context.assertTrue(logMessage.getFormattedMessage().contains("Unable to store message"));
 
         ProxyHelper.unregisterService(serviceMessageConsumer);
     }
@@ -114,12 +111,9 @@ public class LiquiGroupMarginVerticleIT {
         vertx.deployVerticle(LiquiGroupMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         int msgCount = DataHelper.getJsonObjectCount("liquiGroupSplitMargin", 1);
         testAppender.waitForMessageCount(Level.ERROR, msgCount);
-        ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
+        testAppender.waitForMessageContains(Level.ERROR, "Unknown extension (should be liqui_group_margin)");
         testAppender.stop();
         rootLogger.addAppender(stdout);
-
-        context.assertEquals(Level.ERROR, logMessage.getLevel());
-        context.assertEquals("Unknown extension (should be liqui_group_margin)", logMessage.getFormattedMessage());
     }
 
     @Test
@@ -135,12 +129,9 @@ public class LiquiGroupMarginVerticleIT {
         vertx.deployVerticle(LiquiGroupMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         int msgCount = DataHelper.getJsonObjectCount("liquiGroupMargin", 1);
         testAppender.waitForMessageCount(Level.ERROR, msgCount);
-        ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
+        testAppender.waitForMessageContains(Level.ERROR, "Unable to create Liqui Group Margin Model from GPB data");
         testAppender.stop();
         rootLogger.addAppender(stdout);
-
-        context.assertEquals(Level.ERROR, logMessage.getLevel());
-        context.assertTrue(logMessage.getFormattedMessage().contains("Unable to create Liqui Group Margin Model from GPB data"));
     }
 
 }

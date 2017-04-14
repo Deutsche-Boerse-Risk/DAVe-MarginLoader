@@ -1,5 +1,8 @@
 package com.deutscheboerse.risk.dave;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import com.deutscheboerse.risk.dave.log.TestAppender;
 import com.deutscheboerse.risk.dave.persistence.CountdownPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.SuccessPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
@@ -20,11 +23,15 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 @RunWith(VertxUnitRunner.class)
 public class MainVerticleIT {
+    private static final TestAppender testAppender = TestAppender.getAppender(MainVerticle.class);
+    private static final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+
     private Vertx vertx;
     private static PersistenceService countdownService;
     private static int ACCOUNT_MARGIN_COUNT = DataHelper.getJsonObjectCount("accountMargin", 1);
@@ -37,6 +44,7 @@ public class MainVerticleIT {
     @Before
     public void setUp() {
         this.vertx = Vertx.vertx();
+        rootLogger.addAppender(testAppender);
     }
 
     private DeploymentOptions createDeploymentOptions(Class<? extends AbstractModule> binder) {
@@ -65,6 +73,25 @@ public class MainVerticleIT {
     }
 
     @Test
+    public void testImplicitTypeConversion(TestContext context) throws InterruptedException {
+        DeploymentOptions options = createDeploymentOptions(SuccessBinder.class);
+
+        options.getConfig()
+                .getJsonObject("storeManager", new JsonObject())
+                .put("port", String.valueOf(TestConfig.STORE_MANAGER_PORT))
+                .put("verifyHost", "false");
+
+        Level rootLevel = rootLogger.getLevel();
+        rootLogger.setLevel(Level.DEBUG);
+        testAppender.start();
+        vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertSuccess());
+        testAppender.waitForMessageContains(Level.DEBUG, "\"port\" : " + String.valueOf(TestConfig.STORE_MANAGER_PORT));
+        testAppender.waitForMessageContains(Level.DEBUG, "\"verifyHost\" : false");
+        testAppender.stop();
+        rootLogger.setLevel(rootLevel);
+    }
+
+    @Test
     public void testFailedDeploymentWrongConfig(TestContext context) {
         Async mainVerticleAsync = context.async();
         DeploymentOptions options = createDeploymentOptions(SuccessBinder.class);
@@ -88,6 +115,7 @@ public class MainVerticleIT {
 
     @After
     public void cleanup(TestContext context) {
+        rootLogger.detachAppender(testAppender);
         vertx.close(context.asyncAssertSuccess());
     }
 

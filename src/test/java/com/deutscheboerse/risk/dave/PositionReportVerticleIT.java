@@ -85,12 +85,9 @@ public class PositionReportVerticleIT {
         vertx.deployVerticle(PositionReportVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         int msgCount = DataHelper.getJsonObjectCount("positionReport", 1);
         testAppender.waitForMessageCount(Level.ERROR, msgCount);
-        ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
+        testAppender.waitForMessageContains(Level.ERROR, "Unable to store message");
         testAppender.stop();
         rootLogger.addAppender(stdout);
-
-        context.assertEquals(Level.ERROR, logMessage.getLevel());
-        context.assertTrue(logMessage.getFormattedMessage().contains("Unable to store message"));
 
         ProxyHelper.unregisterService(serviceMessageConsumer);
     }
@@ -112,12 +109,9 @@ public class PositionReportVerticleIT {
         vertx.deployVerticle(PositionReportVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         int msgCount = DataHelper.getJsonObjectCount("riskLimitUtilization", 1);
         testAppender.waitForMessageCount(Level.ERROR, msgCount);
-        ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
+        testAppender.waitForMessageContains(Level.ERROR, "Unknown extension (should be position_report)");
         testAppender.stop();
         rootLogger.addAppender(stdout);
-
-        context.assertEquals(Level.ERROR, logMessage.getLevel());
-        context.assertEquals("Unknown extension (should be position_report)", logMessage.getFormattedMessage());
     }
 
     @Test
@@ -133,12 +127,9 @@ public class PositionReportVerticleIT {
         vertx.deployVerticle(PositionReportVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         int msgCount = DataHelper.getJsonObjectCount("positionReport", 1);
         testAppender.waitForMessageCount(Level.ERROR, msgCount);
-        ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
+        testAppender.waitForMessageContains(Level.ERROR, "Unable to create Position Report Model from GPB data");
         testAppender.stop();
         rootLogger.addAppender(stdout);
-
-        context.assertEquals(Level.ERROR, logMessage.getLevel());
-        context.assertTrue(logMessage.getFormattedMessage().contains("Unable to create Position Report Model from GPB data"));
     }
 
 }

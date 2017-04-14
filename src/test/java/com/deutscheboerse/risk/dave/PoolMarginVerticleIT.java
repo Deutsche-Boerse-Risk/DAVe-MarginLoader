@@ -85,12 +85,9 @@ public class PoolMarginVerticleIT {
         vertx.deployVerticle(PoolMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         int msgCount = DataHelper.getJsonObjectCount("poolMargin", 1);
         testAppender.waitForMessageCount(Level.ERROR, msgCount);
-        ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
+        testAppender.waitForMessageContains(Level.ERROR, "Unable to store message");
         testAppender.stop();
         rootLogger.addAppender(stdout);
-
-        context.assertEquals(Level.ERROR, logMessage.getLevel());
-        context.assertTrue(logMessage.getFormattedMessage().contains("Unable to store message"));
 
         ProxyHelper.unregisterService(serviceMessageConsumer);
     }
@@ -110,14 +107,11 @@ public class PoolMarginVerticleIT {
         rootLogger.detachAppender(stdout);
         testAppender.start();
         vertx.deployVerticle(PoolMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
+        testAppender.waitForMessageContains(Level.ERROR, "Unknown extension (should be pool_margin)");
         int msgCount = DataHelper.getJsonObjectCount("positionReport", 1);
         testAppender.waitForMessageCount(Level.ERROR, msgCount);
         testAppender.stop();
         rootLogger.addAppender(stdout);
-
-        context.assertEquals(Level.ERROR, logMessage.getLevel());
-        context.assertEquals("Unknown extension (should be pool_margin)", logMessage.getFormattedMessage());
     }
 
     @Test
@@ -133,12 +127,9 @@ public class PoolMarginVerticleIT {
         vertx.deployVerticle(PoolMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         int msgCount = DataHelper.getJsonObjectCount("poolMargin", 1);
         testAppender.waitForMessageCount(Level.ERROR, msgCount);
-        ILoggingEvent logMessage = testAppender.getLastMessage(Level.ERROR);
+        testAppender.waitForMessageContains(Level.ERROR, "Unable to create Pool Margin Model from GPB data");
         testAppender.stop();
         rootLogger.addAppender(stdout);
-
-        context.assertEquals(Level.ERROR, logMessage.getLevel());
-        context.assertTrue(logMessage.getFormattedMessage().contains("Unable to create Pool Margin Model from GPB data"));
     }
 
 }
