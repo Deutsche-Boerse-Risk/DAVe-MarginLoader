@@ -99,12 +99,12 @@ public class RestPersistenceService implements PersistenceService {
 
     @Override
     public void storePoolMargin(PoolMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModel(restApi.getString("positionReport", DEFAULT_POSITION_REPORT_URI), model, resultHandler);
+        this.postModel(restApi.getString("poolMargin", DEFAULT_POOL_MARGIN_URI), model, resultHandler);
     }
 
     @Override
     public void storePositionReport(PositionReportModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModel(restApi.getString("poolMargin", DEFAULT_POOL_MARGIN_URI), model, resultHandler);
+        this.postModel(restApi.getString("positionReport", DEFAULT_POSITION_REPORT_URI), model, resultHandler);
     }
 
     @Override
