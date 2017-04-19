@@ -1,11 +1,10 @@
 package com.deutscheboerse.risk.dave;
 
-import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.deutscheboerse.risk.dave.log.TestAppender;
 import com.deutscheboerse.risk.dave.persistence.CountdownPersistenceService;
-import com.deutscheboerse.risk.dave.persistence.SuccessPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import com.deutscheboerse.risk.dave.persistence.SuccessPersistenceService;
 import com.deutscheboerse.risk.dave.utils.BrokerFiller;
 import com.deutscheboerse.risk.dave.utils.BrokerFillerCorrectData;
 import com.deutscheboerse.risk.dave.utils.DataHelper;
@@ -69,26 +68,7 @@ public class MainVerticleIT {
         final BrokerFiller brokerFiller = new BrokerFillerCorrectData(this.vertx);
         brokerFiller.setUpAllQueues(context.asyncAssertSuccess());
 
-        totalMsgCountAsync.awaitSuccess(30000);
-    }
-
-    @Test
-    public void testImplicitTypeConversion(TestContext context) throws InterruptedException {
-        DeploymentOptions options = createDeploymentOptions(SuccessBinder.class);
-
-        options.getConfig()
-                .getJsonObject("storeManager", new JsonObject())
-                .put("port", String.valueOf(TestConfig.STORE_MANAGER_PORT))
-                .put("verifyHost", "false");
-
-        Level rootLevel = rootLogger.getLevel();
-        rootLogger.setLevel(Level.DEBUG);
-        testAppender.start();
-        vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertSuccess());
-        testAppender.waitForMessageContains(Level.DEBUG, "\"port\" : " + String.valueOf(TestConfig.STORE_MANAGER_PORT));
-        testAppender.waitForMessageContains(Level.DEBUG, "\"verifyHost\" : false");
-        testAppender.stop();
-        rootLogger.setLevel(rootLevel);
+        totalMsgCountAsync.awaitSuccess(5000);
     }
 
     @Test

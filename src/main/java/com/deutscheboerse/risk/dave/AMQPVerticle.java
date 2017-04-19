@@ -2,13 +2,14 @@ package com.deutscheboerse.risk.dave;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
+import com.deutscheboerse.risk.dave.config.AmqpConfig;
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.proton.ProtonClient;
@@ -20,13 +21,12 @@ import org.apache.qpid.proton.amqp.Binary;
 import org.apache.qpid.proton.amqp.messaging.Data;
 import org.apache.qpid.proton.amqp.messaging.Section;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 public abstract class AMQPVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(AMQPVerticle.class);
-    private static final String DEFAULT_BROKER_HOST = "localhost";
-    private static final int DEFAULT_BROKER_PORT = 5672;
-
-    private static final int DEFAULT_RECONNECT_ATTEMPTS = -1;
-    private static final int DEFAULT_RECONNECT_TIMEOUT = 60000;
 
     private final ExtensionRegistry registry = ExtensionRegistry.newInstance();
     private final String verticleName = this.getClass().getSimpleName();
@@ -35,15 +35,17 @@ public abstract class AMQPVerticle extends AbstractVerticle {
     private ProtonReceiver protonBrokerReceiver;
     protected PersistenceService persistenceService;
     protected HealthCheck healthCheck;
+    private AmqpConfig config;
 
     @Override
-    public void start(Future<Void> fut) {
+    public void start(Future<Void> fut) throws IOException {
         LOG.info("Starting {} with configuration: {}", verticleName, config().encodePrettily());
         this.registerExtensions();
 
         this.persistenceService = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
         this.healthCheck = new HealthCheck(this.vertx);
         this.protonClient = ProtonClient.create(vertx);
+        this.config = (new ObjectMapper()).readValue(config().toString(), AmqpConfig.class);
 
         // This is asynchronous call, verticle will try to connect to the broker on background.
         connect();
@@ -56,9 +58,14 @@ public abstract class AMQPVerticle extends AbstractVerticle {
         return "dave/marginloader-" + verticleName;
     }
     private String getAmqpQueueName() {
-        String listenerKey = verticleName.substring(0, 1).toLowerCase() + verticleName.substring(1)
-                .replace("Verticle", "");
-        return config().getJsonObject("listeners", new JsonObject()).getString(listenerKey);
+        try {
+            AmqpConfig.ListenersConfig listenersConfig = this.config.getListeners();
+            String methodName = "get" + this.verticleName.replace("Verticle", "");
+            Method method = AmqpConfig.ListenersConfig.class.getMethod(methodName);
+            return (String)method.invoke(listenersConfig);
+        } catch (NoSuchMethodException|IllegalAccessException|InvocationTargetException e) {
+            throw new AssertionError(e);
+        }
     }
     protected abstract void onConnect();
     protected abstract void onDisconnect();
@@ -85,20 +92,19 @@ public abstract class AMQPVerticle extends AbstractVerticle {
 
     private ProtonClientOptions getClientOptions() {
         return new ProtonClientOptions()
-                .setReconnectAttempts(config().getInteger("reconnectAttempts", DEFAULT_RECONNECT_ATTEMPTS))
-                .setReconnectInterval(config().getInteger("reconnectTimeout", DEFAULT_RECONNECT_TIMEOUT));
+                .setReconnectAttempts(this.config.getReconnectAttempts())
+                .setReconnectInterval(this.config.getReconnectTimeout());
     }
 
     private Future<Void> createBrokerConnection() {
         Future<Void> createBrokerConnectionFuture = Future.future();
 
-        JsonObject amqpConfig = config();
         Future<ProtonConnection> connectFuture = Future.future();
         protonClient.connect(getClientOptions(),
-                amqpConfig.getString("hostname", AMQPVerticle.DEFAULT_BROKER_HOST),
-                amqpConfig.getInteger("port", AMQPVerticle.DEFAULT_BROKER_PORT),
-                amqpConfig.getString("username"),
-                amqpConfig.getString("password"),
+                this.config.getHostname(),
+                this.config.getPort(),
+                this.config.getUsername(),
+                this.config.getPassword(),
                 connectFuture);
 
         connectFuture.compose(connectResult -> {
@@ -124,7 +130,7 @@ public abstract class AMQPVerticle extends AbstractVerticle {
             // Notify subclasses that we were disconnected
             onDisconnect();
             // Try to reconnect in a few seconds
-            int timeout = config().getInteger("reconnectTimeout", DEFAULT_RECONNECT_ATTEMPTS);
+            int timeout = this.config.getReconnectTimeout();
             vertx.setTimer(timeout, id -> connect());
         });
         return Future.succeededFuture();
