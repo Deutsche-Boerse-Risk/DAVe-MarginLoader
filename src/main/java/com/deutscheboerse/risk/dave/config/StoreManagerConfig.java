@@ -1,13 +1,13 @@
 package com.deutscheboerse.risk.dave.config;
 
 public class StoreManagerConfig {
-   private String hostname = "localhost";
-   private int port = 8443;
-   private boolean verifyHost = true;
-   private String sslKey = null;
-   private String sslCert = null;
-   private String[] sslTrustCerts = new String[] {};
-   private RestApiConfig restApi = new RestApiConfig();
+    private String hostname = "localhost";
+    private int port = 8443;
+    private boolean verifyHost = true;
+    private String sslKey = null;
+    private String sslCert = null;
+    private String[] sslTrustCerts = new String[]{};
+    private RestApiConfig restApi = new RestApiConfig();
     private String guice_binder = null;
 
     public String getHostname() {
@@ -43,12 +43,12 @@ public class StoreManagerConfig {
     }
 
     public static class RestApiConfig {
-       private String accountMargin = "/api/v1.0/store/am";
-       private String liquiGroupMargin = "/api/v1.0/store/lgm";
-       private String liquiGroupSplitMargin = "/api/v1.0/store/lgsm";
-       private String poolMargin = "/api/v1.0/store/pm";
-       private String positionReport = "/api/v1.0/store/pr";
-       private String riskLimitUtilization = "/api/v1.0/store/rlu";
+        private String accountMargin = "/api/v1.0/store/am";
+        private String liquiGroupMargin = "/api/v1.0/store/lgm";
+        private String liquiGroupSplitMargin = "/api/v1.0/store/lgsm";
+        private String poolMargin = "/api/v1.0/store/pm";
+        private String positionReport = "/api/v1.0/store/pr";
+        private String riskLimitUtilization = "/api/v1.0/store/rlu";
 
         public String getAccountMargin() {
             return accountMargin;
