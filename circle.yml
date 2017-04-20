@@ -18,8 +18,4 @@ deployment:
     branch: master
     commands:
       - ./docker/create_docker.sh
-  demo:
-    branch: demo
-    commands:
-      - ./docker/create_docker.sh
 
