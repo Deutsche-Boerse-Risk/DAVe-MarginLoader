@@ -6,12 +6,11 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import com.deutscheboerse.risk.dave.log.TestAppender;
 import com.deutscheboerse.risk.dave.model.*;
-import com.deutscheboerse.risk.dave.persistence.CircuitBreakerPersistenceService;
-import com.deutscheboerse.risk.dave.persistence.CountdownPersistenceService;
-import com.deutscheboerse.risk.dave.persistence.ErrorPersistenceService;
-import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import com.deutscheboerse.risk.dave.persistence.*;
 import com.deutscheboerse.risk.dave.utils.*;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
@@ -24,6 +23,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
+
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 @RunWith(VertxUnitRunner.class)
 public class AMQPVerticleIT {
@@ -93,6 +95,7 @@ public class AMQPVerticleIT {
         testAppender.start();
         vertx.deployVerticle(AccountMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         testAppender.waitForMessageContains(Level.ERROR, "Message header is missing for message - ignoring it");
+        testAppender.waitForMessageContains(Level.INFO, "Message settled");
         testAppender.stop();
         rootLogger.addAppender(stdout);
     }
@@ -109,6 +112,7 @@ public class AMQPVerticleIT {
         testAppender.start();
         vertx.deployVerticle(AccountMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         testAppender.waitForMessageContains(Level.ERROR, "Incoming message's body is not a 'data' type, skipping ... ");
+        testAppender.waitForMessageContains(Level.INFO, "Message settled");
         testAppender.stop();
         rootLogger.addAppender(stdout);
     }
@@ -125,6 +129,7 @@ public class AMQPVerticleIT {
         testAppender.start();
         vertx.deployVerticle(AccountMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
         testAppender.waitForMessageContains(Level.ERROR, "Unable to decode GPB message");
+        testAppender.waitForMessageContains(Level.INFO, "Message settled");
         testAppender.stop();
         rootLogger.addAppender(stdout);
     }
@@ -137,6 +142,9 @@ public class AMQPVerticleIT {
         config.getJsonObject("listeners").put("accountMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupMargin");
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(config);
 
+        PersistenceService persistenceService = new SuccessPersistenceService(this.vertx);
+        MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
+
         // Fill in the incorrect queue PRISMA_TTSAVELiquiGroupMargin
         BrokerFiller brokerFiller = new BrokerFillerCorrectData(this.vertx);
         brokerFiller.setUpLiquiGroupMarginQueue(context.asyncAssertSuccess());
@@ -148,13 +156,19 @@ public class AMQPVerticleIT {
         int msgCount = DataHelper.getJsonObjectCount("liquiGroupMargin", 1);
         testAppender.waitForMessageCount(Level.ERROR, msgCount);
         testAppender.waitForMessageContains(Level.ERROR, "Unknown extension (should be account_margin)");
+        testAppender.waitForMessageContains(Level.INFO, "Message settled");
         testAppender.stop();
         rootLogger.addAppender(stdout);
+
+        ProxyHelper.unregisterService(serviceMessageConsumer);
     }
 
     @Test
     public void testUnableCreateDataModelError(TestContext context) throws InterruptedException {
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getAmqpConfig());
+
+        PersistenceService persistenceService = new SuccessPersistenceService(this.vertx);
+        MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
 
         BrokerFiller brokerFiller = new BrokerFillerMissingField(this.vertx);
         brokerFiller.setUpAccountMarginQueue(context.asyncAssertSuccess());
@@ -166,8 +180,11 @@ public class AMQPVerticleIT {
         int msgCount = DataHelper.getJsonObjectCount("accountMargin", 1);
         testAppender.waitForMessageCount(Level.ERROR, msgCount);
         testAppender.waitForMessageContains(Level.ERROR, "Unable to create Data Model from GPB data");
+        testAppender.waitForMessageContains(Level.INFO, "Message settled");
         testAppender.stop();
         rootLogger.addAppender(stdout);
+
+        ProxyHelper.unregisterService(serviceMessageConsumer);
     }
 
 
@@ -187,8 +204,7 @@ public class AMQPVerticleIT {
         rootLogger.detachAppender(stdout);
         testAppender.start();
         vertx.deployVerticle(AccountMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        int msgCount = DataHelper.getJsonObjectCount("accountMargin", 1);
-        testAppender.waitForMessageContains(Level.ERROR, "Unable to store message", msgCount);
+        testAppender.waitForMessageContains(Level.ERROR, "Unable to store message");
         testAppender.waitForMessageContains(Level.WARN, "Message released");
         testAppender.stop();
         rootLogger.addAppender(stdout);
@@ -202,10 +218,9 @@ public class AMQPVerticleIT {
     public void testCircuitBreaker(TestContext context) throws InterruptedException {
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getAmqpConfig());
 
-        final int msgCount = DataHelper.getJsonObjectCount("accountMargin", 1);
-        Async async = context.async(msgCount);
+        Async async = context.async(1);
 
-        PersistenceService persistenceService = new CircuitBreakerPersistenceService(async, msgCount);
+        PersistenceService persistenceService = new CircuitBreakerPersistenceService(async, 1);
         MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
 
         BrokerFiller brokerFiller = new BrokerFillerCorrectData(vertx);
@@ -230,38 +245,45 @@ public class AMQPVerticleIT {
 
     @Test
     public void testAccountMarginVerticle(TestContext context) throws InterruptedException {
-        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getAmqpConfig());
-        // we expect 1704 messages to be received
-        int msgCount = DataHelper.getJsonObjectCount("accountMargin", 1);
-        Async async = context.async(msgCount);
-
-        // Setup persistence persistence
-        CountdownPersistenceService persistenceService = new CountdownPersistenceService(async);
-        MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
-
-        // Fill in the broker
-        BrokerFiller brokerFiller = new BrokerFillerCorrectData(vertx);
-        brokerFiller.setUpAccountMarginQueue(context.asyncAssertSuccess());
-
-        testAppender.start();
-        vertx.deployVerticle(AccountMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageContains(Level.INFO, "Message settled");
-        testAppender.stop();
-        async.awaitSuccess(30000);
-
-        // verify the content of the last message
-        JsonObject jsonData = DataHelper.getLastJsonFromFile("accountMargin", 1).orElse(new JsonObject());
-        AccountMarginModel expected = new AccountMarginModel(jsonData);
-        context.assertEquals(expected, persistenceService.getLastMessage());
-
-        ProxyHelper.unregisterService(serviceMessageConsumer);
+        testVerticle(context, AccountMarginVerticle.class.getName(), DataHelper.ACCOUNT_MARGIN_FOLDER,
+                new BrokerFillerCorrectData(vertx)::setUpAccountMarginQueue, AccountMarginModel::new);
     }
 
     @Test
     public void testLiquiGroupMarginVerticle(TestContext context) throws InterruptedException {
+        testVerticle(context, LiquiGroupMarginVerticle.class.getName(), DataHelper.LIQUI_GROUP_MARGIN_FOLDER,
+                new BrokerFillerCorrectData(vertx)::setUpLiquiGroupMarginQueue, LiquiGroupMarginModel::new);
+    }
+
+    @Test
+    public void testLiquiGroupSplitMarginVerticle(TestContext context) throws InterruptedException {
+        testVerticle(context, LiquiGroupSplitMarginVerticle.class.getName(), DataHelper.LIQUI_GROUP_SPLIT_MARGIN_FOLDER,
+                new BrokerFillerCorrectData(vertx)::setUpLiquiGroupSplitMarginQueue, LiquiGroupSplitMarginModel::new);
+    }
+
+    @Test
+    public void testPoolMarginVerticle(TestContext context) throws InterruptedException {
+        testVerticle(context, PoolMarginVerticle.class.getName(), DataHelper.POOL_MARGIN_FOLDER,
+                new BrokerFillerCorrectData(vertx)::setUpPoolMarginQueue, PoolMarginModel::new);
+    }
+
+    @Test
+    public void testPositionReportVerticle(TestContext context) throws InterruptedException {
+        testVerticle(context, PositionReportVerticle.class.getName(), DataHelper.POSITION_REPORT_FOLDER,
+                new BrokerFillerCorrectData(vertx)::setUpPositionReportQueue, PositionReportModel::new);
+    }
+
+    @Test
+    public void testRiskLimitUtilizationVerticle(TestContext context) throws InterruptedException {
+        testVerticle(context, RiskLimitUtilizationVerticle.class.getName(), DataHelper.RISK_LIMIT_UTILIZATION_FOLDER,
+                new BrokerFillerCorrectData(vertx)::setUpRiskLimitUtilizationQueue, RiskLimitUtilizationModel::new);
+    }
+
+    private <T extends AbstractModel> void testVerticle(TestContext context, String verticleName, String dataFolder,
+            Consumer<Handler<AsyncResult<String>>> filler, Function<JsonObject, T> modelFactory) throws InterruptedException {
+
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getAmqpConfig());
-        // we expect 2171 messages to be received
-        int msgCount = DataHelper.getJsonObjectCount("liquiGroupMargin", 1);
+        int msgCount = DataHelper.getJsonObjectCount(dataFolder, 1);
         Async async = context.async(msgCount);
 
         // Setup persistence persistence
@@ -269,131 +291,18 @@ public class AMQPVerticleIT {
         MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
 
         // Fill in the broker
-        final BrokerFiller brokerFiller = new BrokerFillerCorrectData(this.vertx);
-        brokerFiller.setUpLiquiGroupMarginQueue(context.asyncAssertSuccess());
+        filler.accept(context.asyncAssertSuccess());
 
         testAppender.start();
-        vertx.deployVerticle(LiquiGroupMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
+        vertx.deployVerticle(verticleName, deploymentOptions, context.asyncAssertSuccess());
         testAppender.waitForMessageContains(Level.INFO, "Message settled");
         testAppender.stop();
         async.awaitSuccess(30000);
 
         // verify the content of the last message
-        JsonObject jsonData = DataHelper.getLastJsonFromFile("liquiGroupMargin", 1).orElse(new JsonObject());
-        LiquiGroupMarginModel expected = new LiquiGroupMarginModel(jsonData);
-        context.assertEquals(expected, persistenceService.getLastMessage());
-
-        ProxyHelper.unregisterService(serviceMessageConsumer);
-    }
-
-    @Test
-    public void testLiquiGroupSplitMarginVerticle(TestContext context) throws InterruptedException {
-        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getAmqpConfig());
-        // we expect 2472 messages to be received
-        int msgCount = DataHelper.getJsonObjectCount("liquiGroupSplitMargin", 1);
-        Async async = context.async(msgCount);
-
-        // Setup persistence persistence
-        CountdownPersistenceService persistenceService = new CountdownPersistenceService(async);
-        MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
-
-        // Fill in the broker
-        final BrokerFiller brokerFiller = new BrokerFillerCorrectData(this.vertx);
-        brokerFiller.setUpLiquiGroupSplitMarginQueue(context.asyncAssertSuccess());
-
-        testAppender.start();
-        vertx.deployVerticle(LiquiGroupSplitMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageContains(Level.INFO, "Message settled");
-        testAppender.stop();
-        async.awaitSuccess(30000);
-
-        JsonObject jsonData = DataHelper.getLastJsonFromFile("liquiGroupSplitMargin", 1).orElse(new JsonObject());
-        LiquiGroupSplitMarginModel expected = new LiquiGroupSplitMarginModel(jsonData);
-        context.assertEquals(expected, persistenceService.getLastMessage());
-
-        ProxyHelper.unregisterService(serviceMessageConsumer);
-    }
-
-    @Test
-    public void testPoolMarginVerticle(TestContext context) throws InterruptedException {
-        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getAmqpConfig());
-        // we expect 270 messages to be received
-        int msgCount = DataHelper.getJsonObjectCount("poolMargin", 1);
-        Async async = context.async(msgCount);
-
-        // Setup persistence persistence
-        CountdownPersistenceService persistenceService = new CountdownPersistenceService(async);
-        MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
-
-        // Fill in the broker
-        final BrokerFiller brokerFiller = new BrokerFillerCorrectData(this.vertx);
-        brokerFiller.setUpPoolMarginQueue(context.asyncAssertSuccess());
-
-        testAppender.start();
-        vertx.deployVerticle(PoolMarginVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageContains(Level.INFO, "Message settled");
-        testAppender.stop();
-        async.awaitSuccess(30000);
-
-        JsonObject jsonData = DataHelper.getLastJsonFromFile("poolMargin", 1).orElse(new JsonObject());
-        PoolMarginModel expected = new PoolMarginModel(jsonData);
-        context.assertEquals(expected, persistenceService.getLastMessage());
-
-        ProxyHelper.unregisterService(serviceMessageConsumer);
-    }
-
-    @Test
-    public void testPositionReportVerticle(TestContext context) throws InterruptedException {
-        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getAmqpConfig());
-        // we expect 3596 messages to be received
-        int msgCount = DataHelper.getJsonObjectCount("positionReport", 1);
-        Async async = context.async(msgCount);
-
-        // Setup persistence persistence
-        CountdownPersistenceService persistenceService = new CountdownPersistenceService(async);
-        MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
-
-        // Fill in the broker
-        final BrokerFiller brokerFiller = new BrokerFillerCorrectData(this.vertx);
-        brokerFiller.setUpPositionReportQueue(context.asyncAssertSuccess());
-
-        testAppender.start();
-        vertx.deployVerticle(PositionReportVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageContains(Level.INFO, "Message settled");
-        testAppender.stop();
-        async.awaitSuccess(30000);
-
-        JsonObject jsonData = DataHelper.getLastJsonFromFile("positionReport", 1).orElse(new JsonObject());
-        PositionReportModel expected = new PositionReportModel(jsonData);
-        context.assertEquals(expected, persistenceService.getLastMessage());
-
-        ProxyHelper.unregisterService(serviceMessageConsumer);
-    }
-
-    @Test
-    public void testRiskLimitUtilizationVerticle(TestContext context) throws InterruptedException {
-        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getAmqpConfig());
-        // we expect 2 messages to be received
-        int msgCount = DataHelper.getJsonObjectCount("riskLimitUtilization", 1);
-        Async async = context.async(msgCount);
-
-        // Setup persistence persistence
-        CountdownPersistenceService persistenceService = new CountdownPersistenceService(async);
-        MessageConsumer<JsonObject> serviceMessageConsumer = ProxyHelper.registerService(PersistenceService.class, vertx, persistenceService, PersistenceService.SERVICE_ADDRESS);
-
-        // Fill in the broker
-        final BrokerFiller brokerFiller = new BrokerFillerCorrectData(this.vertx);
-        brokerFiller.setUpRiskLimitUtilizationQueue(context.asyncAssertSuccess());
-
-        testAppender.start();
-        vertx.deployVerticle(RiskLimitUtilizationVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
-        testAppender.waitForMessageContains(Level.INFO, "Message settled");
-        testAppender.stop();
-        async.awaitSuccess(30000);
-
-        JsonObject jsonData = DataHelper.getLastJsonFromFile("riskLimitUtilization", 1).orElse(new JsonObject());
-        RiskLimitUtilizationModel expected = new RiskLimitUtilizationModel(jsonData);
-        context.assertEquals(expected, persistenceService.getLastMessage());
+        JsonObject jsonData = DataHelper.getLastJsonFromFile(dataFolder, 1).orElse(new JsonObject());
+        T expected = modelFactory.apply(jsonData);
+        context.assertEquals(expected, persistenceService.getLastModel());
 
         ProxyHelper.unregisterService(serviceMessageConsumer);
     }

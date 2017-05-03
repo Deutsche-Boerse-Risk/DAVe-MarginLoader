@@ -8,6 +8,7 @@ import com.google.protobuf.Extension;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 
+import java.util.List;
 import java.util.function.BiFunction;
 
 public class RiskLimitUtilizationVerticle extends AMQPVerticle<PrismaReports.RiskLimitUtilization, RiskLimitUtilizationModel> {
@@ -32,7 +33,7 @@ public class RiskLimitUtilizationVerticle extends AMQPVerticle<PrismaReports.Ris
     }
 
     @Override
-    protected void store(RiskLimitUtilizationModel model, Handler<AsyncResult<Void>> handler) {
-        this.getPersistenceService().storeRiskLimitUtilization(model, handler);
+    protected void store(List<RiskLimitUtilizationModel> models, Handler<AsyncResult<Void>> handler) {
+        this.getPersistenceService().storeRiskLimitUtilization(models, handler);
     }
 }

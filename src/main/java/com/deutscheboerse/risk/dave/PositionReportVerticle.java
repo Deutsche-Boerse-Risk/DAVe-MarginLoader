@@ -8,6 +8,7 @@ import com.google.protobuf.Extension;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 
+import java.util.List;
 import java.util.function.BiFunction;
 
 public class PositionReportVerticle extends AMQPVerticle<PrismaReports.PositionReport, PositionReportModel> {
@@ -32,7 +33,7 @@ public class PositionReportVerticle extends AMQPVerticle<PrismaReports.PositionR
     }
 
     @Override
-    protected void store(PositionReportModel model, Handler<AsyncResult<Void>> handler) {
-        this.getPersistenceService().storePositionReport(model, handler);
+    protected void store(List<PositionReportModel> models, Handler<AsyncResult<Void>> handler) {
+        this.getPersistenceService().storePositionReport(models, handler);
     }
 }

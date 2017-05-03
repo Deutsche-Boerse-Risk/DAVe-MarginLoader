@@ -13,6 +13,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -22,6 +23,7 @@ import io.vertx.core.net.PemTrustOptions;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.IOException;
+import java.util.List;
 
 public class RestPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(RestPersistenceService.class);
@@ -77,33 +79,33 @@ public class RestPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void storeAccountMargin(AccountMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModel(ACCOUNT_MARGIN_URI, model, resultHandler);
+    public void storeAccountMargin(List<AccountMarginModel> models, Handler<AsyncResult<Void>> resultHandler) {
+        this.postModels(ACCOUNT_MARGIN_URI, models, resultHandler);
     }
 
     @Override
-    public void storeLiquiGroupMargin(LiquiGroupMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModel(LIQUI_GROUP_MARGIN_URI, model, resultHandler);
+    public void storeLiquiGroupMargin(List<LiquiGroupMarginModel> models, Handler<AsyncResult<Void>> resultHandler) {
+        this.postModels(LIQUI_GROUP_MARGIN_URI, models, resultHandler);
     }
 
     @Override
-    public void storeLiquiGroupSplitMargin(LiquiGroupSplitMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModel(LIQUI_GROUP_SPLIT_MARGIN_URI, model, resultHandler);
+    public void storeLiquiGroupSplitMargin(List<LiquiGroupSplitMarginModel> models, Handler<AsyncResult<Void>> resultHandler) {
+        this.postModels(LIQUI_GROUP_SPLIT_MARGIN_URI, models, resultHandler);
     }
 
     @Override
-    public void storePoolMargin(PoolMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModel(POOL_MARGIN_URI, model, resultHandler);
+    public void storePoolMargin(List<PoolMarginModel> models, Handler<AsyncResult<Void>> resultHandler) {
+        this.postModels(POOL_MARGIN_URI, models, resultHandler);
     }
 
     @Override
-    public void storePositionReport(PositionReportModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModel(POSITION_REPORT_URI, model, resultHandler);
+    public void storePositionReport(List<PositionReportModel> models, Handler<AsyncResult<Void>> resultHandler) {
+        this.postModels(POSITION_REPORT_URI, models, resultHandler);
     }
 
     @Override
-    public void storeRiskLimitUtilization(RiskLimitUtilizationModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModel(RISK_LIMIT_UTILIZATION_URI, model, resultHandler);
+    public void storeRiskLimitUtilization(List<RiskLimitUtilizationModel> models, Handler<AsyncResult<Void>> resultHandler) {
+        this.postModels(RISK_LIMIT_UTILIZATION_URI, models, resultHandler);
     }
 
     @Override
@@ -111,7 +113,7 @@ public class RestPersistenceService implements PersistenceService {
         this.httpClient.close();
     }
 
-    private void postModel(String requestURI, AbstractModel model, Handler<AsyncResult<Void>> resultHandler) {
+    private void postModels(String requestURI, List<? extends AbstractModel> models, Handler<AsyncResult<Void>> resultHandler) {
         this.httpClient.request(HttpMethod.POST,
                 config.getPort(),
                 config.getHostname(),
@@ -126,6 +128,6 @@ public class RestPersistenceService implements PersistenceService {
                 }).exceptionHandler(e -> {
                     LOG.error("{} failed: {}", requestURI, e.getMessage());
                     resultHandler.handle(Future.failedFuture(e.getMessage()));
-                }).putHeader("content-type", "application/json").end(model.toString());
+                }).putHeader("content-type", "application/json").end(new JsonArray(models).toString());
     }
 }

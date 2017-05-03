@@ -2,6 +2,7 @@ package com.deutscheboerse.risk.dave.utils;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import com.deutscheboerse.risk.dave.MainVerticleIT;
+import com.deutscheboerse.risk.dave.model.AbstractModel;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -12,12 +13,21 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class DataHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DataHelper.class);
+
+    public static final String ACCOUNT_MARGIN_FOLDER = "accountMargin";
+    public static final String LIQUI_GROUP_MARGIN_FOLDER = "liquiGroupMargin";
+    public static final String LIQUI_GROUP_SPLIT_MARGIN_FOLDER = "liquiGroupSplitMargin";
+    public static final String POOL_MARGIN_FOLDER = "poolMargin";
+    public static final String POSITION_REPORT_FOLDER = "positionReport";
+    public static final String RISK_LIMIT_UTILIZATION_FOLDER = "riskLimitUtilization";
 
     private static Optional<JsonArray> getJsonArrayFromTTSaveFile(String folderName, int ttsaveNo) {
         String jsonPath = String.format("%s/snapshot-%03d.json", MainVerticleIT.class.getResource(folderName).getPath(), ttsaveNo);
@@ -43,6 +53,15 @@ public class DataHelper {
                 .orElse(new JsonArray())
                 .stream()
                 .map(json -> (JsonObject) json)
+                .collect(Collectors.toList());
+    }
+
+    public static <T extends AbstractModel> List<T> readTTSaveFile(
+            String folderName, int ttsaveNo, Function<JsonObject, T> modelFactory) {
+        return getJsonArrayFromTTSaveFile(folderName, ttsaveNo)
+                .orElse(new JsonArray())
+                .stream()
+                .map(json -> modelFactory.apply((JsonObject) json))
                 .collect(Collectors.toList());
     }
 

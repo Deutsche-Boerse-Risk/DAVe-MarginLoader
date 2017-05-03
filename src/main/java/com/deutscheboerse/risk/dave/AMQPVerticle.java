@@ -72,7 +72,7 @@ public abstract class AMQPVerticle<GPBType extends Message, ModelType extends Ab
     protected abstract BiFunction<PrismaReports.PrismaHeader, GPBType, ModelType> getModelFactory();
     protected abstract String getAmqpQueueName();
 
-    protected abstract void store(ModelType model, Handler<AsyncResult<Void>> handler);
+    protected abstract void store(List<ModelType> models, Handler<AsyncResult<Void>> handler);
 
     private void connect() {
         this.amqpClient
@@ -121,7 +121,7 @@ public abstract class AMQPVerticle<GPBType extends Message, ModelType extends Ab
                 }
             });
         } else {
-            // Skip invalid message
+            LOG.info("Message settled: skipping invalid message");
             delivery.settle();
         }
     }
@@ -148,13 +148,12 @@ public abstract class AMQPVerticle<GPBType extends Message, ModelType extends Ab
 
     private void processObjectList(ObjectList.GPBObjectList gpbObjectList, Handler<AsyncResult<Void>> handler) {
         PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
-        List<Future> futureList = new ArrayList<>();
+        List<ModelType> dataModels = new ArrayList<>();
         gpbObjectList.getItemList().forEach(gpbObject -> {
             if (gpbObject.hasExtension(gpbExtension)) {
                 GPBType gpbData = gpbObject.getExtension(gpbExtension);
                 try {
-                    ModelType dataModel = this.modelFactory.apply(header, gpbData);
-                    futureList.add(this.storeDataModel(dataModel));
+                    dataModels.add(this.modelFactory.apply(header, gpbData));
                 } catch (IllegalArgumentException ex) {
                     LOG.error("Unable to create Data Model from GPB data", ex);
                 }
@@ -162,21 +161,21 @@ public abstract class AMQPVerticle<GPBType extends Message, ModelType extends Ab
                 LOG.error("Unknown extension (should be {})", gpbExtension.getDescriptor().getName());
             }
         });
-        CompositeFuture.all(futureList).map((Void)null).setHandler(handler);
+        storeDataModel(dataModels, handler);
     }
 
-    private Future<Void> storeDataModel(ModelType dataModel) {
-        return circuitBreaker.execute(future ->
-                this.store(dataModel, ar -> {
-                    if (ar.succeeded()) {
-                        LOG.debug("Message processed");
-                        future.complete();
-                    } else {
-                        LOG.error("Unable to store message", ar.cause());
-                        future.fail(ar.cause());
-                    }
-                })
-        );
+    private void storeDataModel(List<ModelType> dataModels, Handler<AsyncResult<Void>> handler) {
+        circuitBreaker.execute(future ->
+            this.store(dataModels, ar -> {
+                if (ar.succeeded()) {
+                    LOG.debug("Message processed");
+                    future.complete();
+                } else {
+                    LOG.error("Unable to store message", ar.cause());
+                    future.fail(ar.cause());
+                }
+            })
+        ).map((Void)null).setHandler(handler);
     }
 
     protected PersistenceService getPersistenceService() {
