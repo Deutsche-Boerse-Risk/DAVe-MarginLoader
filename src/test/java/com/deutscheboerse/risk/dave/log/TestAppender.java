@@ -6,28 +6,31 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class TestAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
-    private final String className;
+    private final List<String> classNames = new ArrayList<>();
     private final Map<Level, List<ILoggingEvent>> levelListMap = new ConcurrentHashMap<>();
 
-    private TestAppender(String className) {
-        this.className = className;
+    private TestAppender(String className, String... remainingNames) {
+        this.classNames.add(className);
+        this.classNames.addAll(Arrays.asList(remainingNames));
         this.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
     }
 
-    public static TestAppender getAppender(final Class<?> clazz) {
+    public static TestAppender getAppender(Class<?> clazz) {
         return new TestAppender(clazz.getName());
+    }
+
+    public static TestAppender getAppender(Class<?> clazz1, Class<?> clazz2) {
+        return new TestAppender(clazz1.getName(), clazz2.getName());
     }
 
     @Override
     protected void append(ILoggingEvent event) {
-        if (event.getLoggerName().equals(this.className)) {
+        if (this.classNames.contains(event.getLoggerName())) {
             synchronized(this) {
                 this.getList(event.getLevel()).add(event);
                 this.notifyAll();
@@ -36,7 +39,13 @@ public class TestAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
     }
 
     public synchronized void waitForMessageContains(Level level, String message) throws InterruptedException {
-        while (!findHelper(level, message).isPresent()) {
+        while (!findFirst(level, message).isPresent()) {
+            this.wait(5000);
+        }
+    }
+
+    public synchronized void waitForMessageContains(Level level, String message, int count) throws InterruptedException {
+        while (getList(level).size() < count || findAll(level, message).size() < count) {
             this.wait(5000);
         }
     }
@@ -47,14 +56,16 @@ public class TestAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
         }
     }
 
-    public synchronized Optional<ILoggingEvent> findMessage(Level level, String message) {
-        return findHelper(level, message);
-    }
-
-    private Optional<ILoggingEvent> findHelper(Level level, String message) {
+    private Optional<ILoggingEvent> findFirst(Level level, String message) {
         return this.getList(level).stream()
                 .filter(event -> event.getFormattedMessage().replace("\n", "").contains(message))
                 .findFirst();
+    }
+
+    private List<ILoggingEvent> findAll(Level level, String message) {
+        return this.getList(level).stream()
+                .filter(event -> event.getFormattedMessage().replace("\n", "").contains(message))
+                .collect(Collectors.toList());
     }
 
     private List<ILoggingEvent> getList(Level level) {

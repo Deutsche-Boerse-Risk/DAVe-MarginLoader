@@ -1,5 +1,6 @@
 package com.deutscheboerse.risk.dave;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.deutscheboerse.risk.dave.log.TestAppender;
 import com.deutscheboerse.risk.dave.persistence.CountdownPersistenceService;
@@ -24,11 +25,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-
 @RunWith(VertxUnitRunner.class)
 public class MainVerticleIT {
-    private static final TestAppender testAppender = TestAppender.getAppender(MainVerticle.class);
+    private static final TestAppender testAppender = TestAppender.getAppender(MainVerticle.class, AMQPVerticle.class);
     private static final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
     private Vertx vertx;
@@ -53,7 +52,7 @@ public class MainVerticleIT {
     }
 
     @Test
-    public void testFullChain(TestContext context) throws IOException, InterruptedException {
+    public void testFullChain(TestContext context) throws InterruptedException {
         Async totalMsgCountAsync = context.async(
                 ACCOUNT_MARGIN_COUNT
                    + LIQUI_GROUP_MARGIN_COUNT
@@ -64,11 +63,14 @@ public class MainVerticleIT {
 
         countdownService = new CountdownPersistenceService(totalMsgCountAsync);
         DeploymentOptions options = createDeploymentOptions(CountdownBinder.class);
-        this.vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertSuccess());
         final BrokerFiller brokerFiller = new BrokerFillerCorrectData(this.vertx);
         brokerFiller.setUpAllQueues(context.asyncAssertSuccess());
+        testAppender.start();
+        this.vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertSuccess());
+        testAppender.waitForMessageContains(Level.INFO, "Message settled", 6);
+        testAppender.stop();
 
-        totalMsgCountAsync.awaitSuccess(5000);
+        totalMsgCountAsync.awaitSuccess(30000);
     }
 
     @Test

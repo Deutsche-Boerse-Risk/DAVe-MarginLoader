@@ -2,46 +2,37 @@ package com.deutscheboerse.risk.dave;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
-import com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component;
+import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import com.deutscheboerse.risk.dave.model.RiskLimitUtilizationModel;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import com.google.protobuf.Extension;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 
-public class RiskLimitUtilizationVerticle extends AMQPVerticle {
-    private static final Logger LOG = LoggerFactory.getLogger(RiskLimitUtilizationVerticle.class);
+import java.util.function.BiFunction;
 
+public class RiskLimitUtilizationVerticle extends AMQPVerticle<PrismaReports.RiskLimitUtilization, RiskLimitUtilizationModel> {
     @Override
-    protected void onConnect() {
-        healthCheck.setComponentReady(Component.RISK_LIMIT_UTILIZATION);
+    protected HealthCheck.Component getHealthCheckComponent() {
+        return HealthCheck.Component.RISK_LIMIT_UTILIZATION;
     }
 
     @Override
-    protected void onDisconnect() {
-        healthCheck.setComponentFailed(Component.RISK_LIMIT_UTILIZATION);
+    protected Extension<ObjectList.GPBObject, PrismaReports.RiskLimitUtilization> getGpbExtension() {
+        return PrismaReports.riskLimitUtilization;
     }
 
     @Override
-    protected void processObjectList(ObjectList.GPBObjectList gpbObjectList) {
-        PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
-        gpbObjectList.getItemList().forEach(gpbObject -> {
-            if (gpbObject.hasExtension(PrismaReports.riskLimitUtilization)) {
-                PrismaReports.RiskLimitUtilization data = gpbObject.getExtension(PrismaReports.riskLimitUtilization);
-                try {
-                    RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(header, data);
-                    this.persistenceService.storeRiskLimitUtilization(model, ar -> {
-                        if (ar.succeeded()) {
-                            LOG.debug("Risk Limit Utilization message processed");
-                        } else {
-                            LOG.error("Unable to store message", ar.cause());
-                        }
-                    });
-                } catch (IllegalArgumentException ex) {
-                    LOG.error("Unable to create Risk Limit Utilization Model from GPB data", ex);
-                }
-            } else {
-                LOG.error("Unknown extension (should be {})", PrismaReports.riskLimitUtilization.getDescriptor().getName());
-            }
-        });
+    protected BiFunction<PrismaReports.PrismaHeader, PrismaReports.RiskLimitUtilization, RiskLimitUtilizationModel> getModelFactory() {
+        return RiskLimitUtilizationModel::new;
     }
 
+    @Override
+    protected String getAmqpQueueName() {
+        return this.getAmqpConfig().getListeners().getRiskLimitUtilization();
+    }
+
+    @Override
+    protected void store(RiskLimitUtilizationModel model, Handler<AsyncResult<Void>> handler) {
+        this.getPersistenceService().storeRiskLimitUtilization(model, handler);
+    }
 }

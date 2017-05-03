@@ -4,44 +4,35 @@ import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component;
 import com.deutscheboerse.risk.dave.model.PoolMarginModel;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import com.google.protobuf.Extension;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 
-public class PoolMarginVerticle extends AMQPVerticle {
-    private static final Logger LOG = LoggerFactory.getLogger(PoolMarginVerticle.class);
+import java.util.function.BiFunction;
 
+public class PoolMarginVerticle extends AMQPVerticle<PrismaReports.PoolMargin, PoolMarginModel> {
     @Override
-    protected void onConnect() {
-        healthCheck.setComponentReady(Component.POOL_MARGIN);
+    protected Component getHealthCheckComponent() {
+        return Component.POOL_MARGIN;
     }
 
     @Override
-    protected void onDisconnect() {
-        healthCheck.setComponentFailed(Component.POOL_MARGIN);
+    protected Extension<ObjectList.GPBObject, PrismaReports.PoolMargin> getGpbExtension() {
+        return PrismaReports.poolMargin;
     }
 
     @Override
-    protected void processObjectList(ObjectList.GPBObjectList gpbObjectList) {
-        PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
-        gpbObjectList.getItemList().forEach(gpbObject -> {
-            if (gpbObject.hasExtension(PrismaReports.poolMargin)) {
-                PrismaReports.PoolMargin poolMarginData = gpbObject.getExtension(PrismaReports.poolMargin);
-                try {
-                    PoolMarginModel poolMarginModel = new PoolMarginModel(header, poolMarginData);
-                    this.persistenceService.storePoolMargin(poolMarginModel, ar -> {
-                        if (ar.succeeded()) {
-                            LOG.debug("Pool Margin message processed");
-                        } else {
-                            LOG.error("Unable to store message", ar.cause());
-                        }
-                    });
-                } catch (IllegalArgumentException ex) {
-                    LOG.error("Unable to create Pool Margin Model from GPB data", ex);
-                }
-            } else {
-                LOG.error("Unknown extension (should be {})", PrismaReports.poolMargin.getDescriptor().getName());
-            }
-        });
+    protected BiFunction<PrismaReports.PrismaHeader, PrismaReports.PoolMargin, PoolMarginModel> getModelFactory() {
+        return PoolMarginModel::new;
     }
 
+    @Override
+    protected String getAmqpQueueName() {
+        return this.getAmqpConfig().getListeners().getPoolMargin();
+    }
+
+    @Override
+    protected void store(PoolMarginModel model, Handler<AsyncResult<Void>> handler) {
+        this.getPersistenceService().storePoolMargin(model, handler);
+    }
 }

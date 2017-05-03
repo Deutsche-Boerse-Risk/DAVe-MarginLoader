@@ -2,46 +2,37 @@ package com.deutscheboerse.risk.dave;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
-import com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component;
+import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import com.deutscheboerse.risk.dave.model.AccountMarginModel;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import com.google.protobuf.Extension;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 
-public class AccountMarginVerticle extends AMQPVerticle {
-    private static final Logger LOG = LoggerFactory.getLogger(AccountMarginVerticle.class);
+import java.util.function.BiFunction;
 
+public class AccountMarginVerticle extends AMQPVerticle<PrismaReports.AccountMargin, AccountMarginModel> {
     @Override
-    protected void onConnect() {
-        healthCheck.setComponentReady(Component.ACCOUNT_MARGIN);
+    protected HealthCheck.Component getHealthCheckComponent() {
+        return HealthCheck.Component.ACCOUNT_MARGIN;
     }
 
     @Override
-    protected void onDisconnect() {
-        healthCheck.setComponentFailed(Component.ACCOUNT_MARGIN);
+    protected Extension<ObjectList.GPBObject, PrismaReports.AccountMargin> getGpbExtension() {
+        return PrismaReports.accountMargin;
     }
 
     @Override
-    protected void processObjectList(ObjectList.GPBObjectList gpbObjectList) {
-        PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
-        gpbObjectList.getItemList().forEach(gpbObject -> {
-            if (gpbObject.hasExtension(PrismaReports.accountMargin)) {
-                PrismaReports.AccountMargin accountMarginData = gpbObject.getExtension(PrismaReports.accountMargin);
-                try {
-                    AccountMarginModel accountMarginModel = new AccountMarginModel(header, accountMarginData);
-                    this.persistenceService.storeAccountMargin(accountMarginModel, ar -> {
-                        if (ar.succeeded()) {
-                            LOG.debug("Account Margin message processed");
-                        } else {
-                            LOG.error("Unable to store message", ar.cause());
-                        }
-                    });
-                } catch (IllegalArgumentException ex) {
-                    LOG.error("Unable to create Account Margin Model from GPB data", ex);
-                }
-            } else {
-                LOG.error("Unknown extension (should be {})", PrismaReports.accountMargin.getDescriptor().getName());
-            }
-        });
+    protected BiFunction<PrismaReports.PrismaHeader, PrismaReports.AccountMargin, AccountMarginModel> getModelFactory() {
+        return AccountMarginModel::new;
     }
 
+    @Override
+    protected String getAmqpQueueName() {
+        return this.getAmqpConfig().getListeners().getAccountMargin();
+    }
+
+    @Override
+    protected void store(AccountMarginModel model, Handler<AsyncResult<Void>> handler) {
+        this.getPersistenceService().storeAccountMargin(model, handler);
+    }
 }

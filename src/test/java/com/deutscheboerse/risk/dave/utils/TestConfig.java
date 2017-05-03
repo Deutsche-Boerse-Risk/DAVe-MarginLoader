@@ -38,7 +38,11 @@ public class TestConfig {
                         .put("liquiGroupSplitMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupSplitMargin")
                         .put("poolMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPoolMargin")
                         .put("positionReport", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPositionReport")
-                        .put("riskLimitUtilization", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVERiskLimitUtilization"));
+                        .put("riskLimitUtilization", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVERiskLimitUtilization"))
+                .put("circuitBreaker", new JsonObject()
+                        .put("maxFailures", 1)
+                        .put("timeout", 1000)
+                        .put("resetTimeout", 2000));
     }
 
     public static JsonObject getStorageConfig() {
@@ -55,14 +59,7 @@ public class TestConfig {
                 .put("verifyHost", false)
                 .put("sslKey", pemKeyBuffer.toString())
                 .put("sslCert", pemCertBuffer.toString())
-                .put("sslTrustCerts", sslTrustCerts)
-                .put("restApi", new JsonObject()
-                        .put("accountMargin", "/api/v1.0/store/am")
-                        .put("liquiGroupMargin", "/api/v1.0/store/lgm")
-                        .put("liquiGroupSplitMargin", "/api/v1.0/store/lgsm")
-                        .put("poolMargin", "/api/v1.0/store/pm")
-                        .put("positionReport", "/api/v1.0/store/pr")
-                        .put("riskLimitUtilization", "/api/v1.0/store/rlu"));
+                .put("sslTrustCerts", sslTrustCerts);
     }
 
     public static JsonObject getHealthCheckConfig() {
