@@ -2,11 +2,14 @@ package com.deutscheboerse.risk.dave.utils;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
+import com.deutscheboerse.risk.dave.config.AmqpConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.Async;
 import io.vertx.proton.ProtonClient;
 import io.vertx.proton.ProtonConnection;
 import io.vertx.proton.ProtonSender;
@@ -14,6 +17,7 @@ import org.apache.qpid.proton.amqp.Binary;
 import org.apache.qpid.proton.amqp.messaging.Data;
 import org.apache.qpid.proton.message.Message;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Function;
@@ -23,15 +27,25 @@ import java.util.stream.IntStream;
 public class BrokerFillerCorrectData implements BrokerFiller {
     private final Vertx vertx;
     private final int tcpPort;
+    private final AmqpConfig config;
     private static ProtonConnection protonConnection;
 
     public BrokerFillerCorrectData(Vertx vertx) {
         this.vertx = vertx;
         this.tcpPort = TestConfig.BROKER_PORT;
+        try {
+            this.config = (new ObjectMapper()).readValue(TestConfig.getAmqpConfig().toString(), AmqpConfig.class);
+        } catch (IOException e) {
+            throw new AssertionError("Jackson error", e);
+        }
     }
 
+    public void close() {
+        protonConnection.close();
+    }
+
+    @Override
     public void setUpAllQueues(Handler<AsyncResult<String>> handler) {
-        Future<ProtonConnection> chainFuture = Future.future();
         this.createAmqpConnection()
                 .compose(this::populateAccountMarginQueue)
                 .compose(this::populateLiquiGroupMarginQueue)
@@ -39,60 +53,78 @@ public class BrokerFillerCorrectData implements BrokerFiller {
                 .compose(this::populatePoolMarginQueue)
                 .compose(this::populatePositionReportQueue)
                 .compose(this::populateRiskLimitUtilizationQueue)
-                .compose(chainFuture::complete, chainFuture);
-        chainFuture.setHandler(ar -> {
-           if (ar.succeeded()) {
-               handler.handle(Future.succeededFuture());
-           } else {
-               handler.handle(Future.failedFuture(ar.cause()));
-           }
-        });
+                .map((String)null)
+                .setHandler(handler);
     }
 
+    @Override
     public void setUpAccountMarginQueue(Handler<AsyncResult<String>> handler) {
         setUpQueue(this::populateAccountMarginQueue, handler);
     }
 
+    @Override
     public void setUpLiquiGroupMarginQueue(Handler<AsyncResult<String>> handler) {
         setUpQueue(this::populateLiquiGroupMarginQueue, handler);
     }
 
+    @Override
     public void setUpLiquiGroupSplitMarginQueue(Handler<AsyncResult<String>> handler) {
         setUpQueue(this::populateLiquiGroupSplitMarginQueue, handler);
     }
 
+    @Override
     public void setUpPoolMarginQueue(Handler<AsyncResult<String>> handler) {
         setUpQueue(this::populatePoolMarginQueue, handler);
     }
 
+    @Override
     public void setUpPositionReportQueue(Handler<AsyncResult<String>> handler) {
         setUpQueue(this::populatePositionReportQueue, handler);
     }
 
+    @Override
     public void setUpRiskLimitUtilizationQueue(Handler<AsyncResult<String>> handler) {
         setUpQueue(this::populateRiskLimitUtilizationQueue, handler);
+    }
+
+    @Override
+    public void drainAccountMarginQueue(Async async, Handler<AsyncResult<Void>> handler) {
+        this.setUpDrain(connection -> this.drainConnection(connection, async, this.config.getListeners().getAccountMargin()), handler);
+        async.awaitSuccess(30000);
+    }
+
+    private Future<ProtonConnection> drainConnection(ProtonConnection connection, Async async, String queueName) {
+        connection.createReceiver(queueName)
+                .setPrefetch(1000)
+                .setAutoAccept(true)
+                .handler((delivery, msg) -> async.countDown())
+                .open();
+
+        return Future.succeededFuture(connection);
+    }
+
+    private void setUpDrain(Function<ProtonConnection, Future<ProtonConnection>> drainFunction, Handler<AsyncResult<Void>> handler) {
+        this.createAmqpConnection()
+                .compose(drainFunction)
+                .map((Void)null)
+                .setHandler(handler);
     }
 
     private void setUpQueue(Function<ProtonConnection, Future<ProtonConnection>> populateFunction, Handler<AsyncResult<String>> handler) {
         this.createAmqpConnection()
                 .compose(populateFunction)
-                .setHandler(ar -> {
-                    if (ar.succeeded()) {
-                        handler.handle(Future.succeededFuture());
-                    } else {
-                        handler.handle(Future.failedFuture(ar.cause()));
-                    }
-                });
+                .map((String)null)
+                .setHandler(handler);
     }
 
     private Future<ProtonConnection> createAmqpConnection() {
         Future<ProtonConnection> createAmqpConnectionFuture = Future.future();
         ProtonClient protonClient = ProtonClient.create(vertx);
-        final String userName = TestConfig.getAmqpConfig().getString("username");
-        final String password = TestConfig.getAmqpConfig().getString("password");
+        final String userName = this.config.getUsername();
+        final String password = this.config.getPassword();
         protonClient.connect("localhost", this.tcpPort, userName, password, connectResult -> {
             if (connectResult.succeeded()) {
-                connectResult.result().setContainer("dave/marginLoaderIT").openHandler(openResult -> {
+                connectResult.result().setContainer("mdh/marketDataLoaderIT").openHandler(openResult -> {
                     if (openResult.succeeded()) {
                         BrokerFillerCorrectData.protonConnection = openResult.result();
                         createAmqpConnectionFuture.complete(BrokerFillerCorrectData.protonConnection);
@@ -108,7 +140,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     }
 
     private Future<ProtonConnection> populateAccountMarginQueue(ProtonConnection protonConnection) {
-        final String queueName = TestConfig.getAmqpConfig().getJsonObject("listeners", new JsonObject()).getString("accountMargin");
+        final String queueName = this.config.getListeners().getAccountMargin();
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
@@ -116,7 +148,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     }
 
     private Future<ProtonConnection> populateLiquiGroupMarginQueue(ProtonConnection protonConnection) {
-        final String queueName = TestConfig.getAmqpConfig().getJsonObject("listeners", new JsonObject()).getString("liquiGroupMargin");
+        final String queueName = this.config.getListeners().getLiquiGroupMargin();
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
@@ -124,7 +156,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     }
 
     private Future<ProtonConnection> populateLiquiGroupSplitMarginQueue(ProtonConnection protonConnection) {
-        final String queueName = TestConfig.getAmqpConfig().getJsonObject("listeners", new JsonObject()).getString("liquiGroupSplitMargin");
+        final String queueName = this.config.getListeners().getLiquiGroupSplitMargin();
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
@@ -132,7 +164,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     }
 
     private Future<ProtonConnection> populatePoolMarginQueue(ProtonConnection protonConnection) {
-        final String queueName = TestConfig.getAmqpConfig().getJsonObject("listeners", new JsonObject()).getString("poolMargin");
+        final String queueName = this.config.getListeners().getPoolMargin();
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
@@ -140,7 +172,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     }
 
     private Future<ProtonConnection> populatePositionReportQueue(ProtonConnection protonConnection) {
-        final String queueName = TestConfig.getAmqpConfig().getJsonObject("listeners", new JsonObject()).getString("positionReport");
+        final String queueName = this.config.getListeners().getPositionReport();
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());
@@ -148,7 +180,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     }
 
     private Future<ProtonConnection> populateRiskLimitUtilizationQueue(ProtonConnection protonConnection) {
-        final String queueName = TestConfig.getAmqpConfig().getJsonObject("listeners", new JsonObject()).getString("riskLimitUtilization");
+        final String queueName = this.config.getListeners().getRiskLimitUtilization();
         final Collection<Integer> ttsaveNumbers = IntStream.rangeClosed(1, 1)
                 .boxed()
                 .collect(Collectors.toList());

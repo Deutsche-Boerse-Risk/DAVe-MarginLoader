@@ -4,44 +4,35 @@ import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import CIL.ObjectList;
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component;
 import com.deutscheboerse.risk.dave.model.LiquiGroupMarginModel;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import com.google.protobuf.Extension;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 
-public class LiquiGroupMarginVerticle extends AMQPVerticle {
-    private static final Logger LOG = LoggerFactory.getLogger(LiquiGroupMarginVerticle.class);
+import java.util.function.BiFunction;
 
+public class LiquiGroupMarginVerticle extends AMQPVerticle<PrismaReports.LiquiGroupMargin, LiquiGroupMarginModel> {
     @Override
-    protected void onConnect() {
-        healthCheck.setComponentReady(Component.LIQUI_GROUP_MARGIN);
+    protected Component getHealthCheckComponent() {
+        return Component.LIQUI_GROUP_MARGIN;
     }
 
     @Override
-    protected void onDisconnect() {
-        healthCheck.setComponentFailed(Component.LIQUI_GROUP_MARGIN);
+    protected Extension<ObjectList.GPBObject, PrismaReports.LiquiGroupMargin> getGpbExtension() {
+        return PrismaReports.liquiGroupMargin;
     }
 
     @Override
-    protected void processObjectList(ObjectList.GPBObjectList gpbObjectList) {
-        PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
-        gpbObjectList.getItemList().forEach(gpbObject -> {
-            if (gpbObject.hasExtension(PrismaReports.liquiGroupMargin)) {
-                PrismaReports.LiquiGroupMargin liquiGroupMarginData = gpbObject.getExtension(PrismaReports.liquiGroupMargin);
-                try {
-                    LiquiGroupMarginModel liquiGroupMarginModel = new LiquiGroupMarginModel(header, liquiGroupMarginData);
-                    this.persistenceService.storeLiquiGroupMargin(liquiGroupMarginModel, ar -> {
-                        if (ar.succeeded()) {
-                            LOG.debug("Liqui Group Margin message processed");
-                        } else {
-                            LOG.error("Unable to store message", ar.cause());
-                        }
-                    });
-                } catch (IllegalArgumentException ex) {
-                    LOG.error("Unable to create Liqui Group Margin Model from GPB data", ex);
-                }
-            } else {
-                LOG.error("Unknown extension (should be {})", PrismaReports.liquiGroupMargin.getDescriptor().getName());
-            }
-        });
+    protected BiFunction<PrismaReports.PrismaHeader, PrismaReports.LiquiGroupMargin, LiquiGroupMarginModel> getModelFactory() {
+        return LiquiGroupMarginModel::new;
     }
 
+    @Override
+    protected String getAmqpQueueName() {
+        return this.getAmqpConfig().getListeners().getLiquiGroupMargin();
+    }
+
+    @Override
+    protected void store(LiquiGroupMarginModel model, Handler<AsyncResult<Void>> handler) {
+        this.getPersistenceService().storeLiquiGroupMargin(model, handler);
+    }
 }

@@ -38,7 +38,11 @@ public class TestConfig {
                         .put("liquiGroupSplitMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupSplitMargin")
                         .put("poolMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPoolMargin")
                         .put("positionReport", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPositionReport")
-                        .put("riskLimitUtilization", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVERiskLimitUtilization"));
+                        .put("riskLimitUtilization", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVERiskLimitUtilization"))
+                .put("circuitBreaker", new JsonObject()
+                        .put("maxFailures", 1)
+                        .put("timeout", 1000)
+                        .put("resetTimeout", 2000));
     }
 
     public static JsonObject getStorageConfig() {
