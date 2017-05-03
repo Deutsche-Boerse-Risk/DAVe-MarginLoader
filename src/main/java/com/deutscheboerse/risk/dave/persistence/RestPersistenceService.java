@@ -22,14 +22,19 @@ import io.vertx.core.net.PemTrustOptions;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.IOException;
-import java.util.Arrays;
 
 public class RestPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(RestPersistenceService.class);
 
+    private static final String ACCOUNT_MARGIN_URI = "/api/v1.0/store/am";
+    private static final String LIQUI_GROUP_MARGIN_URI = "/api/v1.0/store/lgm";
+    private static final String LIQUI_GROUP_SPLIT_MARGIN_URI = "/api/v1.0/store/lgsm";
+    private static final String POSITION_REPORT_URI = "/api/v1.0/store/pr";
+    private static final String POOL_MARGIN_URI = "/api/v1.0/store/pm";
+    private static final String RISK_LIMIT_UTILIZATION_URI = "/api/v1.0/store/rlu";
+
     private final Vertx vertx;
     private final StoreManagerConfig config;
-    private final StoreManagerConfig.RestApiConfig restApi;
     private final HttpClient httpClient;
     private final HealthCheck healthCheck;
 
@@ -37,7 +42,6 @@ public class RestPersistenceService implements PersistenceService {
     public RestPersistenceService(Vertx vertx, @Named("storeManager.conf") JsonObject config) throws IOException {
         this.vertx = vertx;
         this.config = (new ObjectMapper()).readValue(config.toString(), StoreManagerConfig.class);
-        this.restApi = this.config.getRestApi();
         this.httpClient = this.createHttpClient();
         this.healthCheck = new HealthCheck(vertx);
     }
@@ -52,8 +56,7 @@ public class RestPersistenceService implements PersistenceService {
         httpClientOptions.setSsl(true);
         httpClientOptions.setVerifyHost(this.config.isVerifyHost());
         PemTrustOptions pemTrustOptions = new PemTrustOptions();
-        Arrays.stream(this.config.getSslTrustCerts())
-                .map(Object::toString)
+        this.config.getSslTrustCerts()
                 .forEach(trustKey -> pemTrustOptions.addCertValue(Buffer.buffer(trustKey)));
         httpClientOptions.setPemTrustOptions(pemTrustOptions);
         final String sslKey = this.config.getSslKey();
@@ -75,32 +78,32 @@ public class RestPersistenceService implements PersistenceService {
 
     @Override
     public void storeAccountMargin(AccountMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModel(restApi.getAccountMargin(), model, resultHandler);
+        this.postModel(ACCOUNT_MARGIN_URI, model, resultHandler);
     }
 
     @Override
     public void storeLiquiGroupMargin(LiquiGroupMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModel(restApi.getLiquiGroupMargin(), model, resultHandler);
+        this.postModel(LIQUI_GROUP_MARGIN_URI, model, resultHandler);
     }
 
     @Override
     public void storeLiquiGroupSplitMargin(LiquiGroupSplitMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModel(restApi.getLiquiGroupSplitMargin(), model, resultHandler);
+        this.postModel(LIQUI_GROUP_SPLIT_MARGIN_URI, model, resultHandler);
     }
 
     @Override
     public void storePoolMargin(PoolMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModel(restApi.getPoolMargin(), model, resultHandler);
+        this.postModel(POOL_MARGIN_URI, model, resultHandler);
     }
 
     @Override
     public void storePositionReport(PositionReportModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModel(restApi.getPositionReport(), model, resultHandler);
+        this.postModel(POSITION_REPORT_URI, model, resultHandler);
     }
 
     @Override
     public void storeRiskLimitUtilization(RiskLimitUtilizationModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModel(restApi.getRiskLimitUtilization(), model, resultHandler);
+        this.postModel(RISK_LIMIT_UTILIZATION_URI, model, resultHandler);
     }
 
     @Override

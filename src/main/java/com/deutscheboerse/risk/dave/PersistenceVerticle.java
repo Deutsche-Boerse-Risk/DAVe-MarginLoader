@@ -23,7 +23,7 @@ public class PersistenceVerticle extends AbstractVerticle {
     }
 
     @Override
-    public void start(Future<Void> fut) throws Exception {
+    public void start(Future<Void> fut) {
         JsonObject configWithoutSensitiveInfo = config().copy()
                 .put("sslKey", "******************")
                 .put("sslCert", "******************");
@@ -48,9 +48,8 @@ public class PersistenceVerticle extends AbstractVerticle {
     }
 
     @Override
-    public void stop() throws Exception {
+    public void stop() {
         this.proxyPersistenceService.close();
-        super.stop();
     }
 
 }

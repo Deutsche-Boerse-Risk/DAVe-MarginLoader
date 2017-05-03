@@ -7,7 +7,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
@@ -15,6 +14,13 @@ import io.vertx.ext.web.RoutingContext;
 
 public class StoreManagerMock {
     private static final Logger LOG = LoggerFactory.getLogger(StoreManagerMock.class);
+
+    private static final String ACCOUNT_MARGIN_URI = "/api/v1.0/store/am";
+    private static final String LIQUI_GROUP_MARGIN_URI = "/api/v1.0/store/lgm";
+    private static final String LIQUI_GROUP_SPLIT_MARGIN_URI = "/api/v1.0/store/lgsm";
+    private static final String POSITION_REPORT_URI = "/api/v1.0/store/pr";
+    private static final String POOL_MARGIN_URI = "/api/v1.0/store/pm";
+    private static final String RISK_LIMIT_UTILIZATION_URI = "/api/v1.0/store/rlu";
 
     private final Vertx vertx;
     private final HttpServer server;
@@ -63,15 +69,13 @@ public class StoreManagerMock {
     private Router configureRouter() {
         Router router = Router.router(vertx);
 
-        JsonObject restApi = TestConfig.getStorageConfig().getJsonObject("restApi", new JsonObject());
-
         LOG.info("Adding route REST API");
-        router.post(restApi.getString("accountMargin")).handler(this::storeAccountMargin);
-        router.post(restApi.getString("liquiGroupMargin")).handler(this::storeLiquiGroupMargin);
-        router.post(restApi.getString("liquiGroupSplitMargin")).handler(this::storeLiquiGroupSplitMargin);
-        router.post(restApi.getString("poolMargin")).handler(this::storePoolMargin);
-        router.post(restApi.getString("positionReport")).handler(this::storePositionReport);
-        router.post(restApi.getString("riskLimitUtilization")).handler(this::storeRiskLimitUtilization);
+        router.post(ACCOUNT_MARGIN_URI).handler(this::storeAccountMargin);
+        router.post(LIQUI_GROUP_MARGIN_URI).handler(this::storeLiquiGroupMargin);
+        router.post(LIQUI_GROUP_SPLIT_MARGIN_URI).handler(this::storeLiquiGroupSplitMargin);
+        router.post(POOL_MARGIN_URI).handler(this::storePoolMargin);
+        router.post(POSITION_REPORT_URI).handler(this::storePositionReport);
+        router.post(RISK_LIMIT_UTILIZATION_URI).handler(this::storeRiskLimitUtilization);
 
         return router;
     }

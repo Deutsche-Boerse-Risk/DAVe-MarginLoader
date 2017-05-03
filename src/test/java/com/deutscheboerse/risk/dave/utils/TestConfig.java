@@ -59,14 +59,7 @@ public class TestConfig {
                 .put("verifyHost", false)
                 .put("sslKey", pemKeyBuffer.toString())
                 .put("sslCert", pemCertBuffer.toString())
-                .put("sslTrustCerts", sslTrustCerts)
-                .put("restApi", new JsonObject()
-                        .put("accountMargin", "/api/v1.0/store/am")
-                        .put("liquiGroupMargin", "/api/v1.0/store/lgm")
-                        .put("liquiGroupSplitMargin", "/api/v1.0/store/lgsm")
-                        .put("poolMargin", "/api/v1.0/store/pm")
-                        .put("positionReport", "/api/v1.0/store/pr")
-                        .put("riskLimitUtilization", "/api/v1.0/store/rlu"));
+                .put("sslTrustCerts", sslTrustCerts);
     }
 
     public static JsonObject getHealthCheckConfig() {
