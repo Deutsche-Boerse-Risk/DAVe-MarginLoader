@@ -87,40 +87,41 @@ public class MainVerticle extends AbstractVerticle {
 
     private Future<Void> deployPersistenceVerticle() {
         return this.deployVerticle(PersistenceVerticle.class, this.configuration.getJsonObject(STORE_MANAGER_CONF_KEY, new JsonObject())
-            .put(GUICE_BINDER_KEY, this.configuration.getString(GUICE_BINDER_KEY, PersistenceBinder.class.getName())));
+            .put(GUICE_BINDER_KEY, this.configuration.getString(GUICE_BINDER_KEY, PersistenceBinder.class.getName())), 1);
     }
 
     private Future<Void> deployAccountMarginVerticle() {
-        return this.deployVerticle(AccountMarginVerticle.class, this.configuration.getJsonObject(AMQP_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(AccountMarginVerticle.class, this.configuration.getJsonObject(AMQP_CONF_KEY, new JsonObject()), 1);
     }
 
     private Future<Void> deployLiquiGroupMarginVerticle() {
-        return this.deployVerticle(LiquiGroupMarginVerticle.class, this.configuration.getJsonObject(AMQP_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(LiquiGroupMarginVerticle.class, this.configuration.getJsonObject(AMQP_CONF_KEY, new JsonObject()), 1);
     }
 
     private Future<Void> deployLiquiGroupSplitMarginVerticle() {
-        return this.deployVerticle(LiquiGroupSplitMarginVerticle.class, this.configuration.getJsonObject(AMQP_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(LiquiGroupSplitMarginVerticle.class, this.configuration.getJsonObject(AMQP_CONF_KEY, new JsonObject()), 1);
     }
 
     private Future<Void> deployPoolMarginVerticle() {
-        return this.deployVerticle(PoolMarginVerticle.class, this.configuration.getJsonObject(AMQP_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(PoolMarginVerticle.class, this.configuration.getJsonObject(AMQP_CONF_KEY, new JsonObject()), 1);
     }
 
     private Future<Void> deployPositionReportVerticle() {
-        return this.deployVerticle(PositionReportVerticle.class, this.configuration.getJsonObject(AMQP_CONF_KEY, new JsonObject()));
+        int cores = Runtime.getRuntime().availableProcessors();
+        return this.deployVerticle(PositionReportVerticle.class, this.configuration.getJsonObject(AMQP_CONF_KEY, new JsonObject()), cores);
     }
 
     private Future<Void> deployRiskLimitUtilizationVerticle() {
-        return this.deployVerticle(RiskLimitUtilizationVerticle.class, this.configuration.getJsonObject(AMQP_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(RiskLimitUtilizationVerticle.class, this.configuration.getJsonObject(AMQP_CONF_KEY, new JsonObject()), 1);
     }
 
     private Future<Void> deployHealthCheckVerticle() {
-        return this.deployVerticle(HealthCheckVerticle.class, this.configuration.getJsonObject(HEALTHCHECK_CONF_KEY, new JsonObject()));
+        return this.deployVerticle(HealthCheckVerticle.class, this.configuration.getJsonObject(HEALTHCHECK_CONF_KEY, new JsonObject()), 1);
     }
 
-    private Future<Void> deployVerticle(Class clazz, JsonObject config) {
+    private Future<Void> deployVerticle(Class clazz, JsonObject config, int instances) {
         Future<Void> verticleFuture = Future.future();
-        DeploymentOptions options = new DeploymentOptions().setConfig(config);
+        DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(instances);
         String prefix = config.containsKey(GUICE_BINDER_KEY) ? "java-guice:" : "java:";
         vertx.deployVerticle(prefix + clazz.getName(), options, ar -> {
             if (ar.succeeded()) {

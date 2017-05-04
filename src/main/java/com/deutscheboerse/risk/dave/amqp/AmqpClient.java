@@ -13,7 +13,7 @@ import io.vertx.proton.*;
 public class AmqpClient {
     private static final Logger LOG = LoggerFactory.getLogger(AmqpClient.class);
 
-    private static final int FULL_FLOW_CREDIT = 1000;
+    private static final int FULL_FLOW_CREDIT = 2;
     private static final int THROTTLE_FLOW_CREDIT = 1;
 
     private final Vertx vertx;
@@ -79,6 +79,10 @@ public class AmqpClient {
 
     public void run() {
         setFlowRequest(() -> protonBrokerReceiver.flow(FULL_FLOW_CREDIT));
+    }
+
+    public void increaseCreditBy(int amount) {
+        setFlowRequest(() -> protonBrokerReceiver.flow(amount));
     }
 
     public void disconnect() {

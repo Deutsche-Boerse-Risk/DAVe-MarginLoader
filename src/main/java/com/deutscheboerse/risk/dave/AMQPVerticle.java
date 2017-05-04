@@ -15,6 +15,7 @@ import com.google.protobuf.Message;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.*;
+import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.proton.ProtonDelivery;
@@ -33,6 +34,7 @@ import java.util.function.BiFunction;
 public abstract class AMQPVerticle<GPBType extends Message, ModelType extends AbstractModel>
         extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(AMQPVerticle.class);
+    private static final int DEFAULT_PROXY_SEND_TIMEOUT = 60000;
     private static final ExtensionRegistry registry = ExtensionRegistry.newInstance();
     static {
         PrismaReports.registerAllExtensions(registry);
@@ -52,7 +54,8 @@ public abstract class AMQPVerticle<GPBType extends Message, ModelType extends Ab
     public void start() throws IOException {
         LOG.info("Starting {} with configuration: {}", verticleName, config().encodePrettily());
 
-        this.persistenceService = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
+        DeliveryOptions deliveryOptions = new DeliveryOptions().setSendTimeout(DEFAULT_PROXY_SEND_TIMEOUT);
+        this.persistenceService = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS, deliveryOptions);
         this.healthCheck = new HealthCheck(this.vertx);
         this.config = (new ObjectMapper()).readValue(config().toString(), AmqpConfig.class);
         this.amqpClient = new AmqpClient(this.vertx, this.config, this.verticleName, this.getAmqpQueueName());
@@ -113,16 +116,18 @@ public abstract class AMQPVerticle<GPBType extends Message, ModelType extends Ab
             this.processObjectList(gpbObjectList.get(), ar -> {
                 PrismaReports.PrismaHeader header = gpbObjectList.get().getHeader().getExtension(PrismaReports.prismaHeader);
                 if (ar.succeeded()) {
-                    LOG.info("Message settled: {} (ttsave={})", this.verticleName, header.getId());
+                    LOG.info("Message settled: {} (ttsave={}, {} of {})", this.verticleName, header.getId(), header.getMessageId(), header.getMessageCount());
                     delivery.settle();
                 } else {
-                    LOG.warn("Message released: {} (ttsave={})", this.verticleName, header.getId(), ar.cause());
+                    LOG.warn("Message released: {} (ttsave={} {} of {})", this.verticleName, header.getId(), header.getMessageId(), header.getMessageCount(), ar.cause());
                     delivery.disposition(new Released(), true);
                 }
+                amqpClient.increaseCreditBy(1);
             });
         } else {
             LOG.info("Message settled: skipping invalid message");
             delivery.settle();
+            amqpClient.increaseCreditBy(1);
         }
     }
 
@@ -148,7 +153,7 @@ public abstract class AMQPVerticle<GPBType extends Message, ModelType extends Ab
 
     private void processObjectList(ObjectList.GPBObjectList gpbObjectList, Handler<AsyncResult<Void>> handler) {
         PrismaReports.PrismaHeader header = gpbObjectList.getHeader().getExtension(PrismaReports.prismaHeader);
-        List<ModelType> dataModels = new ArrayList<>();
+        List<ModelType> dataModels = new ArrayList<>(gpbObjectList.getItemList().size());
         gpbObjectList.getItemList().forEach(gpbObject -> {
             if (gpbObject.hasExtension(gpbExtension)) {
                 GPBType gpbData = gpbObject.getExtension(gpbExtension);
