@@ -8,6 +8,7 @@ import com.google.protobuf.Extension;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 
+import java.util.List;
 import java.util.function.BiFunction;
 
 public class PoolMarginVerticle extends AMQPVerticle<PrismaReports.PoolMargin, PoolMarginModel> {
@@ -32,7 +33,7 @@ public class PoolMarginVerticle extends AMQPVerticle<PrismaReports.PoolMargin, P
     }
 
     @Override
-    protected void store(PoolMarginModel model, Handler<AsyncResult<Void>> handler) {
-        this.getPersistenceService().storePoolMargin(model, handler);
+    protected void store(List<PoolMarginModel> models, Handler<AsyncResult<Void>> handler) {
+        this.getPersistenceService().storePoolMargin(models, handler);
     }
 }

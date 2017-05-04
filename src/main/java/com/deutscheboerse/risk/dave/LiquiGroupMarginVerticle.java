@@ -8,6 +8,7 @@ import com.google.protobuf.Extension;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 
+import java.util.List;
 import java.util.function.BiFunction;
 
 public class LiquiGroupMarginVerticle extends AMQPVerticle<PrismaReports.LiquiGroupMargin, LiquiGroupMarginModel> {
@@ -32,7 +33,7 @@ public class LiquiGroupMarginVerticle extends AMQPVerticle<PrismaReports.LiquiGr
     }
 
     @Override
-    protected void store(LiquiGroupMarginModel model, Handler<AsyncResult<Void>> handler) {
-        this.getPersistenceService().storeLiquiGroupMargin(model, handler);
+    protected void store(List<LiquiGroupMarginModel> models, Handler<AsyncResult<Void>> handler) {
+        this.getPersistenceService().storeLiquiGroupMargin(models, handler);
     }
 }

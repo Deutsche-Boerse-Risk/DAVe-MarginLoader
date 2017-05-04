@@ -6,6 +6,8 @@ import com.deutscheboerse.risk.dave.log.TestAppender;
 import com.deutscheboerse.risk.dave.model.*;
 import com.deutscheboerse.risk.dave.utils.DataHelper;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
@@ -19,6 +21,11 @@ import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.stream.IntStream;
 
 @RunWith(VertxUnitRunner.class)
 public class RestPersistenceServiceTest {
@@ -45,193 +52,46 @@ public class RestPersistenceServiceTest {
 
     @Test
     public void testAccountMarginStore(TestContext context) throws IOException {
-        int firstMsgCount = DataHelper.getJsonObjectCount("accountMargin", 1);
-        Async asyncStore1 = context.async(firstMsgCount);
-        DataHelper.readTTSaveFile("accountMargin", 1, (json) -> {
-            AccountMarginModel accountMarginModel = new AccountMarginModel(json);
-            persistenceProxy.storeAccountMargin(accountMarginModel, ar -> {
-                if (ar.succeeded()) {
-                    asyncStore1.countDown();
-                } else {
-                    context.fail(ar.cause());
-                }
-            });
-        });
-        asyncStore1.awaitSuccess(300000);
-
-        int secondMsgCount = DataHelper.getJsonObjectCount("accountMargin", 2);
-        Async asyncStore2 = context.async(secondMsgCount);
-        DataHelper.readTTSaveFile("accountMargin", 2, (json) -> {
-            AccountMarginModel accountMarginModel = new AccountMarginModel(json);
-            persistenceProxy.storeAccountMargin(accountMarginModel, ar -> {
-                if (ar.succeeded()) {
-                    asyncStore2.countDown();
-                } else {
-                    context.fail(ar.cause());
-                }
-            });
-        });
-        asyncStore2.awaitSuccess(30000);
+        testStore(context, DataHelper.ACCOUNT_MARGIN_FOLDER, AccountMarginModel::new,
+                persistenceProxy::storeAccountMargin);
     }
 
     @Test
     public void testLiquiGroupMarginStore(TestContext context) throws IOException {
-        int firstMsgCount = DataHelper.getJsonObjectCount("liquiGroupMargin", 1);
-        Async asyncStore1 = context.async(firstMsgCount);
-        DataHelper.readTTSaveFile("liquiGroupMargin", 1, (json) -> {
-            LiquiGroupMarginModel liquiGroupMarginModel = new LiquiGroupMarginModel(json);
-            persistenceProxy.storeLiquiGroupMargin(liquiGroupMarginModel, ar -> {
-                if (ar.succeeded()) {
-                    asyncStore1.countDown();
-                } else {
-                    context.fail(ar.cause());
-                }
-            });
-        });
-        asyncStore1.awaitSuccess(30000);
-
-        int secondMsgCount = DataHelper.getJsonObjectCount("liquiGroupMargin", 2);
-        Async asyncStore2 = context.async(secondMsgCount);
-        DataHelper.readTTSaveFile("liquiGroupMargin", 2, (json) -> {
-            LiquiGroupMarginModel liquiGroupMarginModel = new LiquiGroupMarginModel(json);
-            persistenceProxy.storeLiquiGroupMargin(liquiGroupMarginModel, ar -> {
-                if (ar.succeeded()) {
-                    asyncStore2.countDown();
-                } else {
-                    context.fail(ar.cause());
-                }
-            });
-        });
-        asyncStore2.awaitSuccess(30000);
+        testStore(context, DataHelper.LIQUI_GROUP_MARGIN_FOLDER, LiquiGroupMarginModel::new,
+                persistenceProxy::storeLiquiGroupMargin);
     }
 
     @Test
     public void testLiquiGroupSplitMarginStore(TestContext context) throws IOException {
-        int firstMsgCount = DataHelper.getJsonObjectCount("liquiGroupSplitMargin", 1);
-        Async asyncStore1 = context.async(firstMsgCount);
-        DataHelper.readTTSaveFile("liquiGroupSplitMargin", 1, (json) -> {
-            LiquiGroupSplitMarginModel liquiGroupSplitMarginModel = new LiquiGroupSplitMarginModel(json);
-            persistenceProxy.storeLiquiGroupSplitMargin(liquiGroupSplitMarginModel, ar -> {
-                if (ar.succeeded()) {
-                    asyncStore1.countDown();
-                } else {
-                    context.fail(ar.cause());
-                }
-            });
-        });
-        asyncStore1.awaitSuccess(30000);
-
-        int secondMsgCount = DataHelper.getJsonObjectCount("liquiGroupSplitMargin", 2);
-        Async asyncStore2 = context.async(secondMsgCount);
-        DataHelper.readTTSaveFile("liquiGroupSplitMargin", 2, (json) -> {
-            LiquiGroupSplitMarginModel liquiGroupSplitMarginModel = new LiquiGroupSplitMarginModel(json);
-            persistenceProxy.storeLiquiGroupSplitMargin(liquiGroupSplitMarginModel, ar -> {
-                if (ar.succeeded()) {
-                    asyncStore2.countDown();
-                } else {
-                    context.fail(ar.cause());
-                }
-            });
-        });
-        asyncStore2.awaitSuccess(30000);
+        testStore(context, DataHelper.LIQUI_GROUP_SPLIT_MARGIN_FOLDER, LiquiGroupSplitMarginModel::new,
+                persistenceProxy::storeLiquiGroupSplitMargin);
     }
 
     @Test
     public void testPoolMarginStore(TestContext context) throws IOException {
-        int firstMsgCount = DataHelper.getJsonObjectCount("poolMargin", 1);
-        Async asyncFirstSnapshotStore = context.async(firstMsgCount);
-        DataHelper.readTTSaveFile("poolMargin", 1, (json) -> {
-            PoolMarginModel poolMarginModel = new PoolMarginModel(json);
-            persistenceProxy.storePoolMargin(poolMarginModel, ar -> {
-                if (ar.succeeded()) {
-                    asyncFirstSnapshotStore.countDown();
-                } else {
-                    context.fail(ar.cause());
-                }
-            });
-        });
-        asyncFirstSnapshotStore.awaitSuccess(30000);
-
-        int secondMsgCount = DataHelper.getJsonObjectCount("poolMargin", 2);
-        Async asyncSecondSnapshotStore = context.async(secondMsgCount);
-        DataHelper.readTTSaveFile("poolMargin", 2, (json) -> {
-            PoolMarginModel poolMarginModel = new PoolMarginModel(json);
-            persistenceProxy.storePoolMargin(poolMarginModel, ar -> {
-                if (ar.succeeded()) {
-                    asyncSecondSnapshotStore.countDown();
-                } else {
-                    context.fail(ar.cause());
-                }
-            });
-        });
-        asyncSecondSnapshotStore.awaitSuccess(30000);
+        testStore(context, DataHelper.POOL_MARGIN_FOLDER, PoolMarginModel::new,
+                persistenceProxy::storePoolMargin);
     }
 
     @Test
     public void testPositionReportStore(TestContext context) throws IOException {
-        int firstMsgCount = DataHelper.getJsonObjectCount("positionReport", 1);
-        Async asyncFirstSnapshotStore = context.async(firstMsgCount);
-        DataHelper.readTTSaveFile("positionReport", 1, (json) -> {
-            PositionReportModel positionReportModel = new PositionReportModel(json);
-            persistenceProxy.storePositionReport(positionReportModel, ar -> {
-                if (ar.succeeded()) {
-                    asyncFirstSnapshotStore.countDown();
-                } else {
-                    context.fail(ar.cause());
-                }
-            });
-        });
-        asyncFirstSnapshotStore.awaitSuccess(30000);
-        int secondMsgCount = DataHelper.getJsonObjectCount("positionReport", 2);
-        Async asyncSecondSnapshotStore = context.async(secondMsgCount);
-        DataHelper.readTTSaveFile("positionReport", 2, (json) -> {
-            PositionReportModel positionReportModel = new PositionReportModel(json);
-            persistenceProxy.storePositionReport(positionReportModel, ar -> {
-                if (ar.succeeded()) {
-                    asyncSecondSnapshotStore.countDown();
-                } else {
-                    context.fail(ar.cause());
-                }
-            });
-        });
-        asyncSecondSnapshotStore.awaitSuccess(30000);
+        testStore(context, DataHelper.POSITION_REPORT_FOLDER, PositionReportModel::new,
+                persistenceProxy::storePositionReport);
     }
 
     @Test
     public void testRiskLimitUtilizationStore(TestContext context) throws IOException {
-        int firstMsgCount = DataHelper.getJsonObjectCount("riskLimitUtilization", 1);
-        Async asyncFirstSnapshotStore = context.async(firstMsgCount);
-        DataHelper.readTTSaveFile("riskLimitUtilization", 1, (json) -> {
-            RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(json);
-            persistenceProxy.storeRiskLimitUtilization(model, ar -> {
-                if (ar.succeeded()) {
-                    asyncFirstSnapshotStore.countDown();
-                } else {
-                    context.fail(ar.cause());
-                }
-            });
-        });
-        asyncFirstSnapshotStore.awaitSuccess(30000);
-        int secondMsgCount = DataHelper.getJsonObjectCount("riskLimitUtilization", 2);
-        Async asyncSecondSnapshotStore = context.async(secondMsgCount);
-        DataHelper.readTTSaveFile("riskLimitUtilization", 2, (json) -> {
-            RiskLimitUtilizationModel model = new RiskLimitUtilizationModel(json);
-            persistenceProxy.storeRiskLimitUtilization(model, ar -> {
-                if (ar.succeeded()) {
-                    asyncSecondSnapshotStore.countDown();
-                } else {
-                    context.fail(ar.cause());
-                }
-            });
-        });
-        asyncSecondSnapshotStore.awaitSuccess(30000);
+        testStore(context, DataHelper.RISK_LIMIT_UTILIZATION_FOLDER, RiskLimitUtilizationModel::new,
+                persistenceProxy::storeRiskLimitUtilization);
     }
 
     @Test
     public void testStoreFailure(TestContext context) throws InterruptedException {
         storageManager.setHealth(false);
         testAppender.start();
-        persistenceProxy.storeAccountMargin(new AccountMarginModel(new JsonObject()), context.asyncAssertFailure());
+        persistenceProxy.storeAccountMargin(Collections.singletonList(new AccountMarginModel(new JsonObject())),
+                context.asyncAssertFailure());
         testAppender.waitForMessageContains(Level.ERROR, "/api/v1.0/store/am failed:");
         testAppender.stop();
         storageManager.setHealth(true);
@@ -243,10 +103,29 @@ public class RestPersistenceServiceTest {
         storageManager.close(context.asyncAssertSuccess(i -> closeAsync.complete()));
         closeAsync.awaitSuccess();
         testAppender.start();
-        persistenceProxy.storeAccountMargin(new AccountMarginModel(new JsonObject()), context.asyncAssertFailure());
+        persistenceProxy.storeAccountMargin(Collections.singletonList(new AccountMarginModel(new JsonObject())),
+                context.asyncAssertFailure());
         testAppender.waitForMessageContains(Level.ERROR, "/api/v1.0/store/am failed:");
         storageManager.listen(context.asyncAssertSuccess());
         testAppender.stop();
+    }
+
+    private static <T extends AbstractModel>
+    void testStore(TestContext context, String dataFolder, Function<JsonObject, T> modelFactory,
+                   BiConsumer<List<T>, Handler<AsyncResult<Void>>> sender) {
+
+        IntStream.rangeClosed(1, 2).forEach(ttsaveNo -> {
+            Async asyncStore = context.async(1);
+            List<T> firstSnapshot = DataHelper.readTTSaveFile(dataFolder, ttsaveNo, modelFactory);
+            sender.accept(firstSnapshot, ar -> {
+                if (ar.succeeded()) {
+                    asyncStore.countDown();
+                } else {
+                    context.fail(ar.cause());
+                }
+            });
+            asyncStore.awaitSuccess(30000);
+        });
     }
 
     @AfterClass

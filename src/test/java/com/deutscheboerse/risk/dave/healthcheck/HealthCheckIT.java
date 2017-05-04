@@ -2,8 +2,8 @@ package com.deutscheboerse.risk.dave.healthcheck;
 
 import com.deutscheboerse.risk.dave.HealthCheckVerticle;
 import com.deutscheboerse.risk.dave.MainVerticle;
-import com.deutscheboerse.risk.dave.persistence.SuccessPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import com.deutscheboerse.risk.dave.persistence.SuccessPersistenceService;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
 import com.google.inject.AbstractModule;
 import io.vertx.core.DeploymentOptions;

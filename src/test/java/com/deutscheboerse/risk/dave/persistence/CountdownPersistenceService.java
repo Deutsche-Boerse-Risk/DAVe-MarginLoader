@@ -7,10 +7,12 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 
+import java.util.List;
+
 public class CountdownPersistenceService implements PersistenceService {
 
     private final Async async;
-    private JsonObject lastMessage;
+    private JsonObject lastModel;
 
     public CountdownPersistenceService(Async async) {
         this.async = async;
@@ -22,51 +24,51 @@ public class CountdownPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void storeAccountMargin(AccountMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.store(model, resultHandler);
+    public void storeAccountMargin(List<AccountMarginModel> models, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(models, resultHandler);
     }
 
     @Override
-    public void storeLiquiGroupMargin(LiquiGroupMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.store(model, resultHandler);
+    public void storeLiquiGroupMargin(List<LiquiGroupMarginModel> models, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(models, resultHandler);
     }
 
     @Override
-    public void storeLiquiGroupSplitMargin(LiquiGroupSplitMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.store(model, resultHandler);
+    public void storeLiquiGroupSplitMargin(List<LiquiGroupSplitMarginModel> models, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(models, resultHandler);
     }
 
     @Override
-    public void storePoolMargin(PoolMarginModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.store(model, resultHandler);
+    public void storePoolMargin(List<PoolMarginModel> models, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(models, resultHandler);
     }
 
     @Override
-    public void storePositionReport(PositionReportModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.store(model, resultHandler);
+    public void storePositionReport(List<PositionReportModel> models, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(models, resultHandler);
     }
 
     @Override
-    public void storeRiskLimitUtilization(RiskLimitUtilizationModel model, Handler<AsyncResult<Void>> resultHandler) {
-        this.store(model, resultHandler);
+    public void storeRiskLimitUtilization(List<RiskLimitUtilizationModel> models, Handler<AsyncResult<Void>> resultHandler) {
+        this.store(models, resultHandler);
     }
 
     @Override
     public void close() {
     }
 
-    private void store(JsonObject message, Handler<AsyncResult<Void>> resultHandler) {
+    private void store(List<? extends JsonObject> models, Handler<AsyncResult<Void>> resultHandler) {
 
-        // Store the message
-        this.lastMessage = message;
-
-        this.async.countDown();
+        for (JsonObject model: models) {
+            this.lastModel = model;
+            this.async.countDown();
+        }
 
         // Always succeeds
         resultHandler.handle(Future.succeededFuture());
     }
 
-    public JsonObject getLastMessage() {
-        return this.lastMessage;
+    public JsonObject getLastModel() {
+        return this.lastModel;
     }
 }
