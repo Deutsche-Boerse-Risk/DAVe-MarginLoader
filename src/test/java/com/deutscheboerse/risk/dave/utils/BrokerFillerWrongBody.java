@@ -10,7 +10,6 @@ import org.apache.qpid.proton.message.Message;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class BrokerFillerWrongBody extends BrokerFillerCorrectData {
