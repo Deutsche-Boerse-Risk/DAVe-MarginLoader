@@ -35,6 +35,12 @@ public class RestPersistenceService implements PersistenceService {
     private final StoreManagerConfig config;
     private final HealthCheck healthCheck;
 
+    static {
+        // Disable grpc info logs
+        java.util.logging.Logger grpcLogger = java.util.logging.Logger.getLogger("io.grpc");
+        grpcLogger.setLevel(java.util.logging.Level.WARNING);
+    }
+
     @Inject
     public RestPersistenceService(Vertx vertx, @Named("storeManager.conf") JsonObject config) throws IOException {
         this.vertx = vertx;
@@ -111,6 +117,7 @@ public class RestPersistenceService implements PersistenceService {
 
     @Override
     public void close() {
+        // Empty
     }
 
     private static <T extends AbstractModel<U>, U extends MessageLite>
