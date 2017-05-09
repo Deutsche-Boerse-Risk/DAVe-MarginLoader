@@ -1,11 +1,12 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
+import com.google.protobuf.MessageLite;
 import io.vertx.core.json.JsonObject;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-public abstract class AbstractModel extends JsonObject {
+public abstract class AbstractModel<T extends MessageLite> extends JsonObject {
 
     AbstractModel() {
         // Empty
@@ -22,6 +23,8 @@ public abstract class AbstractModel extends JsonObject {
     public JsonObject toJson() {
         return new JsonObject(this.getMap());
     }
+
+    public abstract T toGrpc();
 
     private void verify(PrismaReports.PrismaHeader header) {
         checkArgument(header.hasId(), "Missing snapshot ID in header in AMQP data");

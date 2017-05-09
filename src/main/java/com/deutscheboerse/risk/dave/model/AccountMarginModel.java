@@ -1,13 +1,14 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
+import com.deutscheboerse.risk.dave.AccountMargin;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 @DataObject
-public class AccountMarginModel extends AbstractModel {
+public class AccountMarginModel extends AbstractModel<AccountMargin> {
 
     public AccountMarginModel(JsonObject json) {
         this.mergeIn(json);
@@ -29,6 +30,25 @@ public class AccountMarginModel extends AbstractModel {
         put("marginReqInClrCurr", data.getMarginReqInClrCurr());
         put("unadjustedMarginRequirement", data.getUnadjustedMarginRequirement());
         put("variationPremiumPayment", data.getVariationPremiumPayment());
+    }
+
+    @Override
+    public AccountMargin toGrpc() {
+        return AccountMargin.newBuilder()
+                .setSnapshotId(this.getInteger("snapshotID"))
+                .setBusinessDate(this.getInteger("businessDate"))
+                .setTimestamp(this.getLong("timestamp"))
+                .setClearer(this.getString("clearer"))
+                .setMember(this.getString("member"))
+                .setAccount(this.getString("account"))
+                .setMarginCurrency(this.getString("marginCurrency"))
+                .setClearingCurrency(this.getString("clearingCurrency"))
+                .setPool(this.getString("pool"))
+                .setMarginReqInMarginCurr(this.getDouble("marginReqInMarginCurr"))
+                .setMarginReqInClrCurr(this.getDouble("marginReqInClrCurr"))
+                .setUnadjustedMarginRequirement(this.getDouble("unadjustedMarginRequirement"))
+                .setVariationPremiumPayment(this.getDouble("variationPremiumPayment"))
+                .build();
     }
 
     private void verify(PrismaReports.AccountMargin data) {

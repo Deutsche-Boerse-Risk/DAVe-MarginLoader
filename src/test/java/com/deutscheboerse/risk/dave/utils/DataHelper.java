@@ -73,6 +73,12 @@ public class DataHelper {
                 .reduce((a, b) -> b);
     }
 
+    public static <T extends AbstractModel> T getLastModelFromFile(String folderName, int ttsaveNo,
+                                                                   Function<JsonObject, T> modelFactory) {
+        return modelFactory.apply(
+                getLastJsonFromFile(folderName, ttsaveNo).orElse(new JsonObject()));
+    }
+
     public static int getJsonObjectCount(String folderName, int ttsaveNo) {
         return getJsonArrayFromTTSaveFile(folderName, ttsaveNo)
                 .orElse(new JsonArray())

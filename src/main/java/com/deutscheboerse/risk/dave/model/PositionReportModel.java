@@ -1,13 +1,14 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
+import com.deutscheboerse.risk.dave.PositionReport;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 @DataObject
-public class PositionReportModel extends AbstractModel {
+public class PositionReportModel extends AbstractModel<PositionReport> {
 
     public PositionReportModel(JsonObject json) {
         this.mergeIn(json);
@@ -51,6 +52,46 @@ public class PositionReportModel extends AbstractModel {
         put("normalizedRho", data.getNormalizedRho());
         put("normalizedTheta", data.getNormalizedTheta());
         put("underlying", data.getUnderlying());
+    }
+
+    @Override
+    public PositionReport toGrpc() {
+        return PositionReport.newBuilder()
+                .setSnapshotId(this.getInteger("snapshotID"))
+                .setBusinessDate(this.getInteger("businessDate"))
+                .setTimestamp(this.getLong("timestamp"))
+                .setClearer(this.getString("clearer"))
+                .setMember(this.getString("member"))
+                .setAccount(this.getString("account"))
+                .setLiquidationGroup(this.getString("liquidationGroup"))
+                .setLiquidationGroupSplit(this.getString("liquidationGroupSplit"))
+                .setProduct(this.getString("product"))
+                .setCallPut(this.getString("callPut"))
+                .setContractYear(this.getInteger("contractYear"))
+                .setContractMonth(this.getInteger("contractMonth"))
+                .setExpiryDay(this.getInteger("expiryDay"))
+                .setExercisePrice(this.getDouble("exercisePrice"))
+                .setVersion(this.getString("version"))
+                .setFlexContractSymbol(this.getString("flexContractSymbol"))
+                .setNetQuantityLs(this.getDouble("netQuantityLs"))
+                .setNetQuantityEa(this.getDouble("netQuantityEa"))
+                .setClearingCurrency(this.getString("clearingCurrency"))
+                .setMVar(this.getDouble("mVar"))
+                .setCompVar(this.getDouble("compVar"))
+                .setCompCorrelationBreak(this.getDouble("compCorrelationBreak"))
+                .setCompCompressionError(this.getDouble("compCompressionError"))
+                .setCompLiquidityAddOn(this.getDouble("compLiquidityAddOn"))
+                .setCompLongOptionCredit(this.getDouble("compLongOptionCredit"))
+                .setProductCurrency(this.getString("productCurrency"))
+                .setVariationPremiumPayment(this.getDouble("variationPremiumPayment"))
+                .setPremiumMargin(this.getDouble("premiumMargin"))
+                .setNormalizedDelta(this.getDouble("normalizedDelta"))
+                .setNormalizedGamma(this.getDouble("normalizedGamma"))
+                .setNormalizedVega(this.getDouble("normalizedVega"))
+                .setNormalizedRho(this.getDouble("normalizedRho"))
+                .setNormalizedTheta(this.getDouble("normalizedTheta"))
+                .setUnderlying(this.getString("underlying"))
+                .build();
     }
 
     private void verify(PrismaReports.PositionReport data) {

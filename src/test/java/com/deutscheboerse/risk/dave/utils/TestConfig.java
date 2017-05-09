@@ -11,8 +11,8 @@ public class TestConfig {
     public static final int BROKER_PORT = Integer.getInteger("cil.tcpport", 5672);
     public static final int STORE_MANAGER_PORT = Integer.getInteger("storage.port", 8443);
     public static final int HEALTHCHECK_PORT = Integer.getInteger("healthCheck.port", 8080);
-    public static final SelfSignedCertificate HTTP_SERVER_CERTIFICATE = SelfSignedCertificate.create();
-    public static final SelfSignedCertificate HTTP_CLIENT_CERTIFICATE = SelfSignedCertificate.create();
+    public static final SelfSignedCertificate HTTP_SERVER_CERTIFICATE = SelfSignedCertificate.create("localhost");
+    public static final SelfSignedCertificate HTTP_CLIENT_CERTIFICATE = SelfSignedCertificate.create("localhost");
 
     private TestConfig() {
         // Empty

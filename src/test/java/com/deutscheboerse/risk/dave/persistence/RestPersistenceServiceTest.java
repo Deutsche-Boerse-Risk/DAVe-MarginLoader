@@ -90,22 +90,26 @@ public class RestPersistenceServiceTest {
     public void testStoreFailure(TestContext context) throws InterruptedException {
         storageManager.setHealth(false);
         testAppender.start();
-        persistenceProxy.storeAccountMargin(Collections.singletonList(new AccountMarginModel(new JsonObject())),
+        AccountMarginModel model = DataHelper.getLastModelFromFile(DataHelper.ACCOUNT_MARGIN_FOLDER, 1,
+                AccountMarginModel::new);
+        persistenceProxy.storeAccountMargin(Collections.singletonList(model),
                 context.asyncAssertFailure());
-        testAppender.waitForMessageContains(Level.ERROR, "/api/v1.0/store/am failed:");
+        testAppender.waitForMessageContains(Level.ERROR, "Store failed");
         testAppender.stop();
         storageManager.setHealth(true);
     }
 
     @Test
-    public void testExceptionHandler(TestContext context) throws InterruptedException {
+    public void testServiceUnavailableHandler(TestContext context) throws InterruptedException {
         Async closeAsync = context.async();
         storageManager.close(context.asyncAssertSuccess(i -> closeAsync.complete()));
         closeAsync.awaitSuccess();
         testAppender.start();
-        persistenceProxy.storeAccountMargin(Collections.singletonList(new AccountMarginModel(new JsonObject())),
+        AccountMarginModel model = DataHelper.getLastModelFromFile(DataHelper.ACCOUNT_MARGIN_FOLDER, 1,
+                AccountMarginModel::new);
+        persistenceProxy.storeAccountMargin(Collections.singletonList(model),
                 context.asyncAssertFailure());
-        testAppender.waitForMessageContains(Level.ERROR, "/api/v1.0/store/am failed:");
+        testAppender.waitForMessageContains(Level.ERROR, "Service unavailable");
         storageManager.listen(context.asyncAssertSuccess());
         testAppender.stop();
     }

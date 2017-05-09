@@ -1,13 +1,14 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
+import com.deutscheboerse.risk.dave.LiquiGroupMargin;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 @DataObject
-public class LiquiGroupMarginModel extends AbstractModel {
+public class LiquiGroupMarginModel extends AbstractModel<LiquiGroupMargin> {
 
     public LiquiGroupMarginModel(JsonObject json) {
         this.mergeIn(json);
@@ -32,6 +33,27 @@ public class LiquiGroupMarginModel extends AbstractModel {
         put("additionalMargin", data.getAdditionalMargin());
         put("unadjustedMarginRequirement", data.getUnadjustedMarginRequirement());
         put("variationPremiumPayment", data.getVariationPremiumPayment());
+    }
+
+    @Override
+    public LiquiGroupMargin toGrpc() {
+        return LiquiGroupMargin.newBuilder()
+                .setSnapshotId(this.getInteger("snapshotID"))
+                .setBusinessDate(this.getInteger("businessDate"))
+                .setTimestamp(this.getLong("timestamp"))
+                .setClearer(this.getString("clearer"))
+                .setMember(this.getString("member"))
+                .setAccount(this.getString("account"))
+                .setMarginClass(this.getString("marginClass"))
+                .setMarginCurrency(this.getString("marginCurrency"))
+                .setMarginGroup(this.getString("marginGroup"))
+                .setPremiumMargin(this.getDouble("premiumMargin"))
+                .setCurrentLiquidatingMargin(this.getDouble("currentLiquidatingMargin"))
+                .setFuturesSpreadMargin(this.getDouble("futuresSpreadMargin"))
+                .setAdditionalMargin(this.getDouble("additionalMargin"))
+                .setUnadjustedMarginRequirement(this.getDouble("unadjustedMarginRequirement"))
+                .setVariationPremiumPayment(this.getDouble("variationPremiumPayment"))
+                .build();
     }
 
     private void verify(PrismaReports.LiquiGroupMargin liquiGroupMarginData) {

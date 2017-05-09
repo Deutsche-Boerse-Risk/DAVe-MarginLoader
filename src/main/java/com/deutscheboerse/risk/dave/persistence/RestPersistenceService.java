@@ -1,75 +1,70 @@
 package com.deutscheboerse.risk.dave.persistence;
 
+import com.deutscheboerse.risk.dave.PersistenceServiceGrpc;
+import com.deutscheboerse.risk.dave.StoreReply;
 import com.deutscheboerse.risk.dave.config.StoreManagerConfig;
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import com.deutscheboerse.risk.dave.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.netty.handler.codec.http.HttpResponseStatus;
+import com.google.protobuf.MessageLite;
+import io.grpc.ManagedChannel;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.net.PemKeyCertOptions;
 import io.vertx.core.net.PemTrustOptions;
+import io.vertx.core.net.TCPSSLOptions;
+import io.vertx.grpc.GrpcUniExchange;
+import io.vertx.grpc.VertxChannelBuilder;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class RestPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(RestPersistenceService.class);
 
-    private static final String ACCOUNT_MARGIN_URI = "/api/v1.0/store/am";
-    private static final String LIQUI_GROUP_MARGIN_URI = "/api/v1.0/store/lgm";
-    private static final String LIQUI_GROUP_SPLIT_MARGIN_URI = "/api/v1.0/store/lgsm";
-    private static final String POSITION_REPORT_URI = "/api/v1.0/store/pr";
-    private static final String POOL_MARGIN_URI = "/api/v1.0/store/pm";
-    private static final String RISK_LIMIT_UTILIZATION_URI = "/api/v1.0/store/rlu";
-
     private final Vertx vertx;
     private final StoreManagerConfig config;
-    private final HttpClient httpClient;
     private final HealthCheck healthCheck;
 
     @Inject
     public RestPersistenceService(Vertx vertx, @Named("storeManager.conf") JsonObject config) throws IOException {
         this.vertx = vertx;
         this.config = (new ObjectMapper()).readValue(config.toString(), StoreManagerConfig.class);
-        this.httpClient = this.createHttpClient();
         this.healthCheck = new HealthCheck(vertx);
     }
 
-    private HttpClient createHttpClient() {
-        HttpClientOptions httpClientOptions = this.createHttpClientOptions();
-        return this.vertx.createHttpClient(httpClientOptions);
+    private ManagedChannel createGrpcChannel() {
+        return VertxChannelBuilder
+                .forAddress(vertx, config.getHostname(), config.getPort())
+                .useSsl(this::setGrpcSslOptions)
+                .build();
     }
 
-    private HttpClientOptions createHttpClientOptions() {
-        HttpClientOptions httpClientOptions = new HttpClientOptions();
-        httpClientOptions.setSsl(true);
-        httpClientOptions.setVerifyHost(this.config.isVerifyHost());
+    private void setGrpcSslOptions(TCPSSLOptions sslOptions) {
         PemTrustOptions pemTrustOptions = new PemTrustOptions();
         this.config.getSslTrustCerts()
                 .forEach(trustKey -> pemTrustOptions.addCertValue(Buffer.buffer(trustKey)));
-        httpClientOptions.setPemTrustOptions(pemTrustOptions);
-        final String sslKey = this.config.getSslKey();
+        sslOptions
+                .setSsl(true)
+                .setUseAlpn(true)
+                .setPemTrustOptions(pemTrustOptions);
         final String sslCert = this.config.getSslCert();
+        final String sslKey = this.config.getSslKey();
         if (sslKey != null && sslCert != null) {
             PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions()
                     .setKeyValue(Buffer.buffer(sslKey))
                     .setCertValue(Buffer.buffer(sslCert));
-            httpClientOptions.setPemKeyCertOptions(pemKeyCertOptions);
+            sslOptions.setPemKeyCertOptions(pemKeyCertOptions);
         }
-        return httpClientOptions;
     }
 
     @Override
@@ -80,54 +75,71 @@ public class RestPersistenceService implements PersistenceService {
 
     @Override
     public void storeAccountMargin(List<AccountMarginModel> models, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModels(ACCOUNT_MARGIN_URI, models, resultHandler);
+        ManagedChannel channel = this.createGrpcChannel();
+        store(channel, PersistenceServiceGrpc.newVertxStub(channel)::storeAccountMargin, models, resultHandler);
     }
 
     @Override
     public void storeLiquiGroupMargin(List<LiquiGroupMarginModel> models, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModels(LIQUI_GROUP_MARGIN_URI, models, resultHandler);
+        ManagedChannel channel = this.createGrpcChannel();
+        store(channel, PersistenceServiceGrpc.newVertxStub(channel)::storeLiquiGroupMargin, models, resultHandler);
     }
 
     @Override
     public void storeLiquiGroupSplitMargin(List<LiquiGroupSplitMarginModel> models, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModels(LIQUI_GROUP_SPLIT_MARGIN_URI, models, resultHandler);
+        ManagedChannel channel = this.createGrpcChannel();
+        store(channel, PersistenceServiceGrpc.newVertxStub(channel)::storeLiquiGroupSplitMargin, models, resultHandler);
     }
 
     @Override
     public void storePoolMargin(List<PoolMarginModel> models, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModels(POOL_MARGIN_URI, models, resultHandler);
+        ManagedChannel channel = this.createGrpcChannel();
+        store(channel, PersistenceServiceGrpc.newVertxStub(channel)::storePoolMargin, models, resultHandler);
     }
 
     @Override
     public void storePositionReport(List<PositionReportModel> models, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModels(POSITION_REPORT_URI, models, resultHandler);
+        ManagedChannel channel = this.createGrpcChannel();
+        store(channel, PersistenceServiceGrpc.newVertxStub(channel)::storePositionReport, models, resultHandler);
     }
 
     @Override
     public void storeRiskLimitUtilization(List<RiskLimitUtilizationModel> models, Handler<AsyncResult<Void>> resultHandler) {
-        this.postModels(RISK_LIMIT_UTILIZATION_URI, models, resultHandler);
+        ManagedChannel channel = this.createGrpcChannel();
+        store(channel, PersistenceServiceGrpc.newVertxStub(channel)::storeRiskLimitUtilization, models, resultHandler);
     }
 
     @Override
     public void close() {
-        this.httpClient.close();
     }
 
-    private void postModels(String requestURI, List<? extends AbstractModel> models, Handler<AsyncResult<Void>> resultHandler) {
-        this.httpClient.request(HttpMethod.POST,
-                config.getPort(),
-                config.getHostname(),
-                requestURI,
-                response -> {
-                    if (response.statusCode() == HttpResponseStatus.CREATED.code()) {
-                        response.bodyHandler(body -> resultHandler.handle(Future.succeededFuture()));
+    private static <T extends AbstractModel<U>, U extends MessageLite>
+    void store(ManagedChannel channel,
+               Consumer<Handler<GrpcUniExchange<U, StoreReply>>> storeFunction,
+               List<T> models,
+               Handler<AsyncResult<Void>> resultHandler) {
+
+        storeFunction.accept(exchange -> {
+            exchange
+                .handler(ar -> {
+                    if (ar.succeeded()) {
+                        StoreReply reply = ar.result();
+                        if (reply.getSucceeded()) {
+                            resultHandler.handle(Future.succeededFuture());
+                        } else {
+                            LOG.error("Store failed");
+                            resultHandler.handle(Future.failedFuture("Store failed"));
+                        }
                     } else {
-                        LOG.error("{} failed: {}", requestURI, response.statusMessage());
-                        resultHandler.handle(Future.failedFuture(response.statusMessage()));
+                        LOG.error("Service unavailable", ar);
+                        resultHandler.handle(Future.failedFuture(ar.cause()));
                     }
-                }).exceptionHandler(e -> {
-                    LOG.error("{} failed: {}", requestURI, e.getMessage());
-                    resultHandler.handle(Future.failedFuture(e.getMessage()));
-                }).putHeader("content-type", "application/json").end(new JsonArray(models).toString());
+                    channel.shutdown();
+                });
+
+            models.forEach(model -> exchange.write(model.toGrpc()));
+
+            exchange.end();
+        });
     }
 }

@@ -1,13 +1,14 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
+import com.deutscheboerse.risk.dave.PoolMargin;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 @DataObject
-public class PoolMarginModel extends AbstractModel {
+public class PoolMarginModel extends AbstractModel<PoolMargin> {
 
     public PoolMarginModel(JsonObject json) {
         this.mergeIn(json);
@@ -32,6 +33,28 @@ public class PoolMarginModel extends AbstractModel {
         put("variPremInMarginCurr", data.getVariPremInMarginCurr());
         put("adjustedExchangeRate", data.getAdjustedExchangeRate());
         put("poolOwner", data.getPoolOwner());
+    }
+
+    @Override
+    public PoolMargin toGrpc() {
+        return PoolMargin.newBuilder()
+                .setSnapshotId(this.getInteger("snapshotID"))
+                .setBusinessDate(this.getInteger("businessDate"))
+                .setTimestamp(this.getLong("timestamp"))
+                .setClearer(this.getString("clearer"))
+                .setPool(this.getString("pool"))
+                .setMarginCurrency(this.getString("marginCurrency"))
+                .setClrRptCurrency(this.getString("clrRptCurrency"))
+                .setRequiredMargin(this.getDouble("requiredMargin"))
+                .setCashCollateralAmount(this.getDouble("cashCollateralAmount"))
+                .setAdjustedSecurities(this.getDouble("adjustedSecurities"))
+                .setAdjustedGuarantee(this.getDouble("adjustedGuarantee"))
+                .setOverUnderInMarginCurr(this.getDouble("overUnderInMarginCurr"))
+                .setOverUnderInClrRptCurr(this.getDouble("overUnderInClrRptCurr"))
+                .setVariPremInMarginCurr(this.getDouble("variPremInMarginCurr"))
+                .setAdjustedExchangeRate(this.getDouble("adjustedExchangeRate"))
+                .setPoolOwner(this.getString("poolOwner"))
+                .build();
     }
 
     private void verify(PrismaReports.PoolMargin data) {

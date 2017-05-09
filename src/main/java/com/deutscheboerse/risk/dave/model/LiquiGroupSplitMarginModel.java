@@ -1,13 +1,14 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
+import com.deutscheboerse.risk.dave.LiquiGroupSplitMargin;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 @DataObject
-public class LiquiGroupSplitMarginModel extends AbstractModel {
+public class LiquiGroupSplitMarginModel extends AbstractModel<LiquiGroupSplitMargin> {
 
     public LiquiGroupSplitMarginModel(JsonObject json) {
         this.mergeIn(json);
@@ -31,6 +32,26 @@ public class LiquiGroupSplitMarginModel extends AbstractModel {
         put("liquRisk", data.getLiquRisk());
         put("longOptionCredit", data.getLongOptionCredit());
         put("variationPremiumPayment", data.getVariationPremiumPayment());
+    }
+
+    @Override
+    public LiquiGroupSplitMargin toGrpc() {
+        return LiquiGroupSplitMargin.newBuilder()
+                .setSnapshotId(this.getInteger("snapshotID"))
+                .setBusinessDate(this.getInteger("businessDate"))
+                .setTimestamp(this.getLong("timestamp"))
+                .setClearer(this.getString("clearer"))
+                .setMember(this.getString("member"))
+                .setAccount(this.getString("account"))
+                .setLiquidationGroup(this.getString("liquidationGroup"))
+                .setLiquidationGroupSplit(this.getString("liquidationGroupSplit"))
+                .setMarginCurrency(this.getString("marginCurrency"))
+                .setPremiumMargin(this.getDouble("premiumMargin"))
+                .setMarketRisk(this.getDouble("marketRisk"))
+                .setLiquRisk(this.getDouble("liquRisk"))
+                .setLongOptionCredit(this.getDouble("longOptionCredit"))
+                .setVariationPremiumPayment(this.getDouble("variationPremiumPayment"))
+                .build();
     }
 
     private void verify(PrismaReports.LiquiGroupSplitMargin data) {
