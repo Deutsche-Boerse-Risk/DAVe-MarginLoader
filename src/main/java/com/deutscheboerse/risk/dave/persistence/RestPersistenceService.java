@@ -27,9 +27,11 @@ import javax.inject.Named;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 public class RestPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(RestPersistenceService.class);
+    private static final java.util.logging.Logger GRPC_LOG = java.util.logging.Logger.getLogger("io.grpc");
 
     private final Vertx vertx;
     private final StoreManagerConfig config;
@@ -37,8 +39,7 @@ public class RestPersistenceService implements PersistenceService {
 
     static {
         // Disable grpc info logs
-        java.util.logging.Logger grpcLogger = java.util.logging.Logger.getLogger("io.grpc");
-        grpcLogger.setLevel(java.util.logging.Level.WARNING);
+        GRPC_LOG.setLevel(Level.WARNING);
     }
 
     @Inject

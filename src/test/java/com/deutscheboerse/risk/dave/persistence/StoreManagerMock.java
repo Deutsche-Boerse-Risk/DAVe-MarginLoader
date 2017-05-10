@@ -57,8 +57,8 @@ public class StoreManagerMock {
         }
 
         private <T> void setRequestHandler(GrpcReadStream<T> request, Future<StoreReply> response) {
-            request.handler(accountMargin -> {
-                LOG.trace(accountMargin.toString());
+            request.handler(model -> {
+                LOG.trace(model.toString());
             }).endHandler(v -> {
                 LOG.trace("Request has ended.");
                 response.complete(StoreReply.newBuilder().setSucceeded(health).build());
