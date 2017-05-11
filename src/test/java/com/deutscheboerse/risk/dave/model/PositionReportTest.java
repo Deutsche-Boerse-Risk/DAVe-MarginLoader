@@ -9,15 +9,14 @@ import org.junit.Test;
 public class PositionReportTest {
 
     @Test
-    public void testGetAndSetValues() throws Exception {
+    public void testConversionFromPrisma() throws Exception {
         JsonObject json = DataHelper.getLastJsonFromFile("positionReport", 1).orElseThrow(Exception::new);
         PrismaReports.PrismaHeader header = DataHelper.createPrismaHeaderFromJson(json);
-        PrismaReports.PositionReport data = DataHelper.createPositionReportGPBFromJson(json);
+        PrismaReports.PositionReport data = DataHelper.createPrismaPositionReportFromJson(json);
 
-        PositionReportModel modelFromGPB = new PositionReportModel(header, data);
-        PositionReportModel modelFromJson = new PositionReportModel(json);
+        PositionReportModel modelFromPrisma = new PositionReportModel(header, data);
+        PositionReportModel modelFromJson = DataHelper.createPositionReportModelFromJson(json);
 
-        Assert.assertEquals(json, modelFromGPB.toJson());
-        Assert.assertEquals(json, modelFromJson.toJson());
+        Assert.assertEquals(modelFromJson, modelFromPrisma);
     }
 }

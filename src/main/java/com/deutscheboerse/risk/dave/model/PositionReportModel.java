@@ -2,99 +2,94 @@ package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import com.deutscheboerse.risk.dave.PositionReport;
+import com.google.protobuf.InvalidProtocolBufferException;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 @DataObject
-public class PositionReportModel extends AbstractModel<PositionReport> {
+public class PositionReportModel implements Model<PositionReport> {
+
+    private final PositionReport grpc;
 
     public PositionReportModel(JsonObject json) {
-        this.mergeIn(json);
+        verifyJson(json);
+        try {
+            this.grpc = PositionReport.parseFrom(json.getBinary("grpc"));
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public PositionReportModel(PrismaReports.PrismaHeader header, PrismaReports.PositionReport data) {
-        super(header);
-
-        verify(data);
+        verifyPrismaHeader(header);
+        verifyPrismaData(data);
 
         PrismaReports.PositionReportKey key = data.getKey();
-        put("clearer", key.getClearer());
-        put("member", key.getMember());
-        put("account", key.getAccount());
-        put("liquidationGroup", key.getLiquidationGroup());
-        put("liquidationGroupSplit", key.getLiquidationGroupSplit());
-        put("product", key.getProduct());
-        put("callPut", key.getCallPut());
-        put("contractYear", key.getContractYear());
-        put("contractMonth", key.getContractMonth());
-        put("expiryDay", key.getExpiryDay());
-        put("exercisePrice", key.getExercisePrice());
-        put("version", key.getVersion());
-        put("flexContractSymbol", key.getFlexContractSymbol());
+        this.grpc = PositionReport.newBuilder()
+                .setSnapshotId(header.getId())
+                .setBusinessDate(header.getBusinessDate())
+                .setTimestamp(header.getTimestamp())
+                .setClearer(key.getClearer())
+                .setMember(key.getMember())
+                .setAccount(key.getAccount())
+                .setLiquidationGroup(key.getLiquidationGroup())
+                .setLiquidationGroupSplit(key.getLiquidationGroupSplit())
+                .setProduct(key.getProduct())
+                .setCallPut(key.getCallPut())
+                .setContractYear(key.getContractYear())
+                .setContractMonth(key.getContractMonth())
+                .setExpiryDay(key.getExpiryDay())
+                .setExercisePrice(key.getExercisePrice())
+                .setVersion(key.getVersion())
+                .setFlexContractSymbol(key.getFlexContractSymbol())
+                .setNetQuantityLs(data.getNetQuantityLs())
+                .setNetQuantityEa(data.getNetQuantityEa())
+                .setClearingCurrency(data.getClearingCurrency())
+                .setMVar(data.getMVar())
+                .setCompVar(data.getCompVar())
+                .setCompCorrelationBreak(data.getCompCorrelationBreak())
+                .setCompCompressionError(data.getCompCompressionError())
+                .setCompLiquidityAddOn(data.getCompLiquidityAddOn())
+                .setCompLongOptionCredit(data.getCompLongOptionCredit())
+                .setProductCurrency(data.getProductCurrency())
+                .setVariationPremiumPayment(data.getVariationPremiumPayment())
+                .setPremiumMargin(data.getPremiumMargin())
+                .setNormalizedDelta(data.getNormalizedDelta())
+                .setNormalizedGamma(data.getNormalizedGamma())
+                .setNormalizedVega(data.getNormalizedVega())
+                .setNormalizedRho(data.getNormalizedRho())
+                .setNormalizedTheta(data.getNormalizedTheta())
+                .setUnderlying(data.getUnderlying())
+                .build();
+    }
 
-        put("netQuantityLs", data.getNetQuantityLs());
-        put("netQuantityEa", data.getNetQuantityEa());
-        put("clearingCurrency", data.getClearingCurrency());
-        put("mVar", data.getMVar());
-        put("compVar", data.getCompVar());
-        put("compCorrelationBreak", data.getCompCorrelationBreak());
-        put("compCompressionError", data.getCompCompressionError());
-        put("compLiquidityAddOn", data.getCompLiquidityAddOn());
-        put("compLongOptionCredit", data.getCompLongOptionCredit());
-        put("productCurrency", data.getProductCurrency());
-        put("variationPremiumPayment", data.getVariationPremiumPayment());
-        put("premiumMargin", data.getPremiumMargin());
-        put("normalizedDelta", data.getNormalizedDelta());
-        put("normalizedGamma", data.getNormalizedGamma());
-        put("normalizedVega", data.getNormalizedVega());
-        put("normalizedRho", data.getNormalizedRho());
-        put("normalizedTheta", data.getNormalizedTheta());
-        put("underlying", data.getUnderlying());
+    @Override
+    public JsonObject toJson() {
+        return new JsonObject().put("grpc", this.grpc.toByteArray());
     }
 
     @Override
     public PositionReport toGrpc() {
-        return PositionReport.newBuilder()
-                .setSnapshotId(this.getInteger("snapshotID"))
-                .setBusinessDate(this.getInteger("businessDate"))
-                .setTimestamp(this.getLong("timestamp"))
-                .setClearer(this.getString("clearer"))
-                .setMember(this.getString("member"))
-                .setAccount(this.getString("account"))
-                .setLiquidationGroup(this.getString("liquidationGroup"))
-                .setLiquidationGroupSplit(this.getString("liquidationGroupSplit"))
-                .setProduct(this.getString("product"))
-                .setCallPut(this.getString("callPut"))
-                .setContractYear(this.getInteger("contractYear"))
-                .setContractMonth(this.getInteger("contractMonth"))
-                .setExpiryDay(this.getInteger("expiryDay"))
-                .setExercisePrice(this.getDouble("exercisePrice"))
-                .setVersion(this.getString("version"))
-                .setFlexContractSymbol(this.getString("flexContractSymbol"))
-                .setNetQuantityLs(this.getDouble("netQuantityLs"))
-                .setNetQuantityEa(this.getDouble("netQuantityEa"))
-                .setClearingCurrency(this.getString("clearingCurrency"))
-                .setMVar(this.getDouble("mVar"))
-                .setCompVar(this.getDouble("compVar"))
-                .setCompCorrelationBreak(this.getDouble("compCorrelationBreak"))
-                .setCompCompressionError(this.getDouble("compCompressionError"))
-                .setCompLiquidityAddOn(this.getDouble("compLiquidityAddOn"))
-                .setCompLongOptionCredit(this.getDouble("compLongOptionCredit"))
-                .setProductCurrency(this.getString("productCurrency"))
-                .setVariationPremiumPayment(this.getDouble("variationPremiumPayment"))
-                .setPremiumMargin(this.getDouble("premiumMargin"))
-                .setNormalizedDelta(this.getDouble("normalizedDelta"))
-                .setNormalizedGamma(this.getDouble("normalizedGamma"))
-                .setNormalizedVega(this.getDouble("normalizedVega"))
-                .setNormalizedRho(this.getDouble("normalizedRho"))
-                .setNormalizedTheta(this.getDouble("normalizedTheta"))
-                .setUnderlying(this.getString("underlying"))
-                .build();
+        return this.grpc;
     }
 
-    private void verify(PrismaReports.PositionReport data) {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof PositionReportModel))
+            return false;
+        return this.grpc.equals(((PositionReportModel) o).grpc);
+    }
+
+    @Override
+    public int hashCode() {
+        return this.grpc.hashCode();
+    }
+
+    private void verifyPrismaData(PrismaReports.PositionReport data) {
         PrismaReports.PositionReportKey key = data.getKey();
 
         checkArgument(data.hasKey(), "Missing position report key in AMQP data");

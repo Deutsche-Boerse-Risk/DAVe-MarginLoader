@@ -9,15 +9,14 @@ import org.junit.Test;
 public class AccountMarginModelTest {
 
     @Test
-    public void testGetAndSetValues() throws Exception {
+    public void testConversionFromPrisma() throws Exception {
         JsonObject json = DataHelper.getLastJsonFromFile("accountMargin", 1).orElseThrow(Exception::new);
         PrismaReports.PrismaHeader header = DataHelper.createPrismaHeaderFromJson(json);
-        PrismaReports.AccountMargin data = DataHelper.createAccountMarginGPBFromJson(json);
+        PrismaReports.AccountMargin data = DataHelper.createPrismaAccountMarginFromJson(json);
 
-        AccountMarginModel modelFromGPB = new AccountMarginModel(header, data);
-        AccountMarginModel modelFromJson = new AccountMarginModel(json);
+        AccountMarginModel modelFromPrisma = new AccountMarginModel(header, data);
+        AccountMarginModel modelFromJson = DataHelper.createAccountMarginModelFromJson(json);
 
-        Assert.assertEquals(json, modelFromGPB.toJson());
-        Assert.assertEquals(json, modelFromJson.toJson());
+        Assert.assertEquals(modelFromJson, modelFromPrisma);
     }
 }

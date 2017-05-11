@@ -2,61 +2,75 @@ package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import com.deutscheboerse.risk.dave.LiquiGroupMargin;
+import com.google.protobuf.InvalidProtocolBufferException;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 @DataObject
-public class LiquiGroupMarginModel extends AbstractModel<LiquiGroupMargin> {
+public class LiquiGroupMarginModel implements Model<LiquiGroupMargin> {
+
+    private final LiquiGroupMargin grpc;
 
     public LiquiGroupMarginModel(JsonObject json) {
-        this.mergeIn(json);
+        verifyJson(json);
+        try {
+            this.grpc =  LiquiGroupMargin.parseFrom(json.getBinary("grpc"));
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public LiquiGroupMarginModel(PrismaReports.PrismaHeader header, PrismaReports.LiquiGroupMargin data) {
-        super(header);
-
-        verify(data);
+        verifyPrismaHeader(header);
+        verifyPrismaData(data);
 
         PrismaReports.LiquiGroupMarginKey key = data.getKey();
-        put("clearer", key.getClearer());
-        put("member", key.getMember());
-        put("account", key.getAccount());
-        put("marginClass", key.getMarginClass());
-        put("marginCurrency", key.getMarginCurrency());
+        this.grpc = LiquiGroupMargin.newBuilder()
+                .setSnapshotId(header.getId())
+                .setBusinessDate(header.getBusinessDate())
+                .setTimestamp(header.getTimestamp())
+                .setClearer(key.getClearer())
+                .setMember(key.getMember())
+                .setAccount(key.getAccount())
+                .setMarginClass(key.getMarginClass())
+                .setMarginCurrency(key.getMarginCurrency())
+                .setMarginGroup(data.getMarginGroup())
+                .setPremiumMargin(data.getPremiumMargin())
+                .setCurrentLiquidatingMargin(data.getCurrentLiquidatingMargin())
+                .setFuturesSpreadMargin(data.getFuturesSpreadMargin())
+                .setAdditionalMargin(data.getAdditionalMargin())
+                .setUnadjustedMarginRequirement(data.getUnadjustedMarginRequirement())
+                .setVariationPremiumPayment(data.getVariationPremiumPayment())
+                .build();
+    }
 
-        put("marginGroup", data.getMarginGroup());
-        put("premiumMargin", data.getPremiumMargin());
-        put("currentLiquidatingMargin", data.getCurrentLiquidatingMargin());
-        put("futuresSpreadMargin", data.getFuturesSpreadMargin());
-        put("additionalMargin", data.getAdditionalMargin());
-        put("unadjustedMarginRequirement", data.getUnadjustedMarginRequirement());
-        put("variationPremiumPayment", data.getVariationPremiumPayment());
+    @Override
+    public JsonObject toJson() {
+        return new JsonObject().put("grpc", this.grpc.toByteArray());
     }
 
     @Override
     public LiquiGroupMargin toGrpc() {
-        return LiquiGroupMargin.newBuilder()
-                .setSnapshotId(this.getInteger("snapshotID"))
-                .setBusinessDate(this.getInteger("businessDate"))
-                .setTimestamp(this.getLong("timestamp"))
-                .setClearer(this.getString("clearer"))
-                .setMember(this.getString("member"))
-                .setAccount(this.getString("account"))
-                .setMarginClass(this.getString("marginClass"))
-                .setMarginCurrency(this.getString("marginCurrency"))
-                .setMarginGroup(this.getString("marginGroup"))
-                .setPremiumMargin(this.getDouble("premiumMargin"))
-                .setCurrentLiquidatingMargin(this.getDouble("currentLiquidatingMargin"))
-                .setFuturesSpreadMargin(this.getDouble("futuresSpreadMargin"))
-                .setAdditionalMargin(this.getDouble("additionalMargin"))
-                .setUnadjustedMarginRequirement(this.getDouble("unadjustedMarginRequirement"))
-                .setVariationPremiumPayment(this.getDouble("variationPremiumPayment"))
-                .build();
+        return this.grpc;
     }
 
-    private void verify(PrismaReports.LiquiGroupMargin liquiGroupMarginData) {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof LiquiGroupMarginModel))
+            return false;
+        return this.grpc.equals(((LiquiGroupMarginModel) o).grpc);
+    }
+
+    @Override
+    public int hashCode() {
+        return this.grpc.hashCode();
+    }
+
+    private void verifyPrismaData(PrismaReports.LiquiGroupMargin liquiGroupMarginData) {
         checkArgument(liquiGroupMarginData.hasKey(), "Missing liqui group margin key in AMQP data");
         checkArgument(liquiGroupMarginData.getKey().hasClearer(), "Missing liqui group margin clearer in AMQP data");
         checkArgument(liquiGroupMarginData.getKey().hasMember(), "Missing liqui group margin member in AMQP data");

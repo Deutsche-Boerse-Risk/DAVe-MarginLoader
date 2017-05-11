@@ -9,15 +9,14 @@ import org.junit.Test;
 public class RiskLimitUtilizationTest {
 
     @Test
-    public void testGetAndSetValues() throws Exception {
+    public void testConversionFromPrisma() throws Exception {
         JsonObject json = DataHelper.getLastJsonFromFile("riskLimitUtilization", 1).orElseThrow(Exception::new);
         PrismaReports.PrismaHeader header = DataHelper.createPrismaHeaderFromJson(json);
-        PrismaReports.RiskLimitUtilization data = DataHelper.createRiskLimitUtilizationGPBFromJson(json);
+        PrismaReports.RiskLimitUtilization data = DataHelper.createPrismaRiskLimitUtilizationFromJson(json);
 
-        RiskLimitUtilizationModel modelFromGPB = new RiskLimitUtilizationModel(header, data);
-        RiskLimitUtilizationModel modelFromJson = new RiskLimitUtilizationModel(json);
+        RiskLimitUtilizationModel modelFromPrisma = new RiskLimitUtilizationModel(header, data);
+        RiskLimitUtilizationModel modelFromJson = DataHelper.createRiskLimitUtilizationModelFromJson(json);
 
-        Assert.assertEquals(json, modelFromGPB.toJson());
-        Assert.assertEquals(json, modelFromJson.toJson());
+        Assert.assertEquals(modelFromJson, modelFromPrisma);
     }
 }

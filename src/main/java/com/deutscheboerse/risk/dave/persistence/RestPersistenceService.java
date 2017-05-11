@@ -121,7 +121,7 @@ public class RestPersistenceService implements PersistenceService {
         // Empty
     }
 
-    private static <T extends AbstractModel<U>, U extends MessageLite>
+    private static <T extends Model<U>, U extends MessageLite>
     void store(ManagedChannel channel,
                Consumer<Handler<GrpcUniExchange<U, StoreReply>>> storeFunction,
                List<T> models,

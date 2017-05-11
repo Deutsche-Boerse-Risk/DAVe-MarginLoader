@@ -9,15 +9,14 @@ import org.junit.Test;
 public class LiquiGroupMarginModelTest {
 
     @Test
-    public void testGetAndSetValues() throws Exception {
+    public void testConversionFromPrisma() throws Exception {
         JsonObject json = DataHelper.getLastJsonFromFile("liquiGroupMargin", 1).orElseThrow(Exception::new);
         PrismaReports.PrismaHeader header = DataHelper.createPrismaHeaderFromJson(json);
-        PrismaReports.LiquiGroupMargin data = DataHelper.createLiquiGroupMarginGPBFromJson(json);
+        PrismaReports.LiquiGroupMargin data = DataHelper.createPrismaLiquiGroupMarginFromJson(json);
 
-        LiquiGroupMarginModel modelFromGPB = new LiquiGroupMarginModel(header, data);
-        LiquiGroupMarginModel modelFromJson = new LiquiGroupMarginModel(json);
+        LiquiGroupMarginModel modelFromPrisma = new LiquiGroupMarginModel(header, data);
+        LiquiGroupMarginModel modelFromJson = DataHelper.createLiquiGroupMarginModelFromJson(json);
 
-        Assert.assertEquals(json, modelFromGPB.toJson());
-        Assert.assertEquals(json, modelFromJson.toJson());
+        Assert.assertEquals(modelFromJson, modelFromPrisma);
     }
 }

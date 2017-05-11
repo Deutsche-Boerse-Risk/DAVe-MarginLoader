@@ -2,61 +2,75 @@ package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import com.deutscheboerse.risk.dave.LiquiGroupSplitMargin;
+import com.google.protobuf.InvalidProtocolBufferException;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 @DataObject
-public class LiquiGroupSplitMarginModel extends AbstractModel<LiquiGroupSplitMargin> {
+public class LiquiGroupSplitMarginModel implements Model<LiquiGroupSplitMargin> {
+
+    private final LiquiGroupSplitMargin grpc;
 
     public LiquiGroupSplitMarginModel(JsonObject json) {
-        this.mergeIn(json);
+        verifyJson(json);
+        try {
+            this.grpc = LiquiGroupSplitMargin.parseFrom(json.getBinary("grpc"));
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public LiquiGroupSplitMarginModel(PrismaReports.PrismaHeader header, PrismaReports.LiquiGroupSplitMargin data) {
-        super(header);
-
-        verify(data);
+        verifyPrismaHeader(header);
+        verifyPrismaData(data);
 
         PrismaReports.LiquiGroupSplitMarginKey key = data.getKey();
-        put("clearer", key.getClearer());
-        put("member", key.getMember());
-        put("account", key.getAccount());
-        put("liquidationGroup", key.getLiquidationGroup());
-        put("liquidationGroupSplit", key.getLiquidationGroupSplit());
-        put("marginCurrency", key.getMarginCurrency());
+        this.grpc = LiquiGroupSplitMargin.newBuilder()
+                .setSnapshotId(header.getId())
+                .setBusinessDate(header.getBusinessDate())
+                .setTimestamp(header.getTimestamp())
+                .setClearer(key.getClearer())
+                .setMember(key.getMember())
+                .setAccount(key.getAccount())
+                .setLiquidationGroup(key.getLiquidationGroup())
+                .setLiquidationGroupSplit(key.getLiquidationGroupSplit())
+                .setMarginCurrency(key.getMarginCurrency())
+                .setPremiumMargin(data.getPremiumMargin())
+                .setMarketRisk(data.getMarketRisk())
+                .setLiquRisk(data.getLiquRisk())
+                .setLongOptionCredit(data.getLongOptionCredit())
+                .setVariationPremiumPayment(data.getVariationPremiumPayment())
+                .build();
+    }
 
-        put("premiumMargin", data.getPremiumMargin());
-        put("marketRisk", data.getMarketRisk());
-        put("liquRisk", data.getLiquRisk());
-        put("longOptionCredit", data.getLongOptionCredit());
-        put("variationPremiumPayment", data.getVariationPremiumPayment());
+    @Override
+    public JsonObject toJson() {
+        return new JsonObject().put("grpc", this.grpc.toByteArray());
     }
 
     @Override
     public LiquiGroupSplitMargin toGrpc() {
-        return LiquiGroupSplitMargin.newBuilder()
-                .setSnapshotId(this.getInteger("snapshotID"))
-                .setBusinessDate(this.getInteger("businessDate"))
-                .setTimestamp(this.getLong("timestamp"))
-                .setClearer(this.getString("clearer"))
-                .setMember(this.getString("member"))
-                .setAccount(this.getString("account"))
-                .setLiquidationGroup(this.getString("liquidationGroup"))
-                .setLiquidationGroupSplit(this.getString("liquidationGroupSplit"))
-                .setMarginCurrency(this.getString("marginCurrency"))
-                .setPremiumMargin(this.getDouble("premiumMargin"))
-                .setMarketRisk(this.getDouble("marketRisk"))
-                .setLiquRisk(this.getDouble("liquRisk"))
-                .setLongOptionCredit(this.getDouble("longOptionCredit"))
-                .setVariationPremiumPayment(this.getDouble("variationPremiumPayment"))
-                .build();
+        return this.grpc;
     }
 
-    private void verify(PrismaReports.LiquiGroupSplitMargin data) {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof LiquiGroupSplitMarginModel))
+            return false;
+        return this.grpc.equals(((LiquiGroupSplitMarginModel) o).grpc);
+    }
+
+    @Override
+    public int hashCode() {
+        return this.grpc.hashCode();
+    }
+
+    private void verifyPrismaData(PrismaReports.LiquiGroupSplitMargin data) {
         checkArgument(data.hasKey(), "Missing LGSM key in AMQP data");
-        
         checkArgument(data.getKey().hasClearer(), "Missing LGSM clearer in AMQP data");
         checkArgument(data.getKey().hasMember(), "Missing LGSM member in AMQP data");
         checkArgument(data.getKey().hasAccount(), "Missing LGSM account in AMQP data");
