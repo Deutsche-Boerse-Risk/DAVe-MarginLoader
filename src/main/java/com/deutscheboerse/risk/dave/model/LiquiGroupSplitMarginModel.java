@@ -55,20 +55,6 @@ public class LiquiGroupSplitMarginModel implements Model<LiquiGroupSplitMargin> 
         return this.grpc;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof LiquiGroupSplitMarginModel))
-            return false;
-        return this.grpc.equals(((LiquiGroupSplitMarginModel) o).grpc);
-    }
-
-    @Override
-    public int hashCode() {
-        return this.grpc.hashCode();
-    }
-
     private void verifyPrismaData(PrismaReports.LiquiGroupSplitMargin data) {
         checkArgument(data.hasKey(), "Missing LGSM key in AMQP data");
         checkArgument(data.getKey().hasClearer(), "Missing LGSM clearer in AMQP data");

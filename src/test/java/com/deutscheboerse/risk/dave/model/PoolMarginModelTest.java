@@ -21,7 +21,7 @@ public class PoolMarginModelTest {
         PoolMarginModel modelFromPrisma = new PoolMarginModel(header, data);
         PoolMarginModel modelFromJson = DataHelper.createPoolMarginModelFromJson(json);
 
-        Assert.assertEquals(modelFromJson, modelFromPrisma);
+        Assert.assertEquals(modelFromJson.toGrpc(), modelFromPrisma.toGrpc());
     }
 
     @Test(expected = RuntimeException.class)

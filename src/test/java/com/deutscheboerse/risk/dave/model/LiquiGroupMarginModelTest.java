@@ -21,7 +21,7 @@ public class LiquiGroupMarginModelTest {
         LiquiGroupMarginModel modelFromPrisma = new LiquiGroupMarginModel(header, data);
         LiquiGroupMarginModel modelFromJson = DataHelper.createLiquiGroupMarginModelFromJson(json);
 
-        Assert.assertEquals(modelFromJson, modelFromPrisma);
+        Assert.assertEquals(modelFromJson.toGrpc(), modelFromPrisma.toGrpc());
     }
 
     @Test(expected = RuntimeException.class)

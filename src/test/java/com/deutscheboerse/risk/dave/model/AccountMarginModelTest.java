@@ -26,7 +26,7 @@ public class AccountMarginModelTest {
         AccountMarginModel modelFromPrisma = new AccountMarginModel(header, data);
         AccountMarginModel modelFromJson = DataHelper.createAccountMarginModelFromJson(json);
 
-        Assert.assertEquals(modelFromJson, modelFromPrisma);
+        Assert.assertEquals(modelFromJson.toGrpc(), modelFromPrisma.toGrpc());
     }
 
     @Test(expected = RuntimeException.class)

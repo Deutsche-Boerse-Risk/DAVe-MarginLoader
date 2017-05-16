@@ -75,20 +75,6 @@ public class PositionReportModel implements Model<PositionReport> {
         return this.grpc;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof PositionReportModel))
-            return false;
-        return this.grpc.equals(((PositionReportModel) o).grpc);
-    }
-
-    @Override
-    public int hashCode() {
-        return this.grpc.hashCode();
-    }
-
     private void verifyPrismaData(PrismaReports.PositionReport data) {
         PrismaReports.PositionReportKey key = data.getKey();
 

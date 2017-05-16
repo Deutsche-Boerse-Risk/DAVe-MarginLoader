@@ -8,6 +8,7 @@ import com.deutscheboerse.risk.dave.log.TestAppender;
 import com.deutscheboerse.risk.dave.model.*;
 import com.deutscheboerse.risk.dave.persistence.*;
 import com.deutscheboerse.risk.dave.utils.*;
+import com.google.protobuf.MessageLite;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Handler;
@@ -307,8 +308,8 @@ public class AMQPVerticleIT {
 
         // verify the content of the last message
         JsonObject jsonData = DataHelper.getLastJsonFromFile(dataFolder, 1).orElse(new JsonObject());
-        T expected = modelFactory.apply(jsonData);
-        context.assertEquals(expected, persistenceService.getLastModel());
+        MessageLite expected = modelFactory.apply(jsonData).toGrpc();
+        context.assertEquals(expected, persistenceService.getLastModel().toGrpc());
 
         ProxyHelper.unregisterService(serviceMessageConsumer);
     }

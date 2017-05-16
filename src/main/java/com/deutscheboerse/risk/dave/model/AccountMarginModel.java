@@ -54,20 +54,6 @@ public class AccountMarginModel implements Model<AccountMargin> {
         return this.grpc;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof AccountMarginModel))
-            return false;
-        return this.grpc.equals(((AccountMarginModel) o).grpc);
-    }
-
-    @Override
-    public int hashCode() {
-        return this.grpc.hashCode();
-    }
-
     private void verifyPrismaData(PrismaReports.AccountMargin data) {
         checkArgument(data.hasKey(), "Missing account margin key in AMQP data");
         checkArgument(data.getKey().hasClearer(), "Missing account margin clearer in AMQP data");

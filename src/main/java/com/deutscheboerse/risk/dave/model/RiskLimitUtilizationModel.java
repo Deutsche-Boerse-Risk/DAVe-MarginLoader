@@ -52,20 +52,6 @@ public class RiskLimitUtilizationModel implements Model<RiskLimitUtilization> {
         return this.grpc;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof RiskLimitUtilizationModel))
-            return false;
-        return this.grpc.equals(((RiskLimitUtilizationModel) o).grpc);
-    }
-
-    @Override
-    public int hashCode() {
-        return this.grpc.hashCode();
-    }
-
     private void verifyPrismaData(PrismaReports.RiskLimitUtilization data) {
         checkArgument(data.hasKey(), "Missing risk limit utilization key in AMQP data");
         checkArgument(data.getKey().hasClearer(), "Missing clearer in AMQP data");

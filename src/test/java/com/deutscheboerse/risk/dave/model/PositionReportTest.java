@@ -21,7 +21,7 @@ public class PositionReportTest {
         PositionReportModel modelFromPrisma = new PositionReportModel(header, data);
         PositionReportModel modelFromJson = DataHelper.createPositionReportModelFromJson(json);
 
-        Assert.assertEquals(modelFromJson, modelFromPrisma);
+        Assert.assertEquals(modelFromJson.toGrpc(), modelFromPrisma.toGrpc());
     }
 
     @Test(expected = RuntimeException.class)

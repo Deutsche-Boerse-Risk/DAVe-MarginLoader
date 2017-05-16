@@ -21,7 +21,7 @@ public class RiskLimitUtilizationTest {
         RiskLimitUtilizationModel modelFromPrisma = new RiskLimitUtilizationModel(header, data);
         RiskLimitUtilizationModel modelFromJson = DataHelper.createRiskLimitUtilizationModelFromJson(json);
 
-        Assert.assertEquals(modelFromJson, modelFromPrisma);
+        Assert.assertEquals(modelFromJson.toGrpc(), modelFromPrisma.toGrpc());
     }
 
     @Test(expected = RuntimeException.class)

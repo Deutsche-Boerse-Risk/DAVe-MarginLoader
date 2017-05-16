@@ -56,20 +56,6 @@ public class LiquiGroupMarginModel implements Model<LiquiGroupMargin> {
         return this.grpc;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof LiquiGroupMarginModel))
-            return false;
-        return this.grpc.equals(((LiquiGroupMarginModel) o).grpc);
-    }
-
-    @Override
-    public int hashCode() {
-        return this.grpc.hashCode();
-    }
-
     private void verifyPrismaData(PrismaReports.LiquiGroupMargin liquiGroupMarginData) {
         checkArgument(liquiGroupMarginData.hasKey(), "Missing liqui group margin key in AMQP data");
         checkArgument(liquiGroupMarginData.getKey().hasClearer(), "Missing liqui group margin clearer in AMQP data");

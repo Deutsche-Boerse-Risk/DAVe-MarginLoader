@@ -57,20 +57,6 @@ public class PoolMarginModel implements Model<PoolMargin> {
         return this.grpc;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof PoolMarginModel))
-            return false;
-        return this.grpc.equals(((PoolMarginModel) o).grpc);
-    }
-
-    @Override
-    public int hashCode() {
-        return this.grpc.hashCode();
-    }
-
     private void verifyPrismaData(PrismaReports.PoolMargin data) {
         checkArgument(data.hasKey(), "Missing pool key in AMQP data");
         checkArgument(data.getKey().hasClearer(), "Missing pool clearer in AMQP data");
