@@ -52,7 +52,6 @@ The `storeManager` section contains the configuration of the DAVe-StoreManager w
 |--------|-------------|---------|
 | `hostname` | Hostname of the DAVe-StoreManager | `localhost` |
 | `port` | Port where the DAVe-StoreManager is listening to HTTPS connections | 8443 |
-| `verifyHost` | Flag for verification of the DAVe-StoreManager hostname | false |
 | `sslKey` | Private key of the DAVe-MarginLoader | |
 | `sslCert` | Public key of the DAVe-MarginLoader | |
 | `sslTrustCerts` | List of trusted certification authorities | |

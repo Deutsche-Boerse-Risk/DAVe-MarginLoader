@@ -56,7 +56,6 @@ public class TestConfig {
 
         return new JsonObject()
                 .put("port", STORE_MANAGER_PORT)
-                .put("verifyHost", false)
                 .put("sslKey", pemKeyBuffer.toString())
                 .put("sslCert", pemCertBuffer.toString())
                 .put("sslTrustCerts", sslTrustCerts);
