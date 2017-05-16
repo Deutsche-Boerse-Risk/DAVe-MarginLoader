@@ -1,7 +1,9 @@
 package com.deutscheboerse.risk.dave.persistence;
 
-import com.deutscheboerse.risk.dave.*;
+import com.deutscheboerse.risk.dave.grpc.*;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -61,7 +63,11 @@ public class StoreManagerMock {
                 LOG.trace(model.toString());
             }).endHandler(v -> {
                 LOG.trace("Request has ended.");
-                response.complete(StoreReply.newBuilder().setSucceeded(health).build());
+                if (health) {
+                    response.complete(StoreReply.newBuilder().build());
+                } else {
+                    response.fail(new StatusRuntimeException(Status.INVALID_ARGUMENT));
+                }
             });
         }
     };

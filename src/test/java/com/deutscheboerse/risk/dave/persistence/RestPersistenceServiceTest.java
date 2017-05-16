@@ -94,7 +94,7 @@ public class RestPersistenceServiceTest {
                 DataHelper::createAccountMarginModelFromJson);
         persistenceProxy.storeAccountMargin(Collections.singletonList(model),
                 context.asyncAssertFailure());
-        testAppender.waitForMessageContains(Level.ERROR, "Store failed");
+        testAppender.waitForMessageContains(Level.ERROR, "Service unavailable");
         testAppender.stop();
         storageManager.setHealth(true);
     }

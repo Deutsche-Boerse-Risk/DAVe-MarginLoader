@@ -1,7 +1,7 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
-import com.deutscheboerse.risk.dave.LiquiGroupSplitMargin;
+import com.deutscheboerse.risk.dave.grpc.LiquiGroupSplitMargin;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;

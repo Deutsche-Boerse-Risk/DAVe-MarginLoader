@@ -1,7 +1,7 @@
 package com.deutscheboerse.risk.dave.persistence;
 
-import com.deutscheboerse.risk.dave.PersistenceServiceGrpc;
-import com.deutscheboerse.risk.dave.StoreReply;
+import com.deutscheboerse.risk.dave.grpc.PersistenceServiceGrpc;
+import com.deutscheboerse.risk.dave.grpc.StoreReply;
 import com.deutscheboerse.risk.dave.config.StoreManagerConfig;
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import com.deutscheboerse.risk.dave.model.*;
@@ -131,13 +131,7 @@ public class RestPersistenceService implements PersistenceService {
             exchange
                 .handler(ar -> {
                     if (ar.succeeded()) {
-                        StoreReply reply = ar.result();
-                        if (reply.getSucceeded()) {
-                            resultHandler.handle(Future.succeededFuture());
-                        } else {
-                            LOG.error("Store failed");
-                            resultHandler.handle(Future.failedFuture("Store failed"));
-                        }
+                        resultHandler.handle(Future.succeededFuture());
                     } else {
                         LOG.error("Service unavailable", ar);
                         resultHandler.handle(Future.failedFuture(ar.cause()));
