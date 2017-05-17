@@ -118,11 +118,11 @@ public abstract class AMQPVerticle<GPBType extends Message, ModelType extends Mo
                 if (ar.succeeded()) {
                     LOG.info("Message settled: {} (ttsave={}, {} of {})", this.verticleName, header.getId(), header.getMessageId(), header.getMessageCount());
                     delivery.settle();
+                    amqpClient.increaseCreditBy(1);
                 } else {
                     LOG.warn("Message released: {} (ttsave={} {} of {})", this.verticleName, header.getId(), header.getMessageId(), header.getMessageCount(), ar.cause());
                     delivery.disposition(new Released(), true);
                 }
-                amqpClient.increaseCreditBy(1);
             });
         } else {
             LOG.info("Message settled: skipping invalid message");
