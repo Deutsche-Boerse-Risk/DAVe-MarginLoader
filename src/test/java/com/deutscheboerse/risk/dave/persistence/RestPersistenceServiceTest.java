@@ -52,37 +52,37 @@ public class RestPersistenceServiceTest {
 
     @Test
     public void testAccountMarginStore(TestContext context) throws IOException {
-        testStore(context, DataHelper.ACCOUNT_MARGIN_FOLDER, AccountMarginModel::new,
+        testStore(context, DataHelper.ACCOUNT_MARGIN_FOLDER, DataHelper::createAccountMarginModelFromJson,
                 persistenceProxy::storeAccountMargin);
     }
 
     @Test
     public void testLiquiGroupMarginStore(TestContext context) throws IOException {
-        testStore(context, DataHelper.LIQUI_GROUP_MARGIN_FOLDER, LiquiGroupMarginModel::new,
+        testStore(context, DataHelper.LIQUI_GROUP_MARGIN_FOLDER, DataHelper::createLiquiGroupMarginModelFromJson,
                 persistenceProxy::storeLiquiGroupMargin);
     }
 
     @Test
     public void testLiquiGroupSplitMarginStore(TestContext context) throws IOException {
-        testStore(context, DataHelper.LIQUI_GROUP_SPLIT_MARGIN_FOLDER, LiquiGroupSplitMarginModel::new,
+        testStore(context, DataHelper.LIQUI_GROUP_SPLIT_MARGIN_FOLDER, DataHelper::createLiquiGroupSplitMarginModelFromJson,
                 persistenceProxy::storeLiquiGroupSplitMargin);
     }
 
     @Test
     public void testPoolMarginStore(TestContext context) throws IOException {
-        testStore(context, DataHelper.POOL_MARGIN_FOLDER, PoolMarginModel::new,
+        testStore(context, DataHelper.POOL_MARGIN_FOLDER, DataHelper::createPoolMarginModelFromJson,
                 persistenceProxy::storePoolMargin);
     }
 
     @Test
     public void testPositionReportStore(TestContext context) throws IOException {
-        testStore(context, DataHelper.POSITION_REPORT_FOLDER, PositionReportModel::new,
+        testStore(context, DataHelper.POSITION_REPORT_FOLDER, DataHelper::createPositionReportModelFromJson,
                 persistenceProxy::storePositionReport);
     }
 
     @Test
     public void testRiskLimitUtilizationStore(TestContext context) throws IOException {
-        testStore(context, DataHelper.RISK_LIMIT_UTILIZATION_FOLDER, RiskLimitUtilizationModel::new,
+        testStore(context, DataHelper.RISK_LIMIT_UTILIZATION_FOLDER, DataHelper::createRiskLimitUtilizationModelFromJson,
                 persistenceProxy::storeRiskLimitUtilization);
     }
 
@@ -90,27 +90,31 @@ public class RestPersistenceServiceTest {
     public void testStoreFailure(TestContext context) throws InterruptedException {
         storageManager.setHealth(false);
         testAppender.start();
-        persistenceProxy.storeAccountMargin(Collections.singletonList(new AccountMarginModel(new JsonObject())),
+        AccountMarginModel model = DataHelper.getLastModelFromFile(DataHelper.ACCOUNT_MARGIN_FOLDER, 1,
+                DataHelper::createAccountMarginModelFromJson);
+        persistenceProxy.storeAccountMargin(Collections.singletonList(model),
                 context.asyncAssertFailure());
-        testAppender.waitForMessageContains(Level.ERROR, "/api/v1.0/store/am failed:");
+        testAppender.waitForMessageContains(Level.ERROR, "Service unavailable");
         testAppender.stop();
         storageManager.setHealth(true);
     }
 
     @Test
-    public void testExceptionHandler(TestContext context) throws InterruptedException {
+    public void testServiceUnavailableHandler(TestContext context) throws InterruptedException {
         Async closeAsync = context.async();
         storageManager.close(context.asyncAssertSuccess(i -> closeAsync.complete()));
         closeAsync.awaitSuccess();
         testAppender.start();
-        persistenceProxy.storeAccountMargin(Collections.singletonList(new AccountMarginModel(new JsonObject())),
+        AccountMarginModel model = DataHelper.getLastModelFromFile(DataHelper.ACCOUNT_MARGIN_FOLDER, 1,
+                DataHelper::createAccountMarginModelFromJson);
+        persistenceProxy.storeAccountMargin(Collections.singletonList(model),
                 context.asyncAssertFailure());
-        testAppender.waitForMessageContains(Level.ERROR, "/api/v1.0/store/am failed:");
+        testAppender.waitForMessageContains(Level.ERROR, "Service unavailable");
         storageManager.listen(context.asyncAssertSuccess());
         testAppender.stop();
     }
 
-    private static <T extends AbstractModel>
+    private static <T extends Model>
     void testStore(TestContext context, String dataFolder, Function<JsonObject, T> modelFactory,
                    BiConsumer<List<T>, Handler<AsyncResult<Void>>> sender) {
 

@@ -5,7 +5,7 @@ import CIL.ObjectList;
 import com.deutscheboerse.risk.dave.amqp.AmqpClient;
 import com.deutscheboerse.risk.dave.config.AmqpConfig;
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
-import com.deutscheboerse.risk.dave.model.AbstractModel;
+import com.deutscheboerse.risk.dave.model.Model;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.Extension;
@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-public abstract class AMQPVerticle<GPBType extends Message, ModelType extends AbstractModel>
+public abstract class AMQPVerticle<GPBType extends Message, ModelType extends Model>
         extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(AMQPVerticle.class);
     private static final int DEFAULT_PROXY_SEND_TIMEOUT = 60000;
@@ -118,11 +118,11 @@ public abstract class AMQPVerticle<GPBType extends Message, ModelType extends Ab
                 if (ar.succeeded()) {
                     LOG.info("Message settled: {} (ttsave={}, {} of {})", this.verticleName, header.getId(), header.getMessageId(), header.getMessageCount());
                     delivery.settle();
+                    amqpClient.increaseCreditBy(1);
                 } else {
                     LOG.warn("Message released: {} (ttsave={} {} of {})", this.verticleName, header.getId(), header.getMessageId(), header.getMessageCount(), ar.cause());
                     delivery.disposition(new Released(), true);
                 }
-                amqpClient.increaseCreditBy(1);
             });
         } else {
             LOG.info("Message settled: skipping invalid message");

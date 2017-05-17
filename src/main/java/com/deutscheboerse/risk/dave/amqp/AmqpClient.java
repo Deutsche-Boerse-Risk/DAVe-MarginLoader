@@ -24,8 +24,8 @@ public class AmqpClient {
 
     private ProtonConnection protonBrokerConnection;
     private ProtonReceiver protonBrokerReceiver;
-    private boolean stopping;
-    private Runnable flowRequest = null;
+    private boolean draining;
+    private Runnable queuedFlowRequest = null;
 
     private Handler<AsyncResult<Void>> connectHandler;
     private ProtonMessageHandler deliveryHandler;
@@ -62,14 +62,9 @@ public class AmqpClient {
     }
 
     public void stop() {
-        stopping = true;
-        flowRequest = null;
-        protonBrokerReceiver.drain(0, res -> {
-            stopping = false;
-            if (flowRequest != null) {
-                flowRequest.run();
-                flowRequest = null;
-            }
+        setFlowRequest(() -> {
+            draining = true;
+            protonBrokerReceiver.drain(0, drainCompleteHandler());
         });
     }
 
@@ -157,16 +152,19 @@ public class AmqpClient {
         return receiverOpenFuture.mapEmpty();
     }
 
-
     private void setFlowRequest(@Nullable Runnable request) {
-        if (stopping) {
-            flowRequest = request;
-        } else {
+        queuedFlowRequest = request;
+        if (!draining && request != null) {
             // Run immediately
-            if (request != null) {
-                request.run();
-            }
-            flowRequest = null;
+            queuedFlowRequest.run();
+            queuedFlowRequest = null;
         }
+    }
+
+    private Handler<AsyncResult<Void>> drainCompleteHandler() {
+        return res -> {
+            draining = false;
+            setFlowRequest(queuedFlowRequest);
+        };
     }
 }

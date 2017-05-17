@@ -8,6 +8,7 @@ import com.deutscheboerse.risk.dave.log.TestAppender;
 import com.deutscheboerse.risk.dave.model.*;
 import com.deutscheboerse.risk.dave.persistence.*;
 import com.deutscheboerse.risk.dave.utils.*;
+import com.google.protobuf.MessageLite;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Handler;
@@ -246,41 +247,47 @@ public class AMQPVerticleIT {
     @Test
     public void testAccountMarginVerticle(TestContext context) throws InterruptedException {
         testVerticle(context, AccountMarginVerticle.class.getName(), DataHelper.ACCOUNT_MARGIN_FOLDER,
-                new BrokerFillerCorrectData(vertx)::setUpAccountMarginQueue, AccountMarginModel::new);
+                new BrokerFillerCorrectData(vertx)::setUpAccountMarginQueue,
+                DataHelper::createAccountMarginModelFromJson);
     }
 
     @Test
     public void testLiquiGroupMarginVerticle(TestContext context) throws InterruptedException {
         testVerticle(context, LiquiGroupMarginVerticle.class.getName(), DataHelper.LIQUI_GROUP_MARGIN_FOLDER,
-                new BrokerFillerCorrectData(vertx)::setUpLiquiGroupMarginQueue, LiquiGroupMarginModel::new);
+                new BrokerFillerCorrectData(vertx)::setUpLiquiGroupMarginQueue,
+                DataHelper::createLiquiGroupMarginModelFromJson);
     }
 
     @Test
     public void testLiquiGroupSplitMarginVerticle(TestContext context) throws InterruptedException {
         testVerticle(context, LiquiGroupSplitMarginVerticle.class.getName(), DataHelper.LIQUI_GROUP_SPLIT_MARGIN_FOLDER,
-                new BrokerFillerCorrectData(vertx)::setUpLiquiGroupSplitMarginQueue, LiquiGroupSplitMarginModel::new);
+                new BrokerFillerCorrectData(vertx)::setUpLiquiGroupSplitMarginQueue,
+                DataHelper::createLiquiGroupSplitMarginModelFromJson);
     }
 
     @Test
     public void testPoolMarginVerticle(TestContext context) throws InterruptedException {
         testVerticle(context, PoolMarginVerticle.class.getName(), DataHelper.POOL_MARGIN_FOLDER,
-                new BrokerFillerCorrectData(vertx)::setUpPoolMarginQueue, PoolMarginModel::new);
+                new BrokerFillerCorrectData(vertx)::setUpPoolMarginQueue,
+                DataHelper::createPoolMarginModelFromJson);
     }
 
     @Test
     public void testPositionReportVerticle(TestContext context) throws InterruptedException {
         testVerticle(context, PositionReportVerticle.class.getName(), DataHelper.POSITION_REPORT_FOLDER,
-                new BrokerFillerCorrectData(vertx)::setUpPositionReportQueue, PositionReportModel::new);
+                new BrokerFillerCorrectData(vertx)::setUpPositionReportQueue,
+                DataHelper::createPositionReportModelFromJson);
     }
 
     @Test
     public void testRiskLimitUtilizationVerticle(TestContext context) throws InterruptedException {
         testVerticle(context, RiskLimitUtilizationVerticle.class.getName(), DataHelper.RISK_LIMIT_UTILIZATION_FOLDER,
-                new BrokerFillerCorrectData(vertx)::setUpRiskLimitUtilizationQueue, RiskLimitUtilizationModel::new);
+                new BrokerFillerCorrectData(vertx)::setUpRiskLimitUtilizationQueue,
+                DataHelper::createRiskLimitUtilizationModelFromJson);
     }
 
-    private <T extends AbstractModel> void testVerticle(TestContext context, String verticleName, String dataFolder,
-            Consumer<Handler<AsyncResult<String>>> filler, Function<JsonObject, T> modelFactory) throws InterruptedException {
+    private <T extends Model> void testVerticle(TestContext context, String verticleName, String dataFolder,
+                                                Consumer<Handler<AsyncResult<String>>> filler, Function<JsonObject, T> modelFactory) throws InterruptedException {
 
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(TestConfig.getAmqpConfig());
         int msgCount = DataHelper.getJsonObjectCount(dataFolder, 1);
@@ -301,8 +308,8 @@ public class AMQPVerticleIT {
 
         // verify the content of the last message
         JsonObject jsonData = DataHelper.getLastJsonFromFile(dataFolder, 1).orElse(new JsonObject());
-        T expected = modelFactory.apply(jsonData);
-        context.assertEquals(expected, persistenceService.getLastModel());
+        MessageLite expected = modelFactory.apply(jsonData).toGrpc();
+        context.assertEquals(expected, persistenceService.getLastModel().toGrpc());
 
         ProxyHelper.unregisterService(serviceMessageConsumer);
     }

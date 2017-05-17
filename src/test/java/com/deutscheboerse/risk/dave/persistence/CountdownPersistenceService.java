@@ -4,7 +4,6 @@ import com.deutscheboerse.risk.dave.model.*;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 
 import java.util.List;
@@ -12,7 +11,7 @@ import java.util.List;
 public class CountdownPersistenceService implements PersistenceService {
 
     private final Async async;
-    private JsonObject lastModel;
+    private Model lastModel;
 
     public CountdownPersistenceService(Async async) {
         this.async = async;
@@ -57,9 +56,9 @@ public class CountdownPersistenceService implements PersistenceService {
     public void close() {
     }
 
-    private void store(List<? extends JsonObject> models, Handler<AsyncResult<Void>> resultHandler) {
+    private void store(List<? extends Model> models, Handler<AsyncResult<Void>> resultHandler) {
 
-        for (JsonObject model: models) {
+        for (Model model: models) {
             this.lastModel = model;
             this.async.countDown();
         }
@@ -68,7 +67,7 @@ public class CountdownPersistenceService implements PersistenceService {
         resultHandler.handle(Future.succeededFuture());
     }
 
-    public JsonObject getLastModel() {
+    public Model getLastModel() {
         return this.lastModel;
     }
 }

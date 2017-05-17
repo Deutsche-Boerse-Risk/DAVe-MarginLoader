@@ -1,59 +1,81 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
+import com.deutscheboerse.risk.dave.grpc.PositionReport;
+import com.google.protobuf.InvalidProtocolBufferException;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 @DataObject
-public class PositionReportModel extends AbstractModel {
+public class PositionReportModel implements Model<PositionReport> {
+
+    private final PositionReport grpc;
 
     public PositionReportModel(JsonObject json) {
-        this.mergeIn(json);
+        verifyJson(json);
+        try {
+            this.grpc = PositionReport.parseFrom(json.getBinary("grpc"));
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public PositionReportModel(PrismaReports.PrismaHeader header, PrismaReports.PositionReport data) {
-        super(header);
-
-        verify(data);
+        verifyPrismaHeader(header);
+        verifyPrismaData(data);
 
         PrismaReports.PositionReportKey key = data.getKey();
-        put("clearer", key.getClearer());
-        put("member", key.getMember());
-        put("account", key.getAccount());
-        put("liquidationGroup", key.getLiquidationGroup());
-        put("liquidationGroupSplit", key.getLiquidationGroupSplit());
-        put("product", key.getProduct());
-        put("callPut", key.getCallPut());
-        put("contractYear", key.getContractYear());
-        put("contractMonth", key.getContractMonth());
-        put("expiryDay", key.getExpiryDay());
-        put("exercisePrice", key.getExercisePrice());
-        put("version", key.getVersion());
-        put("flexContractSymbol", key.getFlexContractSymbol());
-
-        put("netQuantityLs", data.getNetQuantityLs());
-        put("netQuantityEa", data.getNetQuantityEa());
-        put("clearingCurrency", data.getClearingCurrency());
-        put("mVar", data.getMVar());
-        put("compVar", data.getCompVar());
-        put("compCorrelationBreak", data.getCompCorrelationBreak());
-        put("compCompressionError", data.getCompCompressionError());
-        put("compLiquidityAddOn", data.getCompLiquidityAddOn());
-        put("compLongOptionCredit", data.getCompLongOptionCredit());
-        put("productCurrency", data.getProductCurrency());
-        put("variationPremiumPayment", data.getVariationPremiumPayment());
-        put("premiumMargin", data.getPremiumMargin());
-        put("normalizedDelta", data.getNormalizedDelta());
-        put("normalizedGamma", data.getNormalizedGamma());
-        put("normalizedVega", data.getNormalizedVega());
-        put("normalizedRho", data.getNormalizedRho());
-        put("normalizedTheta", data.getNormalizedTheta());
-        put("underlying", data.getUnderlying());
+        this.grpc = PositionReport.newBuilder()
+                .setSnapshotId(header.getId())
+                .setBusinessDate(header.getBusinessDate())
+                .setTimestamp(header.getTimestamp())
+                .setClearer(key.getClearer())
+                .setMember(key.getMember())
+                .setAccount(key.getAccount())
+                .setLiquidationGroup(key.getLiquidationGroup())
+                .setLiquidationGroupSplit(key.getLiquidationGroupSplit())
+                .setProduct(key.getProduct())
+                .setCallPut(key.getCallPut())
+                .setContractYear(key.getContractYear())
+                .setContractMonth(key.getContractMonth())
+                .setExpiryDay(key.getExpiryDay())
+                .setExercisePrice(key.getExercisePrice())
+                .setVersion(key.getVersion())
+                .setFlexContractSymbol(key.getFlexContractSymbol())
+                .setNetQuantityLs(data.getNetQuantityLs())
+                .setNetQuantityEa(data.getNetQuantityEa())
+                .setClearingCurrency(data.getClearingCurrency())
+                .setMVar(data.getMVar())
+                .setCompVar(data.getCompVar())
+                .setCompCorrelationBreak(data.getCompCorrelationBreak())
+                .setCompCompressionError(data.getCompCompressionError())
+                .setCompLiquidityAddOn(data.getCompLiquidityAddOn())
+                .setCompLongOptionCredit(data.getCompLongOptionCredit())
+                .setProductCurrency(data.getProductCurrency())
+                .setVariationPremiumPayment(data.getVariationPremiumPayment())
+                .setPremiumMargin(data.getPremiumMargin())
+                .setNormalizedDelta(data.getNormalizedDelta())
+                .setNormalizedGamma(data.getNormalizedGamma())
+                .setNormalizedVega(data.getNormalizedVega())
+                .setNormalizedRho(data.getNormalizedRho())
+                .setNormalizedTheta(data.getNormalizedTheta())
+                .setUnderlying(data.getUnderlying())
+                .build();
     }
 
-    private void verify(PrismaReports.PositionReport data) {
+    @Override
+    public JsonObject toJson() {
+        return new JsonObject().put("grpc", this.grpc.toByteArray());
+    }
+
+    @Override
+    public PositionReport toGrpc() {
+        return this.grpc;
+    }
+
+    private void verifyPrismaData(PrismaReports.PositionReport data) {
         PrismaReports.PositionReportKey key = data.getKey();
 
         checkArgument(data.hasKey(), "Missing position report key in AMQP data");

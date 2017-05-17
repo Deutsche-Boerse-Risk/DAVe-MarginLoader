@@ -220,7 +220,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     private Optional<ObjectList.GPBObjectList> createAccountMarginGPBObjectList(int ttsaveNo) {
         final String folderName = "accountMargin";
         Function<JsonObject, ObjectList.GPBObject> creator = (json) -> {
-            PrismaReports.AccountMargin data = DataHelper.createAccountMarginGPBFromJson(json);
+            PrismaReports.AccountMargin data = DataHelper.createPrismaAccountMarginFromJson(json);
             return ObjectList.GPBObject.newBuilder()
                     .setExtension(PrismaReports.accountMargin, data).build();
         };
@@ -230,7 +230,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     private Optional<ObjectList.GPBObjectList> createLiquiGroupMarginGPBObjectList(int ttsaveNo) {
         final String folderName = "liquiGroupMargin";
         Function<JsonObject, ObjectList.GPBObject> creator = (json) -> {
-            PrismaReports.LiquiGroupMargin data = DataHelper.createLiquiGroupMarginGPBFromJson(json);
+            PrismaReports.LiquiGroupMargin data = DataHelper.createPrismaLiquiGroupMarginFromJson(json);
             return ObjectList.GPBObject.newBuilder()
                     .setExtension(PrismaReports.liquiGroupMargin, data).build();
         };
@@ -240,7 +240,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     private Optional<ObjectList.GPBObjectList> createLiquiGroupSplitMarginGPBObjectList(int ttsaveNo) {
         final String folderName = "liquiGroupSplitMargin";
         Function<JsonObject, ObjectList.GPBObject> creator = (json) -> {
-            PrismaReports.LiquiGroupSplitMargin data = DataHelper.createLiquiGroupSplitMarginGPBFromJson(json);
+            PrismaReports.LiquiGroupSplitMargin data = DataHelper.createPrismaLiquiGroupSplitMarginFromJson(json);
             return ObjectList.GPBObject.newBuilder()
                     .setExtension(PrismaReports.liquiGroupSplitMargin, data).build();
         };
@@ -250,7 +250,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     private Optional<ObjectList.GPBObjectList> createPoolMarginGPBObjectList(int ttsaveNo) {
         final String folderName = "poolMargin";
         Function<JsonObject, ObjectList.GPBObject> creator = (json) -> {
-            PrismaReports.PoolMargin data = DataHelper.createPoolMarginGPBFromJson(json);
+            PrismaReports.PoolMargin data = DataHelper.createPrismaPoolMarginFromJson(json);
             return ObjectList.GPBObject.newBuilder()
                     .setExtension(PrismaReports.poolMargin, data).build();
         };
@@ -260,7 +260,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     private Optional<ObjectList.GPBObjectList> createPositionReportGPBObjectList(int ttsaveNo) {
         final String folderName = "positionReport";
         Function<JsonObject, ObjectList.GPBObject> creator = (json) -> {
-            PrismaReports.PositionReport data = DataHelper.createPositionReportGPBFromJson(json);
+            PrismaReports.PositionReport data = DataHelper.createPrismaPositionReportFromJson(json);
             return ObjectList.GPBObject.newBuilder()
                     .setExtension(PrismaReports.positionReport, data).build();
         };
@@ -270,7 +270,7 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     private Optional<ObjectList.GPBObjectList> createRiskLimitUtilizationGPBObjectList(int ttsaveNo) {
         final String folderName = "riskLimitUtilization";
         Function<JsonObject, ObjectList.GPBObject> creator = (json) -> {
-            PrismaReports.RiskLimitUtilization data = DataHelper.createRiskLimitUtilizationGPBFromJson(json);
+            PrismaReports.RiskLimitUtilization data = DataHelper.createPrismaRiskLimitUtilizationFromJson(json);
             return ObjectList.GPBObject.newBuilder()
                     .setExtension(PrismaReports.riskLimitUtilization, data).build();
         };

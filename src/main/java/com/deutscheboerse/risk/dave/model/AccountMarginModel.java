@@ -1,37 +1,60 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
+import com.deutscheboerse.risk.dave.grpc.AccountMargin;
+import com.google.protobuf.InvalidProtocolBufferException;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 @DataObject
-public class AccountMarginModel extends AbstractModel {
+public class AccountMarginModel implements Model<AccountMargin> {
+
+    private final AccountMargin grpc;
 
     public AccountMarginModel(JsonObject json) {
-        this.mergeIn(json);
+        verifyJson(json);
+        try {
+            this.grpc = AccountMargin.parseFrom(json.getBinary("grpc"));
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public AccountMarginModel(PrismaReports.PrismaHeader header, PrismaReports.AccountMargin data) {
-        super(header);
-
-        verify(data);
+        verifyPrismaHeader(header);
+        verifyPrismaData(data);
 
         PrismaReports.AccountMarginKey key = data.getKey();
-        put("clearer", key.getClearer());
-        put("member", key.getMember());
-        put("account", key.getAccount());
-        put("marginCurrency", key.getMarginCurrency());
-        put("clearingCurrency", data.getClearingCurrency());
-        put("pool", data.getPool());
-        put("marginReqInMarginCurr", data.getMarginReqInMarginCurr());
-        put("marginReqInClrCurr", data.getMarginReqInClrCurr());
-        put("unadjustedMarginRequirement", data.getUnadjustedMarginRequirement());
-        put("variationPremiumPayment", data.getVariationPremiumPayment());
+        this.grpc = AccountMargin.newBuilder()
+                .setSnapshotId(header.getId())
+                .setBusinessDate(header.getBusinessDate())
+                .setTimestamp(header.getTimestamp())
+                .setClearer(key.getClearer())
+                .setMember(key.getMember())
+                .setAccount(key.getAccount())
+                .setMarginCurrency(key.getMarginCurrency())
+                .setClearingCurrency(data.getClearingCurrency())
+                .setPool(data.getPool())
+                .setMarginReqInMarginCurr(data.getMarginReqInMarginCurr())
+                .setMarginReqInClrCurr(data.getMarginReqInClrCurr())
+                .setUnadjustedMarginRequirement(data.getUnadjustedMarginRequirement())
+                .setVariationPremiumPayment(data.getVariationPremiumPayment())
+                .build();
     }
 
-    private void verify(PrismaReports.AccountMargin data) {
+    @Override
+    public JsonObject toJson() {
+        return new JsonObject().put("grpc", this.grpc.toByteArray());
+    }
+
+    @Override
+    public AccountMargin toGrpc() {
+        return this.grpc;
+    }
+
+    private void verifyPrismaData(PrismaReports.AccountMargin data) {
         checkArgument(data.hasKey(), "Missing account margin key in AMQP data");
         checkArgument(data.getKey().hasClearer(), "Missing account margin clearer in AMQP data");
         checkArgument(data.getKey().hasMember(), "Missing account margin member in AMQP data");

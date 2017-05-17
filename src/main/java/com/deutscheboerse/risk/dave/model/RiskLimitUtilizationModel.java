@@ -1,41 +1,58 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
+import com.deutscheboerse.risk.dave.grpc.RiskLimitUtilization;
+import com.google.protobuf.InvalidProtocolBufferException;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 @DataObject
-public class RiskLimitUtilizationModel extends AbstractModel {
+public class RiskLimitUtilizationModel implements Model<RiskLimitUtilization> {
+
+    private final RiskLimitUtilization grpc;
 
     public RiskLimitUtilizationModel(JsonObject json) {
-        this.mergeIn(json);
+        verifyJson(json);
+        try {
+            this.grpc = RiskLimitUtilization.parseFrom(json.getBinary("grpc"));
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public RiskLimitUtilizationModel(PrismaReports.PrismaHeader header, PrismaReports.RiskLimitUtilization data) {
-        super(header);
-
-        verify(data);
+        verifyPrismaHeader(header);
+        verifyPrismaData(data);
 
         PrismaReports.RiskLimitUtilizationKey key = data.getKey();
-        put("clearer", key.getClearer());
-        put("member", key.getMember());
-        put("maintainer", key.getMaintainer());
-        put("limitType", key.getLimitType());
-        put("utilization", data.getUtilization());
-        if (data.hasWarningLevel()) {
-            put("warningLevel", data.getWarningLevel());
-        }
-        if (data.hasThrottleLevel()) {
-            put("throttleLevel", data.getThrottleLevel());
-        }
-        if (data.hasRejectLevel()) {
-            put("rejectLevel", data.getRejectLevel());
-        }
+        this.grpc = RiskLimitUtilization.newBuilder()
+                .setSnapshotId(header.getId())
+                .setBusinessDate(header.getBusinessDate())
+                .setTimestamp(header.getTimestamp())
+                .setClearer(key.getClearer())
+                .setMember(key.getMember())
+                .setMaintainer(key.getMaintainer())
+                .setLimitType(key.getLimitType())
+                .setUtilization(data.getUtilization())
+                .setWarningLevel(data.getWarningLevel())
+                .setThrottleLevel(data.getThrottleLevel())
+                .setRejectLevel(data.getRejectLevel())
+                .build();
     }
 
-    private void verify(PrismaReports.RiskLimitUtilization data) {
+    @Override
+    public JsonObject toJson() {
+        return new JsonObject().put("grpc", this.grpc.toByteArray());
+    }
+
+    @Override
+    public RiskLimitUtilization toGrpc() {
+        return this.grpc;
+    }
+
+    private void verifyPrismaData(PrismaReports.RiskLimitUtilization data) {
         checkArgument(data.hasKey(), "Missing risk limit utilization key in AMQP data");
         checkArgument(data.getKey().hasClearer(), "Missing clearer in AMQP data");
         checkArgument(data.getKey().hasMember(), "Missing member in AMQP data");
