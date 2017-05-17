@@ -55,18 +55,6 @@ The `storeManager` section contains the configuration of the DAVe-StoreManager w
 | `sslKey` | Private key of the DAVe-MarginLoader | |
 | `sslCert` | Public key of the DAVe-MarginLoader | |
 | `sslTrustCerts` | List of trusted certification authorities | |
-| `restApi` | Subsection defining REST API for storing every model (see next table) |  |
-
-REST API subsection has the following format:
-
-| Option | Explanation | Example |
-|--------|-------------|---------|
-| `accountMargin` | REST API address for querying account margin data|  |
-| `liquiGroupMargin` | REST API address for querying liqui group margin data |  |
-| `liquiGroupSplitMargin` | REST API address for querying liqui group split margin data |  |
-| `positionReport` | REST API address for querying position report data |  |
-| `poolMargin` | REST API address for querying pool margin data |  |
-| `riskLimitUtilization` | REST API address for querying risk limit utilization data |  |
 
 ### Health Check
 

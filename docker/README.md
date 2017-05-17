@@ -43,5 +43,4 @@ Allows to configure logging parameters. Supported log levels are `off`, `error`,
 | `STOREMANAGER_PORT` | Port where DAVe Store Manager is listening to SSL connections |  |
 | `STOREMANAGER_CLIENT_SSL_KEY` | Private key of the client in PEM format |  |
 | `STOREMANAGER_CLIENT_SSL_CERT` | Public key of the client in CRT format |  |
-| `STOREMANAGER_VERIFY_HOST` | Require verification of the DAVe Store Manager host name during SSL | `true` |
 | `STOREMANAGER_SSL_TRUST_CERTS` | List of trusted certification authorities | |
