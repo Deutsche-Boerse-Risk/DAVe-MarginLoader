@@ -43,11 +43,6 @@ public class PoolMarginModel implements Model<PoolMargin> {
     }
 
     @Override
-    public JsonObject toJson() {
-        return new GrpcJsonWrapper(this.grpc);
-    }
-
-    @Override
     public PoolMargin toGrpc() {
         return this.grpc;
     }

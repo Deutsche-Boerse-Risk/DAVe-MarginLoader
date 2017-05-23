@@ -42,11 +42,6 @@ public class LiquiGroupMarginModel implements Model<LiquiGroupMargin> {
     }
 
     @Override
-    public JsonObject toJson() {
-        return new GrpcJsonWrapper(this.grpc);
-    }
-
-    @Override
     public LiquiGroupMargin toGrpc() {
         return this.grpc;
     }

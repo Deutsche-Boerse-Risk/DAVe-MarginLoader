@@ -38,11 +38,6 @@ public class RiskLimitUtilizationModel implements Model<RiskLimitUtilization> {
     }
 
     @Override
-    public JsonObject toJson() {
-        return new GrpcJsonWrapper(this.grpc);
-    }
-
-    @Override
     public RiskLimitUtilization toGrpc() {
         return this.grpc;
     }

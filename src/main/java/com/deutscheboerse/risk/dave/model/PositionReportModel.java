@@ -61,11 +61,6 @@ public class PositionReportModel implements Model<PositionReport> {
     }
 
     @Override
-    public JsonObject toJson() {
-        return new GrpcJsonWrapper(this.grpc);
-    }
-
-    @Override
     public PositionReport toGrpc() {
         return this.grpc;
     }

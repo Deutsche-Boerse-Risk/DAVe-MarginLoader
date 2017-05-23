@@ -8,7 +8,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 public interface Model<T extends MessageLite> {
 
-    JsonObject toJson();
+    default JsonObject toJson() {
+        return new GrpcJsonWrapper(toGrpc());
+    }
+
     T toGrpc();
 
     default void verifyPrismaHeader(PrismaReports.PrismaHeader header) {

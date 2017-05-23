@@ -40,11 +40,6 @@ public class AccountMarginModel implements Model<AccountMargin> {
     }
 
     @Override
-    public JsonObject toJson() {
-        return new GrpcJsonWrapper(this.grpc);
-    }
-
-    @Override
     public AccountMargin toGrpc() {
         return this.grpc;
     }

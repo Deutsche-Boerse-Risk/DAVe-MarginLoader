@@ -41,11 +41,6 @@ public class LiquiGroupSplitMarginModel implements Model<LiquiGroupSplitMargin> 
     }
 
     @Override
-    public JsonObject toJson() {
-        return new GrpcJsonWrapper(this.grpc);
-    }
-
-    @Override
     public LiquiGroupSplitMargin toGrpc() {
         return this.grpc;
     }
