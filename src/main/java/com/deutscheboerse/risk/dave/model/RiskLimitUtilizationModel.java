@@ -2,7 +2,6 @@ package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import com.deutscheboerse.risk.dave.grpc.RiskLimitUtilization;
-import com.google.protobuf.InvalidProtocolBufferException;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
@@ -15,11 +14,7 @@ public class RiskLimitUtilizationModel implements Model<RiskLimitUtilization> {
 
     public RiskLimitUtilizationModel(JsonObject json) {
         verifyJson(json);
-        try {
-            this.grpc = RiskLimitUtilization.parseFrom(json.getBinary("grpc"));
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
+        this.grpc = ((GrpcJsonWrapper)json).toGpb(RiskLimitUtilization.class);
     }
 
     public RiskLimitUtilizationModel(PrismaReports.PrismaHeader header, PrismaReports.RiskLimitUtilization data) {
@@ -44,7 +39,7 @@ public class RiskLimitUtilizationModel implements Model<RiskLimitUtilization> {
 
     @Override
     public JsonObject toJson() {
-        return new JsonObject().put("grpc", this.grpc.toByteArray());
+        return new GrpcJsonWrapper(this.grpc);
     }
 
     @Override

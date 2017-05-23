@@ -223,7 +223,7 @@ public class DataHelper {
     }
 
     public static AccountMarginModel createAccountMarginModelFromJson(JsonObject json) {
-        return new AccountMarginModel(new JsonObject().put("grpc", AccountMargin.newBuilder()
+        return new AccountMarginModel(new GrpcJsonWrapper(AccountMargin.newBuilder()
                 .setSnapshotId(json.getInteger("snapshotID"))
                 .setBusinessDate(json.getInteger("businessDate"))
                 .setTimestamp(json.getLong("timestamp"))
@@ -237,11 +237,11 @@ public class DataHelper {
                 .setMarginReqInClrCurr(json.getDouble("marginReqInClrCurr"))
                 .setUnadjustedMarginRequirement(json.getDouble("unadjustedMarginRequirement"))
                 .setVariationPremiumPayment(json.getDouble("variationPremiumPayment"))
-                .build().toByteArray()));
+                .build()));
     }
 
     public static LiquiGroupMarginModel createLiquiGroupMarginModelFromJson(JsonObject json) {
-        return new LiquiGroupMarginModel(new JsonObject().put("grpc", LiquiGroupMargin.newBuilder()
+        return new LiquiGroupMarginModel(new GrpcJsonWrapper(LiquiGroupMargin.newBuilder()
                 .setSnapshotId(json.getInteger("snapshotID"))
                 .setBusinessDate(json.getInteger("businessDate"))
                 .setTimestamp(json.getLong("timestamp"))
@@ -257,11 +257,11 @@ public class DataHelper {
                 .setAdditionalMargin(json.getDouble("additionalMargin"))
                 .setUnadjustedMarginRequirement(json.getDouble("unadjustedMarginRequirement"))
                 .setVariationPremiumPayment(json.getDouble("variationPremiumPayment"))
-                .build().toByteArray()));
+                .build()));
     }
 
     public static LiquiGroupSplitMarginModel createLiquiGroupSplitMarginModelFromJson(JsonObject json) {
-        return new LiquiGroupSplitMarginModel(new JsonObject().put("grpc", LiquiGroupSplitMargin.newBuilder()
+        return new LiquiGroupSplitMarginModel(new GrpcJsonWrapper(LiquiGroupSplitMargin.newBuilder()
                 .setSnapshotId(json.getInteger("snapshotID"))
                 .setBusinessDate(json.getInteger("businessDate"))
                 .setTimestamp(json.getLong("timestamp"))
@@ -276,11 +276,11 @@ public class DataHelper {
                 .setLiquRisk(json.getDouble("liquRisk"))
                 .setLongOptionCredit(json.getDouble("longOptionCredit"))
                 .setVariationPremiumPayment(json.getDouble("variationPremiumPayment"))
-                .build().toByteArray()));
+                .build()));
     }
 
     public static PoolMarginModel createPoolMarginModelFromJson(JsonObject json) {
-        return new PoolMarginModel(new JsonObject().put("grpc", PoolMargin.newBuilder()
+        return new PoolMarginModel(new GrpcJsonWrapper(PoolMargin.newBuilder()
                 .setSnapshotId(json.getInteger("snapshotID"))
                 .setBusinessDate(json.getInteger("businessDate"))
                 .setTimestamp(json.getLong("timestamp"))
@@ -297,11 +297,11 @@ public class DataHelper {
                 .setVariPremInMarginCurr(json.getDouble("variPremInMarginCurr"))
                 .setAdjustedExchangeRate(json.getDouble("adjustedExchangeRate"))
                 .setPoolOwner(json.getString("poolOwner"))
-                .build().toByteArray()));
+                .build()));
     }
 
     public static PositionReportModel createPositionReportModelFromJson(JsonObject json) {
-        return new PositionReportModel(new JsonObject().put("grpc", PositionReport.newBuilder()
+        return new PositionReportModel(new GrpcJsonWrapper(PositionReport.newBuilder()
                 .setSnapshotId(json.getInteger("snapshotID"))
                 .setBusinessDate(json.getInteger("businessDate"))
                 .setTimestamp(json.getLong("timestamp"))
@@ -336,11 +336,11 @@ public class DataHelper {
                 .setNormalizedRho(json.getDouble("normalizedRho"))
                 .setNormalizedTheta(json.getDouble("normalizedTheta"))
                 .setUnderlying(json.getString("underlying"))
-                .build().toByteArray()));
+                .build()));
     }
 
     public static RiskLimitUtilizationModel createRiskLimitUtilizationModelFromJson(JsonObject json) {
-        return new RiskLimitUtilizationModel(new JsonObject().put("grpc", RiskLimitUtilization.newBuilder()
+        return new RiskLimitUtilizationModel(new GrpcJsonWrapper(RiskLimitUtilization.newBuilder()
                 .setSnapshotId(json.getInteger("snapshotID"))
                 .setBusinessDate(json.getInteger("businessDate"))
                 .setTimestamp(json.getLong("timestamp"))
@@ -352,6 +352,6 @@ public class DataHelper {
                 .setWarningLevel(json.getDouble("warningLevel", 0.0))
                 .setThrottleLevel(json.getDouble("throttleLevel", 0.0))
                 .setRejectLevel(json.getDouble("rejectLevel", 0.0))
-                .build().toByteArray()));
+                .build()));
     }
 }

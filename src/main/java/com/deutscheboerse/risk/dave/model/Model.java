@@ -18,8 +18,8 @@ public interface Model<T extends MessageLite> {
     }
 
     default void verifyJson(JsonObject json) {
-        if (!json.containsKey("grpc")) {
-            throw new IllegalArgumentException("Expected grpc field");
+        if (!(json instanceof GrpcJsonWrapper)) {
+            throw new IllegalArgumentException("Expected grpc wrapper");
         }
     }
 }
