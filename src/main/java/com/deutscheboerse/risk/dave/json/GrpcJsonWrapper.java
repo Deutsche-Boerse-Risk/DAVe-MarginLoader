@@ -292,11 +292,9 @@ public class GrpcJsonWrapper extends JsonObject {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
+        if (!(o instanceof GrpcJsonWrapper))
             return false;
-        return this.grpc.equals(o);
+        return this.grpc.equals(((GrpcJsonWrapper)o).grpc);
     }
 
     @Override
