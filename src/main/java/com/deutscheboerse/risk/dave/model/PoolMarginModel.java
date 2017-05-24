@@ -2,7 +2,6 @@ package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import com.deutscheboerse.risk.dave.grpc.PoolMargin;
-import com.google.protobuf.InvalidProtocolBufferException;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
@@ -15,11 +14,7 @@ public class PoolMarginModel implements Model<PoolMargin> {
 
     public PoolMarginModel(JsonObject json) {
         verifyJson(json);
-        try {
-            this.grpc = PoolMargin.parseFrom(json.getBinary("grpc"));
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
+        this.grpc = json.mapTo(PoolMargin.class);
     }
 
     public PoolMarginModel(PrismaReports.PrismaHeader header, PrismaReports.PoolMargin data) {
@@ -45,11 +40,6 @@ public class PoolMarginModel implements Model<PoolMargin> {
                 .setAdjustedExchangeRate(data.getAdjustedExchangeRate())
                 .setPoolOwner(data.getPoolOwner())
                 .build();
-    }
-
-    @Override
-    public JsonObject toJson() {
-        return new JsonObject().put("grpc", this.grpc.toByteArray());
     }
 
     @Override

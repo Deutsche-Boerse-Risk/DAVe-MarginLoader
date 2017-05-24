@@ -2,7 +2,6 @@ package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import com.deutscheboerse.risk.dave.grpc.PositionReport;
-import com.google.protobuf.InvalidProtocolBufferException;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
@@ -15,11 +14,7 @@ public class PositionReportModel implements Model<PositionReport> {
 
     public PositionReportModel(JsonObject json) {
         verifyJson(json);
-        try {
-            this.grpc = PositionReport.parseFrom(json.getBinary("grpc"));
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
+        this.grpc = json.mapTo(PositionReport.class);
     }
 
     public PositionReportModel(PrismaReports.PrismaHeader header, PrismaReports.PositionReport data) {
@@ -63,11 +58,6 @@ public class PositionReportModel implements Model<PositionReport> {
                 .setNormalizedTheta(data.getNormalizedTheta())
                 .setUnderlying(data.getUnderlying())
                 .build();
-    }
-
-    @Override
-    public JsonObject toJson() {
-        return new JsonObject().put("grpc", this.grpc.toByteArray());
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
+import com.deutscheboerse.risk.dave.json.GrpcJsonWrapper;
 import com.google.protobuf.MessageLite;
 import io.vertx.core.json.JsonObject;
 
@@ -8,7 +9,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 public interface Model<T extends MessageLite> {
 
-    JsonObject toJson();
+    default JsonObject toJson() {
+        return new GrpcJsonWrapper(toGrpc());
+    }
+
     T toGrpc();
 
     default void verifyPrismaHeader(PrismaReports.PrismaHeader header) {
@@ -18,8 +22,8 @@ public interface Model<T extends MessageLite> {
     }
 
     default void verifyJson(JsonObject json) {
-        if (!json.containsKey("grpc")) {
-            throw new IllegalArgumentException("Expected grpc field");
+        if (!(json instanceof GrpcJsonWrapper)) {
+            throw new IllegalArgumentException("Expected grpc wrapper");
         }
     }
 }

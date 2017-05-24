@@ -2,7 +2,6 @@ package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import com.deutscheboerse.risk.dave.grpc.AccountMargin;
-import com.google.protobuf.InvalidProtocolBufferException;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
@@ -15,11 +14,7 @@ public class AccountMarginModel implements Model<AccountMargin> {
 
     public AccountMarginModel(JsonObject json) {
         verifyJson(json);
-        try {
-            this.grpc = AccountMargin.parseFrom(json.getBinary("grpc"));
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
+        this.grpc = json.mapTo(AccountMargin.class);
     }
 
     public AccountMarginModel(PrismaReports.PrismaHeader header, PrismaReports.AccountMargin data) {
@@ -42,11 +37,6 @@ public class AccountMarginModel implements Model<AccountMargin> {
                 .setUnadjustedMarginRequirement(data.getUnadjustedMarginRequirement())
                 .setVariationPremiumPayment(data.getVariationPremiumPayment())
                 .build();
-    }
-
-    @Override
-    public JsonObject toJson() {
-        return new JsonObject().put("grpc", this.grpc.toByteArray());
     }
 
     @Override
