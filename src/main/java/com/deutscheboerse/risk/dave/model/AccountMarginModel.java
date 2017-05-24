@@ -14,7 +14,7 @@ public class AccountMarginModel implements Model<AccountMargin> {
 
     public AccountMarginModel(JsonObject json) {
         verifyJson(json);
-        this.grpc = ((GrpcJsonWrapper)json).toGpb(AccountMargin.class);
+        this.grpc = json.mapTo(AccountMargin.class);
     }
 
     public AccountMarginModel(PrismaReports.PrismaHeader header, PrismaReports.AccountMargin data) {

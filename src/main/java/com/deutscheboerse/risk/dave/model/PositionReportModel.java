@@ -14,7 +14,7 @@ public class PositionReportModel implements Model<PositionReport> {
 
     public PositionReportModel(JsonObject json) {
         verifyJson(json);
-        this.grpc = ((GrpcJsonWrapper)json).toGpb(PositionReport.class);
+        this.grpc = json.mapTo(PositionReport.class);
     }
 
     public PositionReportModel(PrismaReports.PrismaHeader header, PrismaReports.PositionReport data) {

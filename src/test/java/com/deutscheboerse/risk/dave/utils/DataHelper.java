@@ -3,6 +3,7 @@ package com.deutscheboerse.risk.dave.utils;
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
 import com.deutscheboerse.risk.dave.*;
 import com.deutscheboerse.risk.dave.grpc.*;
+import com.deutscheboerse.risk.dave.json.GrpcJsonWrapper;
 import com.deutscheboerse.risk.dave.model.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

@@ -1,6 +1,7 @@
 package com.deutscheboerse.risk.dave.model;
 
 import CIL.CIL_v001.Prisma_v001.PrismaReports;
+import com.deutscheboerse.risk.dave.json.GrpcJsonWrapper;
 import com.google.protobuf.MessageLite;
 import io.vertx.core.json.JsonObject;
 

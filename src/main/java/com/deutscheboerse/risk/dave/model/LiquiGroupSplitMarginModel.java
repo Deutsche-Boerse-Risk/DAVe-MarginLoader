@@ -14,7 +14,7 @@ public class LiquiGroupSplitMarginModel implements Model<LiquiGroupSplitMargin> 
 
     public LiquiGroupSplitMarginModel(JsonObject json) {
         verifyJson(json);
-        this.grpc = ((GrpcJsonWrapper)json).toGpb(LiquiGroupSplitMargin.class);
+        this.grpc = json.mapTo(LiquiGroupSplitMargin.class);
     }
 
     public LiquiGroupSplitMarginModel(PrismaReports.PrismaHeader header, PrismaReports.LiquiGroupSplitMargin data) {

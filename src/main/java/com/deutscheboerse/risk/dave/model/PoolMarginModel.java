@@ -14,7 +14,7 @@ public class PoolMarginModel implements Model<PoolMargin> {
 
     public PoolMarginModel(JsonObject json) {
         verifyJson(json);
-        this.grpc = ((GrpcJsonWrapper)json).toGpb(PoolMargin.class);
+        this.grpc = json.mapTo(PoolMargin.class);
     }
 
     public PoolMarginModel(PrismaReports.PrismaHeader header, PrismaReports.PoolMargin data) {

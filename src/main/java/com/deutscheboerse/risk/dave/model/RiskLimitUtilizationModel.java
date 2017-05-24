@@ -14,7 +14,7 @@ public class RiskLimitUtilizationModel implements Model<RiskLimitUtilization> {
 
     public RiskLimitUtilizationModel(JsonObject json) {
         verifyJson(json);
-        this.grpc = ((GrpcJsonWrapper)json).toGpb(RiskLimitUtilization.class);
+        this.grpc = json.mapTo(RiskLimitUtilization.class);
     }
 
     public RiskLimitUtilizationModel(PrismaReports.PrismaHeader header, PrismaReports.RiskLimitUtilization data) {
