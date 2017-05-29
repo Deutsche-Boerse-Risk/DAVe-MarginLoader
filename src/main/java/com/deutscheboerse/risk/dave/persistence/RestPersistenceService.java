@@ -83,37 +83,37 @@ public class RestPersistenceService implements PersistenceService {
     @Override
     public void storeAccountMargin(List<AccountMarginModel> models, Handler<AsyncResult<Void>> resultHandler) {
         ManagedChannel channel = this.createGrpcChannel();
-        store(channel, PersistenceServiceGrpc.newVertxStub(channel)::storeAccountMargin, models, resultHandler);
+        this.store(channel, PersistenceServiceGrpc.newVertxStub(channel)::storeAccountMargin, models, resultHandler);
     }
 
     @Override
     public void storeLiquiGroupMargin(List<LiquiGroupMarginModel> models, Handler<AsyncResult<Void>> resultHandler) {
         ManagedChannel channel = this.createGrpcChannel();
-        store(channel, PersistenceServiceGrpc.newVertxStub(channel)::storeLiquiGroupMargin, models, resultHandler);
+        this.store(channel, PersistenceServiceGrpc.newVertxStub(channel)::storeLiquiGroupMargin, models, resultHandler);
     }
 
     @Override
     public void storeLiquiGroupSplitMargin(List<LiquiGroupSplitMarginModel> models, Handler<AsyncResult<Void>> resultHandler) {
         ManagedChannel channel = this.createGrpcChannel();
-        store(channel, PersistenceServiceGrpc.newVertxStub(channel)::storeLiquiGroupSplitMargin, models, resultHandler);
+        this.store(channel, PersistenceServiceGrpc.newVertxStub(channel)::storeLiquiGroupSplitMargin, models, resultHandler);
     }
 
     @Override
     public void storePoolMargin(List<PoolMarginModel> models, Handler<AsyncResult<Void>> resultHandler) {
         ManagedChannel channel = this.createGrpcChannel();
-        store(channel, PersistenceServiceGrpc.newVertxStub(channel)::storePoolMargin, models, resultHandler);
+        this.store(channel, PersistenceServiceGrpc.newVertxStub(channel)::storePoolMargin, models, resultHandler);
     }
 
     @Override
     public void storePositionReport(List<PositionReportModel> models, Handler<AsyncResult<Void>> resultHandler) {
         ManagedChannel channel = this.createGrpcChannel();
-        store(channel, PersistenceServiceGrpc.newVertxStub(channel)::storePositionReport, models, resultHandler);
+        this.store(channel, PersistenceServiceGrpc.newVertxStub(channel)::storePositionReport, models, resultHandler);
     }
 
     @Override
     public void storeRiskLimitUtilization(List<RiskLimitUtilizationModel> models, Handler<AsyncResult<Void>> resultHandler) {
         ManagedChannel channel = this.createGrpcChannel();
-        store(channel, PersistenceServiceGrpc.newVertxStub(channel)::storeRiskLimitUtilization, models, resultHandler);
+        this.store(channel, PersistenceServiceGrpc.newVertxStub(channel)::storeRiskLimitUtilization, models, resultHandler);
     }
 
     @Override
@@ -121,7 +121,7 @@ public class RestPersistenceService implements PersistenceService {
         // Empty
     }
 
-    private static <T extends Model<U>, U extends MessageLite>
+    private <T extends Model<U>, U extends MessageLite>
     void store(ManagedChannel channel,
                Consumer<Handler<GrpcUniExchange<U, StoreReply>>> storeFunction,
                List<T> models,
@@ -139,9 +139,10 @@ public class RestPersistenceService implements PersistenceService {
                     channel.shutdown();
                 });
 
-            models.forEach(model -> exchange.write(model.toGrpc()));
-
-            exchange.end();
+            this.vertx.executeBlocking(future -> {
+                models.forEach(model -> exchange.write(model.toGrpc()));
+                exchange.end();
+            }, false, res -> {});
         });
     }
 }

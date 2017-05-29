@@ -79,7 +79,7 @@ public abstract class AMQPVerticle<GPBType extends Message, ModelType extends Mo
 
     private void connect() {
         this.amqpClient
-                .setDeliveryHandler(this::processDelivery)
+                .setDeliveryHandler(this::processBlockingDelivery)
                 .setDisconnectHandler(i ->
                         healthCheck.setComponentFailed(this.healthCheckComponent)
                 ).setConnectHandler(ar -> {
@@ -108,6 +108,10 @@ public abstract class AMQPVerticle<GPBType extends Message, ModelType extends Mo
             LOG.warn("Close circuit");
             amqpClient.run();
         });
+    }
+
+    private void processBlockingDelivery(ProtonDelivery delivery, org.apache.qpid.proton.message.Message msg) {
+        this.vertx.executeBlocking(future -> this.processDelivery(delivery, msg), false, res -> {});
     }
 
     private void processDelivery(ProtonDelivery delivery, org.apache.qpid.proton.message.Message msg) {
