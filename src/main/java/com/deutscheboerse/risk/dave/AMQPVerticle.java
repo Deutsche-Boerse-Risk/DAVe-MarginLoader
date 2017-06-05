@@ -113,8 +113,8 @@ public abstract class AMQPVerticle<GPBType extends Message, ModelType extends Mo
     private void processDelivery(ProtonDelivery delivery, org.apache.qpid.proton.message.Message msg) {
         Optional<ObjectList.GPBObjectList> gpbObjectList = parseObjectList(msg.getBody());
         if (gpbObjectList.isPresent()) {
+            PrismaReports.PrismaHeader header = gpbObjectList.get().getHeader().getExtension(PrismaReports.prismaHeader);
             this.processObjectList(gpbObjectList.get(), ar -> {
-                PrismaReports.PrismaHeader header = gpbObjectList.get().getHeader().getExtension(PrismaReports.prismaHeader);
                 if (ar.succeeded()) {
                     LOG.info("Message settled: {} (ttsave={}, {} of {})", this.verticleName, header.getId(), header.getMessageId(), header.getMessageCount());
                     delivery.settle();
