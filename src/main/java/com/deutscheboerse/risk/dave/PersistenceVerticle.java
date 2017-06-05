@@ -48,8 +48,8 @@ public class PersistenceVerticle extends AbstractVerticle {
     }
 
     @Override
-    public void stop() {
-        this.proxyPersistenceService.close();
+    public void stop(Future<Void> stopFuture) {
+        this.proxyPersistenceService.close(stopFuture);
     }
 
 }

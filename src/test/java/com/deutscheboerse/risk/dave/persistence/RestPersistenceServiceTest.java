@@ -134,7 +134,7 @@ public class RestPersistenceServiceTest {
 
     @AfterClass
     public static void tearDown(TestContext context) {
-        persistenceProxy.close();
+        persistenceProxy.close(context.asyncAssertSuccess());
         storageManager.close(context.asyncAssertSuccess());
         vertx.close(context.asyncAssertSuccess());
     }

@@ -117,8 +117,8 @@ public class RestPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void close() {
-        // Empty
+    public void close(Handler<AsyncResult<Void>> resultHandler) {
+        resultHandler.handle(Future.succeededFuture());
     }
 
     private static <T extends Model<U>, U extends MessageLite>

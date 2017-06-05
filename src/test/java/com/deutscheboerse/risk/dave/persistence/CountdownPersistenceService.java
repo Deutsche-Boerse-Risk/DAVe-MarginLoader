@@ -53,7 +53,8 @@ public class CountdownPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void close() {
+    public void close(Handler<AsyncResult<Void>> resultHandler) {
+        resultHandler.handle(Future.succeededFuture());
     }
 
     private void store(List<? extends Model> models, Handler<AsyncResult<Void>> resultHandler) {
