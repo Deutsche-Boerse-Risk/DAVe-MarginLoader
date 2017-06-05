@@ -29,8 +29,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
-public class RestPersistenceService implements PersistenceService {
-    private static final Logger LOG = LoggerFactory.getLogger(RestPersistenceService.class);
+public class GrpcPersistenceService implements PersistenceService {
+    private static final Logger LOG = LoggerFactory.getLogger(GrpcPersistenceService.class);
     private static final java.util.logging.Logger GRPC_LOG = java.util.logging.Logger.getLogger("io.grpc");
 
     private final Vertx vertx;
@@ -43,7 +43,7 @@ public class RestPersistenceService implements PersistenceService {
     }
 
     @Inject
-    public RestPersistenceService(Vertx vertx, @Named("storeManager.conf") JsonObject config) throws IOException {
+    public GrpcPersistenceService(Vertx vertx, @Named("storeManager.conf") JsonObject config) throws IOException {
         this.vertx = vertx;
         this.config = (new ObjectMapper()).readValue(config.toString(), StoreManagerConfig.class);
         this.healthCheck = new HealthCheck(vertx);

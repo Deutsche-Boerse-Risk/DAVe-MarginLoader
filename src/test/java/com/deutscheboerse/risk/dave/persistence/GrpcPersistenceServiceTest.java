@@ -26,8 +26,8 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 
 @RunWith(VertxUnitRunner.class)
-public class RestPersistenceServiceTest {
-    private static final TestAppender testAppender = TestAppender.getAppender(RestPersistenceService.class);
+public class GrpcPersistenceServiceTest {
+    private static final TestAppender testAppender = TestAppender.getAppender(GrpcPersistenceService.class);
     private static final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
     private static Vertx vertx;
     private static StoreManagerMock storageManager;
@@ -35,15 +35,15 @@ public class RestPersistenceServiceTest {
 
     @BeforeClass
     public static void setUp(TestContext context) throws IOException {
-        RestPersistenceServiceTest.vertx = Vertx.vertx();
+        GrpcPersistenceServiceTest.vertx = Vertx.vertx();
 
         JsonObject config = TestConfig.getStorageConfig();
         storageManager = new StoreManagerMock(vertx);
         storageManager.listen(context.asyncAssertSuccess());
 
-        ProxyHelper.registerService(PersistenceService.class, vertx, new RestPersistenceService(vertx, config), PersistenceService.SERVICE_ADDRESS);
-        RestPersistenceServiceTest.persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
-        RestPersistenceServiceTest.persistenceProxy.initialize(context.asyncAssertSuccess());
+        ProxyHelper.registerService(PersistenceService.class, vertx, new GrpcPersistenceService(vertx, config), PersistenceService.SERVICE_ADDRESS);
+        GrpcPersistenceServiceTest.persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
+        GrpcPersistenceServiceTest.persistenceProxy.initialize(context.asyncAssertSuccess());
 
         rootLogger.addAppender(testAppender);
     }
