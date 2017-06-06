@@ -6,9 +6,7 @@ import com.deutscheboerse.risk.dave.log.TestAppender;
 import com.deutscheboerse.risk.dave.model.*;
 import com.deutscheboerse.risk.dave.utils.DataHelper;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -28,8 +26,8 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 
 @RunWith(VertxUnitRunner.class)
-public class RestPersistenceServiceTest {
-    private static final TestAppender testAppender = TestAppender.getAppender(RestPersistenceService.class);
+public class GrpcPersistenceServiceTest {
+    private static final TestAppender testAppender = TestAppender.getAppender(GrpcPersistenceService.class);
     private static final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
     private static Vertx vertx;
     private static StoreManagerMock storageManager;
@@ -37,15 +35,15 @@ public class RestPersistenceServiceTest {
 
     @BeforeClass
     public static void setUp(TestContext context) throws IOException {
-        RestPersistenceServiceTest.vertx = Vertx.vertx();
+        GrpcPersistenceServiceTest.vertx = Vertx.vertx();
 
         JsonObject config = TestConfig.getStorageConfig();
         storageManager = new StoreManagerMock(vertx);
         storageManager.listen(context.asyncAssertSuccess());
 
-        ProxyHelper.registerService(PersistenceService.class, vertx, new RestPersistenceService(vertx, config), PersistenceService.SERVICE_ADDRESS);
-        RestPersistenceServiceTest.persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
-        RestPersistenceServiceTest.persistenceProxy.initialize(context.asyncAssertSuccess());
+        ProxyHelper.registerService(PersistenceService.class, vertx, new GrpcPersistenceService(vertx, config), PersistenceService.SERVICE_ADDRESS);
+        GrpcPersistenceServiceTest.persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
+        GrpcPersistenceServiceTest.persistenceProxy.initialize(context.asyncAssertSuccess());
 
         rootLogger.addAppender(testAppender);
     }
@@ -134,8 +132,14 @@ public class RestPersistenceServiceTest {
 
     @AfterClass
     public static void tearDown(TestContext context) {
-        persistenceProxy.close();
-        storageManager.close(context.asyncAssertSuccess());
-        vertx.close(context.asyncAssertSuccess());
+        Future<Void> proxyClose = Future.future();
+        Future<Void> storeClose = Future.future();
+
+        persistenceProxy.close(proxyClose);
+        storageManager.close(storeClose);
+
+        CompositeFuture.all(proxyClose, storeClose).setHandler(context.asyncAssertSuccess(
+                res -> vertx.close(context.asyncAssertSuccess())
+        ));
     }
 }

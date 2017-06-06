@@ -46,6 +46,7 @@ public class ErrorPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void close() {
+    public void close(Handler<AsyncResult<Void>> resultHandler) {
+        resultHandler.handle(Future.succeededFuture());
     }
 }

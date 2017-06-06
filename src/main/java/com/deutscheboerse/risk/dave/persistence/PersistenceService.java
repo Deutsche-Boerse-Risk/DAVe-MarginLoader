@@ -25,5 +25,5 @@ public interface PersistenceService {
     void storeRiskLimitUtilization(List<RiskLimitUtilizationModel> models, Handler<AsyncResult<Void>> resultHandler);
 
     @ProxyClose
-    void close();
+    void close(Handler<AsyncResult<Void>> resultHandler);
 }
