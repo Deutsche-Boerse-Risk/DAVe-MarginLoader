@@ -70,12 +70,12 @@ public class AmqpConfig {
     }
 
     public static class ListenersConfig {
-        private static final String DEFAULT_ACCOUNT_MARGIN = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEAccountMargin";
-        private static final String DEFAULT_LIQUI_GROUP_MARGIN = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupMargin";
-        private static final String DEFAULT_LIQUI_GROUP_SPLIT_MARGIN = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupSplitMargin";
-        private static final String DEFAULT_POSITION_REPORT = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPositionReport";
-        private static final String DEFAULT_POOL_MARGIN = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPoolMargin";
-        private static final String DEFAULT_RISK_LIMIT_UTILIZATION = "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVERiskLimitUtilization";
+        private static final String DEFAULT_ACCOUNT_MARGIN = "broadcast.DAVE.PRISMA_DAVEAccountMargin";
+        private static final String DEFAULT_LIQUI_GROUP_MARGIN = "broadcast.DAVE.PRISMA_DAVELiquiGroupMargin";
+        private static final String DEFAULT_LIQUI_GROUP_SPLIT_MARGIN = "broadcast.DAVE.PRISMA_DAVELiquiGroupSplitMargin";
+        private static final String DEFAULT_POSITION_REPORT = "broadcast.DAVE.PRISMA_DAVEPositionReport";
+        private static final String DEFAULT_POOL_MARGIN = "broadcast.DAVE.PRISMA_DAVEPoolMargin";
+        private static final String DEFAULT_RISK_LIMIT_UTILIZATION = "broadcast.DAVE.PRISMA_DAVERiskLimitUtilization";
         private final String accountMargin;
         private final String liquiGroupMargin;
         private final String liquiGroupSplitMargin;
