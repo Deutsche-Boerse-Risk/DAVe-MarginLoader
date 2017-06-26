@@ -36,12 +36,12 @@ Listeners subsection has the following format:
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `accountMargin` | Queue name for account margin data | `broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEAccountMargin` |
-| `liquiGroupMargin` | Queue name for liqui group margin data | `broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupMargin` |
-| `liquiGroupSplitMargin` | Queue name for liqui group split margin data | `broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupSplitMargin` |
-| `positionReport` | Queue name for position report data | `broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPositionReport` |
-| `poolMargin` | Queue name for pool margin data | `broadcast.PRISMA_BRIDGE.PRISMA_TTSAVEPoolMargin` |
-| `riskLimitUtilization` | Queue name for risk limit utilization data | `broadcast.PRISMA_BRIDGE.PRISMA_TTSAVERiskLimitUtilization` |
+| `accountMargin` | Queue name for account margin data | `broadcast.DAVE.PRISMA_DAVEAccountMargin` |
+| `liquiGroupMargin` | Queue name for liqui group margin data | `broadcast.DAVE.PRISMA_DAVELiquiGroupMargin` |
+| `liquiGroupSplitMargin` | Queue name for liqui group split margin data | `broadcast.DAVE.PRISMA_DAVELiquiGroupSplitMargin` |
+| `positionReport` | Queue name for position report data | `broadcast.DAVE.PRISMA_DAVEPositionReport` |
+| `poolMargin` | Queue name for pool margin data | `broadcast.DAVE.PRISMA_DAVEPoolMargin` |
+| `riskLimitUtilization` | Queue name for risk limit utilization data | `broadcast.DAVE.PRISMA_DAVERiskLimitUtilization` |
 
 ### StoreManager
 
