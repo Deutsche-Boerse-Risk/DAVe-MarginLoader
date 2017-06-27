@@ -26,13 +26,11 @@ import java.util.stream.IntStream;
 
 public class BrokerFillerCorrectData implements BrokerFiller {
     private final Vertx vertx;
-    private final int tcpPort;
     private final AmqpConfig config;
     private static ProtonConnection protonConnection;
 
     public BrokerFillerCorrectData(Vertx vertx) {
         this.vertx = vertx;
-        this.tcpPort = TestConfig.BROKER_PORT;
         try {
             this.config = (new ObjectMapper()).readValue(TestConfig.getAmqpConfig().toString(), AmqpConfig.class);
         } catch (IOException e) {
@@ -120,9 +118,11 @@ public class BrokerFillerCorrectData implements BrokerFiller {
     private Future<ProtonConnection> createAmqpConnection() {
         Future<ProtonConnection> createAmqpConnectionFuture = Future.future();
         ProtonClient protonClient = ProtonClient.create(vertx);
+        final String host = this.config.getHostname();
+        final int port = this.config.getPort();
         final String userName = this.config.getUsername();
         final String password = this.config.getPassword();
-        protonClient.connect("localhost", this.tcpPort, userName, password, connectResult -> {
+        protonClient.connect(host, port, userName, password, connectResult -> {
             if (connectResult.succeeded()) {
                 connectResult.result().setContainer("mdh/marketDataLoaderIT").openHandler(openResult -> {
                     if (openResult.succeeded()) {
