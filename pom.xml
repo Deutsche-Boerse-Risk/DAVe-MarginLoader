@@ -16,7 +16,7 @@
         <protobuf.prisma.version>2.6.1</protobuf.prisma.version>
         <protobuf.grpc.version>3.2.0</protobuf.grpc.version>
         <protobuf.grpc.java.version>1.1.2</protobuf.grpc.java.version>
-        <vertx.version>LATEST</vertx.version>
+        <vertx.version>3.4.2</vertx.version>
         <junit.version>4.12</junit.version>
         <guava.version>21.0</guava.version>
         <netty.boringssl.version>1.1.33.Fork26</netty.boringssl.version>
@@ -34,19 +34,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
-
-    <repositories>
-        <repository>
-            <id>oss.sonatype.org-snapshot</id>
-            <url>http://oss.sonatype.org/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
 
     <build>
         <pluginManagement>
@@ -98,8 +85,8 @@
                         <systemPropertyVariables>
                             <healthCheck.port>${healthCheck.port}</healthCheck.port>
                             <storage.port>${storage.port}</storage.port>
-                            <cil.tcpport>${cil.tcpport}</cil.tcpport>
-                            <cil.sslport>${cil.sslport}</cil.sslport>
+                            <cil.host>${docker.container.cil.ip}</cil.host>
+                            <cil.tcpport>5672</cil.tcpport>
                             <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
                             <logback.configurationFile>${project.basedir}/src/test/resources/logback.xml</logback.configurationFile>
                         </systemPropertyVariables>
@@ -250,10 +237,6 @@
                                     <color>cyan</color>
                                     <file>${project.build.directory}/broker.log</file>
                                 </log>
-                                <ports>
-                                    <port>cil.tcpport:5672</port>
-                                    <port>cil.sslport:5671</port>
-                                </ports>
                             </run>
                         </image>
                     </images>
