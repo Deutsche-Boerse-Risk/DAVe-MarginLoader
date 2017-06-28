@@ -140,7 +140,7 @@ public class AMQPVerticleIT {
     public void testUnknownGPBExtensionError(TestContext context) throws InterruptedException {
         // Setup account margin to listen on incorrect queue
         JsonObject config = TestConfig.getAmqpConfig();
-        config.getJsonObject("listeners").put("accountMargin", "broadcast.PRISMA_BRIDGE.PRISMA_TTSAVELiquiGroupMargin");
+        config.getJsonObject("listeners").put("accountMargin", "broadcast.DAVE.PRISMA_DAVELiquiGroupMargin");
         DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(config);
 
         PersistenceService persistenceService = new SuccessPersistenceService(this.vertx);
