@@ -119,6 +119,7 @@ public class AmqpClient {
 
     private ProtonClientOptions getClientOptions() {
         return new ProtonClientOptions()
+                .setHeartbeat(60000)
                 .setReconnectAttempts(this.config.getReconnectAttempts())
                 .setReconnectInterval(this.config.getReconnectTimeout());
     }
