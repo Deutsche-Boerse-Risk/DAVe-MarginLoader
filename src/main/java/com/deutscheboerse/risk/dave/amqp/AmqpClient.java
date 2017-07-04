@@ -15,6 +15,7 @@ public class AmqpClient {
 
     private static final int FULL_FLOW_CREDIT = 2;
     private static final int THROTTLE_FLOW_CREDIT = 1;
+    private static final int HEARTBEAT = 60000;
 
     private final Vertx vertx;
     private final AmqpConfig config;
@@ -119,6 +120,7 @@ public class AmqpClient {
 
     private ProtonClientOptions getClientOptions() {
         return new ProtonClientOptions()
+                .setHeartbeat(HEARTBEAT)
                 .setReconnectAttempts(this.config.getReconnectAttempts())
                 .setReconnectInterval(this.config.getReconnectTimeout());
     }
